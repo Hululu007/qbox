@@ -12,7 +12,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.qbox.tv"
+        applicationId = "com.qbox.shell"
         // 21 = Android 5.0：兼容老电视（OKTV 生态即 Android 4.4-9 为主）
         minSdk = 21
         // 与 OKTV 一致：规避电视生态 scoped storage / 后台限制，无 Play 上架需求
