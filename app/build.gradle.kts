@@ -13,7 +13,8 @@ android {
 
     defaultConfig {
         applicationId = "com.qbox.tv"
-        minSdk = 24
+        // 21 = Android 5.0：兼容老电视（OKTV 生态即 Android 4.4-9 为主）
+        minSdk = 21
         // 与 OKTV 一致：规避电视生态 scoped storage / 后台限制，无 Play 上架需求
         targetSdk = 28
         versionCode = 1
@@ -26,6 +27,9 @@ android {
             storePassword = signingProperties.getProperty("storePassword")
             keyAlias = signingProperties.getProperty("keyAlias")
             keyPassword = signingProperties.getProperty("keyPassword")
+            // 老电视（Android 6 及以下）只认 v1 JAR 签名
+            enableV1Signing = true
+            enableV2Signing = true
         }
     }
 
