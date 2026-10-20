@@ -31,9 +31,8 @@ import kotlin.concurrent.thread
 class HomeActivity : Activity() {
 
     companion object {
-        // 导入界面预填的示例地址，用户可自行替换
-        const val SAMPLE_CONFIG =
-            "https://raw.githubusercontent.com/gaotianliuyun/gao/main/0826.json"
+        // 导入界面预填的默认地址：老白TVBOX，用户可自行替换
+        const val SAMPLE_CONFIG = "https://tvbox.laobaitv.net"
         const val EXTRA_SITE = "site"
         const val PREFS = "qbox"
         const val KEY_CONFIG_URL = "configUrl"
