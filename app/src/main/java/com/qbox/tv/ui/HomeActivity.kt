@@ -1,14 +1,19 @@
 package com.qbox.tv.ui
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -21,25 +26,53 @@ import com.qbox.tv.config.Site
 import com.qbox.tv.config.SiteParcel
 import kotlin.concurrent.thread
 
-/** 首页：加载配置 → 站点网格 → 进入点播。 */
+/** 首页：加载配置 → 站点网格 → 进入点播。菜单键 = 更换配置地址。 */
 class HomeActivity : Activity() {
 
     companion object {
-        // 默认配置：饭太硬镜像（GitHub raw），可后续在设置中更换
         const val DEFAULT_CONFIG =
             "https://raw.githubusercontent.com/gaotianliuyun/gao/main/0826.json"
         const val EXTRA_SITE = "site"
+        const val PREFS = "qbox"
+        const val KEY_CONFIG_URL = "configUrl"
     }
 
     private lateinit var statusView: TextView
     private lateinit var grid: RecyclerView
+    private lateinit var prefs: SharedPreferences
     private val main = Handler(Looper.getMainLooper())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val root = buildUi()
-        setContentView(root)
-        loadConfig(ConfigRepository.currentUrl ?: DEFAULT_CONFIG)
+        prefs = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        setContentView(buildUi())
+        loadConfig(prefs.getString(KEY_CONFIG_URL, null) ?: DEFAULT_CONFIG)
+    }
+
+    /** 菜单键：弹出配置地址输入框（电视上可用软键盘 / adb 配合）。 */
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_MENU) { promptConfigUrl(); return true }
+        return super.onKeyDown(keyCode, event)
+    }
+
+    private fun promptConfigUrl() {
+        val input = EditText(this).apply {
+            setText(prefs.getString(KEY_CONFIG_URL, null) ?: DEFAULT_CONFIG)
+            setSingleLine(true)
+            hint = "https://..."
+        }
+        AlertDialog.Builder(this)
+            .setTitle("配置地址")
+            .setView(input)
+            .setPositiveButton("确定") { _: DialogInterface, _: Int ->
+                val url = input.text.toString().trim()
+                if (url.startsWith("http")) {
+                    prefs.edit().putString(KEY_CONFIG_URL, url).apply()
+                    loadConfig(url)
+                }
+            }
+            .setNegativeButton("取消", null)
+            .show()
     }
 
     private fun buildUi(): View {

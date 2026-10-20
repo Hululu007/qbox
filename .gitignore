@@ -5,3 +5,7 @@ local.properties
 .idea/
 .DS_Store
 .kotlin/
+captures/
+.externalNativeBuild/
+.cxx/
+lint-baseline.xml
