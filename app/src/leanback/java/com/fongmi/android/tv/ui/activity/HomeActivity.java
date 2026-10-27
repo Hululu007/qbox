@@ -139,6 +139,12 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             showDiag();
             return true;
         });
+        mBinding.tabHome.setOnClickListener(v -> {
+            mBinding.recycler.smoothScrollToPosition(0);
+            mBinding.recycler.requestFocus();
+        });
+        mBinding.tabLive.setOnClickListener(v -> LiveActivity.start(this));
+        mBinding.tabSetting.setOnClickListener(v -> SettingActivity.start(this));
         mBinding.recycler.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
             @Override
             public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
@@ -221,7 +227,11 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     private void setTitle() {
         List<String> items = Arrays.asList(getHome().getName(), getConfig().getName(), getString(R.string.app_name));
         Optional<String> optional = items.stream().filter(s -> !TextUtils.isEmpty(s)).findFirst();
-        optional.ifPresent(s -> mBinding.title.setText(s));
+        optional.ifPresent(s -> {
+            mBinding.title.setText(s);
+            mBinding.heroTitle.setText(s);
+        });
+        mBinding.heroSub.setText(VodConfig.get().getSites().size() + " 个站点 · " + LiveConfig.get().getLives().size() + " 路直播");
     }
 
     private void initConfig() {
@@ -350,6 +360,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                 RefreshEvent.history();
                 RefreshEvent.home();
                 setLogo();
+                setTitle();
                 break;
             case COMMON:
                 setFunc();
