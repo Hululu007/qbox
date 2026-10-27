@@ -12,12 +12,12 @@ Android TV 的 TVBox 壳。当前产品线基于 **FongMi/TV 5.6.1** 源码定�
 
 ## 下载
 
-- https://github.com/zqs1qiwan/qbox-tv/releases/tag/v1.3.1
-  - `QBox-1.3.1-arm64-v8a.apk`（44.6 MB，主流电视）
-  - `QBox-1.3.1-armeabi-v7a.apk`（38.6 MB，老电视）
+- https://github.com/zqs1qiwan/qbox-tv/releases/tag/v1.3.2
+  - `QBox-1.3.2-arm64-v8a.apk`（44.6 MB，主流电视）
+  - `QBox-1.3.2-armeabi-v7a.apk`（38.6 MB，老电视）
 - `minSdk 24`（Android 7+），v2 签名，证书 SHA-256 `f7c4b32c...f63c62a`。
 
-## 产品特性（v1.3.1）
+## 产品特性（v1.3.2）
 
 - 自更新已关闭（原指向 FongMi 官方 Release，会误装官方包），改为提示到 GitHub Release 手动下载
 - 自检：首页标题长按弹出「QBox 自检」（版本 / 配置名 / 地址 / 站点数 / 直播数 / jar 缓存 / spider），电视端排障用；验收步骤见 [docs/acceptance.md](docs/acceptance.md)
