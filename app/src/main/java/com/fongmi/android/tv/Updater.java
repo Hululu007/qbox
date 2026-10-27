@@ -46,14 +46,13 @@ public class Updater implements Download.Callback, UpdateListener {
     }
 
     public Updater force() {
-        Notify.show(R.string.update_check);
-        Setting.putUpdate(true);
+        // QBox：自更新源是 FongMi 官方 Release，指过去会装成另一个 App，这里改为提示手动更新
+        Notify.show("QBox 暂未启用在线更新，请到 GitHub Release 下载新版本");
         return this;
     }
 
     public void start(FragmentActivity activity) {
-        if (!Setting.getUpdate()) return;
-        Task.execute(() -> doInBackground(activity));
+        // QBox：关闭对 FongMi 官方源的自更新检查
     }
 
     private void doInBackground(FragmentActivity activity) {
