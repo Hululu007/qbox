@@ -12,12 +12,12 @@ Android TV 的 TVBox 壳。当前产品线基于 **FongMi/TV 5.6.1** 源码定�
 
 ## 下载
 
-- https://github.com/zqs1qiwan/qbox-tv/releases/tag/v1.0.1
-  - `QBox-1.0.1-arm64-v8a.apk`（44.6 MB，主流电视）
-  - `QBox-1.0.1-armeabi-v7a.apk`（38.6 MB，老电视）
+- https://github.com/zqs1qiwan/qbox-tv/releases/tag/v1.0.2
+  - `QBox-1.0.2-arm64-v8a.apk`（44.6 MB，主流电视）
+  - `QBox-1.0.2-armeabi-v7a.apk`（38.6 MB，老电视）
 - `minSdk 24`（Android 7+），v2 签名，证书 SHA-256 `f7c4b32c...f63c62a`。
 
-## 产品特性（v1.0.1）
+## 产品特性（v1.0.2）
 
 - TVBox 配置协议全量：sites / lives / parses / rules / hosts / flags / wallpaper / logo
 - 4 种爬虫运行时：jar（csp_，内置 DexClassLoader）、QuickJS（js）、Python（已裁掉，见下）、HTTP API 站
