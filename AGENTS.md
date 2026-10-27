@@ -17,6 +17,7 @@
 - Python 爬虫已裁掉：移除 `:chaquo` 依赖与 settings 入口，`com.fongmi.chaquo.Loader` 为占位；py 站点回退 `SpiderNull`。
 - 默认配置：`VodConfig.init()` 首次启动写入 `https://tvbox.laobaitv.net`（→302→ `www.xn--sss604efuw.cc/tv`，JPEG+`**` base64 JSON；解码后 49 站点/6 路直播；spider 是伪装 jpg 的 zip，MD5 `b55978c4...`，dex 内 76 个 `com.github.catvod.spider.*Guard`）。
 - 已知限制：FFMPEG 解码模式不可用（未编 `lib-decoder-ffmpeg`）；UI 仍是 FongMi 原版 leanback（仅品牌层）；**未完成真机播放验证**。模拟器已确认不可用：WHPX 与纯 TCG 都试过，qemu 启动即退出——沙箱禁止命名管道而 qemu 依赖它；`dex2jar` 想把爬虫 dex 转 JVM 类也被 `Files.isWritable` 恒 false 卡住。真机验收只能靠用户电视。
+- **老白 jar 是加固包（重要）**：dex 里 76 个类全是 `*Guard` 薄壳，继承 `BaseSpiderGuard`，真实实现由 `DexNative` + `assets/ftyguard_v7|v8.so` 在运行时解出；`init()` 里 `delegate` 为空即 NPE。用 `enjarify`（Python 版，走 zipfile 不受 zipfs 限制，76/76 类转换成功）把 dex 转成 jar 后仍无法运行，证明该源只能真机验证。`enjarify` 用法：`PYTHONPATH=.toolchain/enjarify python -m enjarify.main <dex> -o out.jar -f`。
 - 兜底配置：`assets/qbox_default.json`（12KB，49 站点）在默认源拉取失败时由 `VodConfig.load` 回退加载；对应单测 `bundledFallbackConfigParses` 输出 `QBOX_FALLBACK_OK sites=49`。
 - 本机没有 `/opt/data`、`/home/hermes`；下文这些旧路径与 M1 描述仅作历史参考。
 

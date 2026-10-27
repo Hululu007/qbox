@@ -79,6 +79,9 @@ cd fongmi-561
 - 界面主体仍是 FongMi 原版 leanback 布局，只做了品牌层（图标/banner/logo/名称），首页 hero/tab 结构未重做。
 - 未在真机/模拟器上做端到端播放验证：本机模拟器（WHPX 与纯 TCG 都试过）在沙箱内启动即退出——
   qemu 需要 Windows 命名管道，而沙箱禁止命名管道；真机验收需用户电视。
+- **老白 spider jar 是加固包**：dex 里只有 `*Guard` 薄壳类，全部继承 `BaseSpiderGuard`，
+  通过 `DexNative` + `assets/ftyguard_v7|v8.so` 在运行时解出真实实现。所以拿 dex 转 JVM 类也只能跑到
+  `init()` 就 NPE（delegate 为空），播放链路无法脱离 Android 运行时验证。
 
 ## 仓库结构
 
