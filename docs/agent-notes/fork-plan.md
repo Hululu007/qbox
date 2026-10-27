@@ -1,57 +1,52 @@
-# 路线 B：基于 FongMi/TV 做自有壳
+# 路线 B 决策记录：基于 FongMi/TV 做自有壳
 
-日期：2026-10-27　状态：媒体层 aar 已自建，应用编译中
+日期：2026-10-27（最后更新：1.3.2 发布后）　状态：**已定稿**
 
-## 结论（重要）
+## 结论：基线选 5.6.1，不是 5.8.x
 
-FongMi/TV 5.8.3 源码可以完整编译，**不需要降级播放器**。关键发现：
+曾经尝试直接用 5.8.3 源码编译，失败原因（重要，避免重复踩）：
 
-- 它依赖的不是一个 `media-1.8.0.aar`，而是 **20 个 `lib-*.aar`**（FongMi 自编 media3 fork）。
-- 构建脚本就在 fork 仓库里：`FongMi/media` 分支 **`release-1.11.0-fongmi`** 的 `move.bat` + `move.txt` 列出了全部产物；
-  每个模块产出 `lib-<name>-release.aar`，拷进 `TV/app/libs/` 即可。
-- `move.txt` 清单：common、container、database、datasource、datasource-okhttp、datasource-rtmp、decoder、decoder-ffmpeg、decoder-mpegh、effect、exoplayer、exoplayer-dash/hls/rtsp/smoothstreaming、extractor、mpvplayer、session、ui、ui-danmaku。
+- 5.8.3 的 `app` 引用了大量 **私有 media fork 类**：`androidx.media3.exoplayer.libass.*`、
+  `SubtitleTranscript*`、`DecoderManager`、`DiscMenu*`、`Effect*` 等；公开的 `FongMi/media`
+  分支（`release-1.11.0-fongmi`）里**没有**这些类——作者本地另有未公开改动。
+  实测缺 45 个类，无法用公开源码补齐。
+- 5.6.1 只缺 8 个音效/画质类（`AudioChannelMode`、`AudioChannelMix`、`AudioEffectParameters`、
+  `AudioEffectProcessor`、`AudioEqualizerController`、`VideoAdjustment`、`ColorToneAdjustEffect`、
+  `DetailAdjustEffect`），已用兼容桩补齐（`app/src/main/java/androidx/media3/**`），功能不受影响。
 
-## 构建步骤（已在本机验证）
+## 媒体层构建（已验证）
 
 1. `git -c http.sslBackend=openssl clone --depth 1 -b release-1.11.0-fongmi https://github.com/FongMi/media.git media`
-2. 用 Gradle **9.1.0**（`-all` 包），JDK 21，SDK 36/37，NDK 29.0.14206865 + CMake 3.22.1（AGP 会自动装）。
-3. `gradle -p media :lib-common:assembleRelease ...`（18 个 Java 模块；`lib-decoder-ffmpeg` 需要 NDK，可跳过）。
-4. 把 `media/libraries/**/buildout/outputs/aar/lib-*-release.aar` 拷到 `fongmi/app/libs/`。
-5. `fongmi` 里 `./gradlew :app:assembleLeanbackDebug`。
+2. Gradle **9.1.0**、JDK 21、SDK 36/37、NDK 29.0.14206865、CMake 3.22.1。
+3. 按仓库 `move.txt` 构建 18 个 Java 模块：`gradle -p media :lib-common:assembleRelease ...`
+   （`lib-decoder-ffmpeg` 需要 NDK 原生编译，本机沙箱内 CMake/ninja 阻塞，跳过；见 AGENTS.md）
+4. 产物 `media/libraries/**/buildout/outputs/aar/lib-*-release.aar` → `fongmi-561/app/libs/`
 
-## 本项目对上游做的改动（fork 补丁）
+## 对上游（5.6.1）的改动清单
 
 | 文件 | 改动 | 原因 |
 |---|---|---|
-| `fongmi/gradle/gradle-daemon-jvm.properties` | 删除 | 上游把 daemon 固定为 JBR 21，JBR 在本机把目录判为不可写，Gradle 9.7 拒绝配置 |
-| `fongmi/gradle.properties` | `-Duser.home=.toolchain/home`、关配置缓存 | 沙箱禁止写 `~/.android`、`~/.gradle` |
-| `media/gradle.properties` | 同上 | 同上 |
-| `media/libraries/mpvplayer/build.gradle.kts` | 去掉 `:lib-decoder-ffmpeg` 依赖 | 先不编原生解码器；MPV 运行时由外挂模块提供 |
-| `fongmi/buildSrc/.../AbiApkPackaging.groovy` | 无 ffmpeg aar 时跳过 `verifyMpvNative` | 同上 |
-| `fongmi/app/build.gradle` | applicationId `com.qbox.app`、版本 1.0.0 | 自有壳 |
-| `fongmi/app/.../api/config/VodConfig.java` | 首次启动自动写入默认配置 `https://tvbox.laobaitv.net` | 开箱即用 |
-| `fongmi/app/src/main/res/values*/strings.xml` | `app_name` → QBox | 品牌 |
+| `gradle/gradle-daemon-jvm.properties` | 删除 | 上游固定 daemon 为 JBR，本机 JBR 判目录不可写，Gradle 9.7 拒绝配置 |
+| `gradle.properties` | `-Duser.home=.toolchain/home` | 沙箱禁止写 `C:\Users\Q\.android`、`.gradle` |
+| `settings.gradle` / `app/build.gradle` | 移除 `:chaquo`，stub `com.fongmi.chaquo.Loader` | Python 运行时需要宿主 Python 3.10，构建环境没有 |
+| `app/build.gradle` | applicationId `com.qbox.app`、version 1.3.2、新增 x86_64 flavor | 自有壳 + 模拟器/CI 预留 |
+| `app/.../api/config/VodConfig.java` | `DEFAULT_CONFIG` 首次启动写入；拉取失败回退 `assets/qbox_default.json` | 开箱即用 + 断网兜底 |
+| `app/.../Updater.java` | 关闭 FongMi 官方源自更新 | 否则会把用户引到 FongMi 官方包 |
+| `app/.../HomeActivity.java` | 标题长按 = QBox 自检 | 电视端排障 |
+| `res/values*/strings.xml` | `app_name` → QBox | 品牌 |
+| `res/mipmap-*`、`drawable/ic_launcher_foreground.xml`、`drawable-nodpi/ic_logo.png`、leanback banner | 自有图标/横幅 | 品牌 |
+| `app/src/main/java/androidx/media3/**` | 8 个兼容桩类 | 5.6.1 与公开 media 分支的差集 |
 
-## 环境（.toolchain/，已 gitignore）
+## 环境（`.toolchain/`，已 gitignore）
 
-- JDK：Temurin 21.0.12.1
-- Android SDK：platform 36 + 37.0（`android-37` 为 junction）、build-tools 36/37、platform-tools、NDK 29、cmake 3.22.1
-- Gradle：9.7.1（TV 构建）、9.1.0（media 构建）
-- 下载器：`.toolchain/Dl.java`
+- JDK：Temurin 21.0.12.1（**不要用 JBR**）
+- Android SDK：platform 36 + 37.0（`android-37` junction）、build-tools 36/37、platform-tools、NDK 29、CMake 3.22.1
+- Gradle：9.7.1（TV）、9.1.0（media）
+- 下载器：`.toolchain/Dl.java`、`.toolchain/Fetch.java`（Java 网络，绕开沙箱 schannel 问题）
+- 构建入口：`scripts/build.cmd`；测试入口：`scripts/test.cmd`
 
-### 必须的环境变量（每次构建）
+## 结果
 
-```
-JAVA_HOME=.toolchain/jdk-extract/jdk-21.0.12.1+1
-ANDROID_HOME=.toolchain/android-sdk
-ANDROID_USER_HOME=.toolchain/android-user-home
-GRADLE_USER_HOME=.toolchain/gradle-home
-TMP/TEMP=.toolchain/tmp
-```
-
-## 已知问题 / 待办
-
-- MPV：`lib-mpvplayer.aar` 已含 `libmpv.so`/`libplayer.so`，但打包时被 `AbiApkPackaging` 排除（设计如此，运行时由 `runtime-mpv` 模块提供）；不装模块时 MPV 引擎不可用，EXO 正常。
-- 原生解码器（ffmpeg/mpegh）暂未编：`decoderMode=FFMPEG` 不可用。
-- 本机未验证真机：需装 APK 或用模拟器。
-- UI/UX 仍是 FongMi 原版 leanback 布局，后续再按 QBox 设计语言改。
+- 1.3.2 已发布（arm64-v8a / armeabi-v7a），`applicationId com.qbox.app`，v2 签名。
+- 离线可验证的链路都已验证：配置拉取/解码（含兜底）、直播解析（5 源 2675 频道 + 真实 HLS）。
+- 点播播放无法离线验证：老白 jar 是加固包（`BaseSpiderGuard` + `DexNative` 原生解壳），只能真机。

@@ -20,6 +20,8 @@
 - **老白 jar 是加固包（重要）**：dex 里 76 个类全是 `*Guard` 薄壳，继承 `BaseSpiderGuard`，真实实现由 `DexNative` + `assets/ftyguard_v7|v8.so` 在运行时解出；`init()` 里 `delegate` 为空即 NPE。用 `enjarify`（Python 版，走 zipfile 不受 zipfs 限制，76/76 类转换成功）把 dex 转成 jar 后仍无法运行，证明该源只能真机验证。`enjarify` 用法：`PYTHONPATH=.toolchain/enjarify python -m enjarify.main <dex> -o out.jar -f`。
 - 兜底配置：`assets/qbox_default.json`（12KB，49 站点）在默认源拉取失败时由 `VodConfig.load` 回退加载；对应单测 `bundledFallbackConfigParses` 输出 `QBOX_FALLBACK_OK sites=49`。
 - 直播链路已用 `LiveParseTest`（`LiveParser.start`）验证：5 个源全部解析成功（2675 频道），首个频道线路 `cctv1.m3u8` 返回 `206 application/vnd.apple.mpegurl`。单测命令 `:app:testLeanbackArm64_v8aDebugUnitTest --tests "com.qbox.*"` 同时跑配置与直播两组。
+- 文档索引：`docs/architecture.md`（模块/数据流/改动点对照）、`docs/acceptance.md`（电视验收清单）、`docs/design/ui-plan.md`（UI 方向与进度）、`docs/agent-notes/fork-plan.md`（路线 B 决策记录）。
+- 脚本：`scripts/build.cmd`（release/debug 构建）、`scripts/test.cmd`（Robolectric 配置+直播）；两者自动注入 `.toolchain` 环境变量。
 - 本机没有 `/opt/data`、`/home/hermes`；下文这些旧路径与 M1 描述仅作历史参考。
 
 ### 本机构建坑（都实际踩过）
