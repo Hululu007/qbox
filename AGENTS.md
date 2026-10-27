@@ -19,6 +19,7 @@
 - 已知限制：FFMPEG 解码模式不可用（未编 `lib-decoder-ffmpeg`）；UI 结构仍是 FongMi leanback（已做品牌层 + 设计 token 精修，首页 hero/tab 未改）；**未完成真机播放验证**。模拟器已确认不可用：WHPX 与纯 TCG 都试过，qemu 启动即退出——沙箱禁止命名管道而 qemu 依赖它；`dex2jar` 想把爬虫 dex 转 JVM 类也被 `Files.isWritable` 恒 false 卡住。真机验收只能靠用户电视。
 - **老白 jar 是加固包（重要）**：dex 里 76 个类全是 `*Guard` 薄壳，继承 `BaseSpiderGuard`，真实实现由 `DexNative` + `assets/ftyguard_v7|v8.so` 在运行时解出；`init()` 里 `delegate` 为空即 NPE。用 `enjarify`（Python 版，走 zipfile 不受 zipfs 限制，76/76 类转换成功）把 dex 转成 jar 后仍无法运行，证明该源只能真机验证。`enjarify` 用法：`PYTHONPATH=.toolchain/enjarify python -m enjarify.main <dex> -o out.jar -f`。
 - 兜底配置：`assets/qbox_default.json`（12KB，49 站点）在默认源拉取失败时由 `VodConfig.load` 回退加载；对应单测 `bundledFallbackConfigParses` 输出 `QBOX_FALLBACK_OK sites=49`。
+- 直播链路已用 `LiveParseTest`（`LiveParser.start`）验证：5 个源全部解析成功（2675 频道），首个频道线路 `cctv1.m3u8` 返回 `206 application/vnd.apple.mpegurl`。单测命令 `:app:testLeanbackArm64_v8aDebugUnitTest --tests "com.qbox.*"` 同时跑配置与直播两组。
 - 本机没有 `/opt/data`、`/home/hermes`；下文这些旧路径与 M1 描述仅作历史参考。
 
 ### 本机构建坑（都实际踩过）

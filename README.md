@@ -72,6 +72,10 @@ cd fongmi-561
 - APK：`com.qbox.app` / label `QBox` / v1.0.3 / v2 签名通过 / arm64 44.6MB + armv7 38.6MB；
   图标、leanback banner、首页 logo 已换成 QBox 自有设计（深色圆角 + 环形播放标记）。
 - 兜底：`QBOX_FALLBACK_OK sites=49`，内置 `qbox_default.json` 与线上配置同构，默认源不可达时仍能进首页。
+- **直播链路（同样走壳内代码）**：`LiveParseTest` 用 `LiveParser.start()` 拉默认配置里的直播源，
+  5 个源全部解析成功（综合直播 141 / Kimentanm 120 / 虎牙 1035 / 斗鱼 935 / YY 轮播 444，共 2675 频道），
+  并探到真实流：`http://173.208.212.130:8181/720p/cctv1.m3u8 -> 206 application/vnd.apple.mpegurl`。
+  运行：`.\gradlew.bat :app:testLeanbackArm64_v8aDebugUnitTest --tests "com.qbox.*"`。
 
 ## 已知限制
 
