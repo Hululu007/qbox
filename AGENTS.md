@@ -9,8 +9,8 @@
 
 - 产品线已切换为 **FongMi/TV 5.6.1 定制壳**（不再以纯 Kotlin 自研 M1 为主线）：
   - 源码仓 <https://github.com/zqs1qiwan/qbox-tv>（私有，`main`）；本地 worktree `fongmi-561/`（gitignore）。
-  - `applicationId com.qbox.app`、`versionName 1.3.0`、`minSdk 24`、`targetSdk 37`、label `QBox`；图标、leanback banner、首页 `ic_logo` 均已换成自有设计；1.1.x 起焦点环 3dp、卡片 12dp 圆角、主色 QBox 蓝、窗口底色 #0B0B0F；1.2.0 调行间距/网格间距/海报标题；1.3.0 首页标题长按 = 自检对话框。
-  - Release `v1.3.0` 已上传：`QBox-1.3.0-arm64-v8a.apk`（44.6MB）、`QBox-1.3.0-armeabi-v7a.apk`（38.6MB），v2 签名；v1.0.x/1.1.x/1.2.0 保留。
+  - `applicationId com.qbox.app`、`versionName 1.3.1`、`minSdk 24`、`targetSdk 37`、label `QBox`；图标、leanback banner、首页 `ic_logo` 均已换成自有设计；1.1.x 起焦点环 3dp、卡片 12dp 圆角、主色 QBox 蓝、窗口底色 #0B0B0F；1.2.0 调行间距/网格间距/海报标题；1.3.0 首页标题长按 = 自检对话框；1.3.1 关闭 FongMi 官方源自更新。
+  - Release `v1.3.1` 已上传：`QBox-1.3.1-arm64-v8a.apk`（44.5MB）、`QBox-1.3.1-armeabi-v7a.apk`（38.6MB），v2 签名；旧版保留。
 - 本机（Windows）工具链在 `.toolchain/`：JDK 21 Temurin、SDK 36/37、build-tools 36/37、NDK 29.0.14206865、CMake 3.22.1、Gradle 9.7.1（TV）/9.1.0（media）。
   构建必须把 `JAVA_HOME/ANDROID_HOME/ANDROID_USER_HOME/GRADLE_USER_HOME/TMP/TEMP` 指到工作区内，否则 Gradle 与 adb 会写 `C:\Users\Q` 被沙箱拒绝。
 - 媒体层不在 Maven 上：`media/`（FongMi/media 分支 `release-1.11.0-fongmi`）按仓库 `move.txt` 自编 18 个 `lib-*-release.aar`，放进 `fongmi-561/app/libs/`。**公开 TV 源码与公开 media 分支不同步**：5.7.8+ / 5.8 引用的 `androidx.media3.exoplayer.libass`、`SubtitleTranscript*`、`DecoderManager`、`DiscMenu*` 等类公开 media 仓没有，所以基准选 5.6.1（缺的只有 8 个音效/画质类，已在 `app/src/main/java/androidx/media3/**` 补桩）。
