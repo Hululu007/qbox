@@ -33,6 +33,17 @@ Android TV 的 TVBox 壳。当前产品线基于 **FongMi/TV 5.6.1** 源码定�
 - 默认配置：`https://tvbox.laobaitv.net`（老白 TVBOX；实测 49 站点、6 路直播）
 - 首次启动自动载入默认配置；设置页可随时更换
 
+## 开发
+
+```powershell
+.\scripts\build.cmd                  # release，arm64 + v7a
+.\scripts\build.cmd -Variant Debug   # 快速编译验证
+.\scripts\test.cmd                   # Robolectric：配置 + 直播
+```
+
+脚本会自动把 JDK/SDK/Gradle/TMP 指到 `.toolchain/`，不用手工设环境变量；
+模块职责、配置→爬虫→播放的数据流、以及"改哪里"的对照表见 [docs/architecture.md](docs/architecture.md)。
+
 ## 构建（Windows 已验证）
 
 工具链全部在 `.toolchain/`（gitignore，约 8 GB）：
