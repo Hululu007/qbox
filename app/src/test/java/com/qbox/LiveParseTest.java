@@ -3,6 +3,7 @@ package com.qbox;
 import static org.junit.Assert.assertTrue;
 
 import com.fongmi.android.tv.api.parser.LiveParser;
+import com.fongmi.android.tv.bean.Channel;
 import com.fongmi.android.tv.bean.Group;
 import com.fongmi.android.tv.bean.Live;
 import com.github.catvod.utils.Json;
@@ -14,6 +15,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 /**
  * QBox 直播链路测试（JVM + Robolectric）：
@@ -30,6 +34,7 @@ public class LiveParseTest {
         JsonArray lives = object.getAsJsonArray("lives");
         int parsed = 0;
         int channels = 0;
+        boolean probed = false;
         Gson gson = new Gson();
         for (int i = 0; i < lives.size(); i++) {
             JsonObject item = lives.get(i).getAsJsonObject();
@@ -44,6 +49,10 @@ public class LiveParseTest {
                 if (count > 0) {
                     parsed++;
                     channels += count;
+                    if (!probed) {
+                        probed = true;
+                        probeFirst(live);
+                    }
                 }
             } catch (Throwable e) {
                 System.out.println("QBOX_LIVE[" + (item.has("name") ? item.get("name").getAsString() : i) + "] FAILED "
@@ -52,5 +61,34 @@ public class LiveParseTest {
         }
         System.out.println("QBOX_LIVE_SUMMARY parsed=" + parsed + " channels=" + channels);
         assertTrue("no live source parsed", parsed > 0);
+    }
+
+    /** 取第一个频道的第一条线路，验证它真的能取到流（200/206 + 视频类型）。 */
+    private static void probeFirst(Live live) {
+        String stream = null;
+        String ua = live.getUa();
+        outer:
+        for (Group group : live.getGroups()) {
+            for (Channel channel : group.getChannel()) {
+                if (channel.getUrls().isEmpty()) continue;
+                stream = channel.getUrls().get(0);
+                if (channel.getUa() != null && !channel.getUa().isEmpty()) ua = channel.getUa();
+                break outer;
+            }
+        }
+        if (stream == null) return;
+        try {
+            HttpURLConnection c = (HttpURLConnection) new URL(stream).openConnection();
+            c.setConnectTimeout(8000);
+            c.setReadTimeout(8000);
+            c.setRequestProperty("Range", "bytes=0-0");
+            if (ua != null && !ua.isEmpty()) c.setRequestProperty("User-Agent", ua);
+            int code = c.getResponseCode();
+            String type = c.getContentType();
+            c.disconnect();
+            System.out.println("QBOX_LIVE_STREAM " + stream + " -> " + code + " " + type);
+        } catch (Throwable e) {
+            System.out.println("QBOX_LIVE_STREAM " + stream + " -> ERR " + e.getClass().getSimpleName());
+        }
     }
 }

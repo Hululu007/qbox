@@ -134,6 +134,10 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     @Override
     protected void initEvent() {
         mBinding.title.setListener(this);
+        mBinding.title.setOnLongClickListener(v -> {
+            showDiag();
+            return true;
+        });
         mBinding.recycler.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
             @Override
             public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
@@ -141,6 +145,21 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                 if (mPresenter.isDelete()) setHistoryDelete(false);
             }
         });
+    }
+
+    /** QBox 自检：首页标题长按显示版本 / 配置 / 站点 / 直播数，方便电视端排查。 */
+    private void showDiag() {
+        Config config = VodConfig.get().getConfig();
+        String text = "版本：" + com.fongmi.android.tv.BuildConfig.VERSION_NAME + "\n"
+                + "配置：" + (config == null ? "-" : config.getName()) + "\n"
+                + "地址：" + (config == null ? "-" : config.getUrl()) + "\n"
+                + "站点：" + VodConfig.get().getSites().size() + "\n"
+                + "直播：" + LiveConfig.get().getLives().size();
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                .setTitle("QBox 自检")
+                .setMessage(text)
+                .setPositiveButton("关闭", null)
+                .show();
     }
 
     private void checkAction(Intent intent) {
