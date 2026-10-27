@@ -2,6 +2,8 @@
 
     <style name="Theme.Base" parent="Theme.Material3.Dark.NoActionBar">
         <item name="colorPrimary">@color/qbox_accent</item>
+        <item name="colorSurface">@color/qbox_surface</item>
+        <item name="android:windowBackground">@color/qbox_bg</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowTranslucentStatus">true</item>
         <item name="android:windowTranslucentNavigation">true</item>
