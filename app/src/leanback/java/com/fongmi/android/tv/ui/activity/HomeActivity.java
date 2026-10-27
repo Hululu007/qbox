@@ -134,8 +134,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     protected void initEvent() {
-        mBinding.title.setListener(this);
-        mBinding.title.setOnLongClickListener(v -> {
+        mBinding.title.setVisibility(View.GONE);
+        mBinding.heroTitle.setOnLongClickListener(v -> {
             showDiag();
             return true;
         });
