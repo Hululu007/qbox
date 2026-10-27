@@ -20,6 +20,8 @@ import com.github.catvod.bean.Proxy;
 import com.github.catvod.utils.Json;
 import com.google.gson.JsonObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -115,8 +117,25 @@ public class VodConfig extends BaseConfig {
 
     @Override
     protected void load(Config config) throws Throwable {
-        String json = Decoder.getJson(UrlUtil.convert(config.getUrl()), TAG);
+        String json;
+        try {
+            json = Decoder.getJson(UrlUtil.convert(config.getUrl()), TAG);
+        } catch (Throwable e) {
+            // QBox：默认源拉取失败时回退到内置快照，保证首次启动仍能出站点
+            if (!DEFAULT_CONFIG.equals(config.getUrl())) throw e;
+            json = readDefaultConfig();
+        }
         checkJson(config, Json.parse(json).getAsJsonObject());
+    }
+
+    private static String readDefaultConfig() throws Exception {
+        try (InputStream in = App.get().getAssets().open("qbox_default.json")) {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            byte[] buffer = new byte[8192];
+            int read;
+            while ((read = in.read(buffer)) > 0) out.write(buffer, 0, read);
+            return out.toString("UTF-8");
+        }
     }
 
     @Override
