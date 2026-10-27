@@ -36,6 +36,7 @@ Android TV 的 TVBox 壳。当前产品线基于 **FongMi/TV 5.6.1** 源码定�
 ## 开发
 
 ```powershell
+.\scripts\build-media-aars.cmd       # 新克隆必跑一次：编 media3 fork 的 18 个 aar 到 app/libs
 .\scripts\build.cmd                  # release，arm64 + v7a
 .\scripts\build.cmd -Variant Debug   # 快速编译验证
 .\scripts\test.cmd                   # Robolectric：配置 + 直播

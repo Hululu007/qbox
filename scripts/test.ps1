@@ -7,6 +7,7 @@
 #   LiveParseTest       - 直播 m3u/txt 解析（真实壳代码）
 
 $ErrorActionPreference = "Stop"
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $root = Split-Path -Parent $PSScriptRoot
 $toolchain = Join-Path $root ".toolchain"
 
