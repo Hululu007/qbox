@@ -9,14 +9,15 @@
 
 - 产品线已切换为 **FongMi/TV 5.6.1 定制壳**（不再以纯 Kotlin 自研 M1 为主线）：
   - 源码仓 <https://github.com/zqs1qiwan/qbox-tv>（私有，`main`）；本地 worktree `fongmi-561/`（gitignore）。
-  - `applicationId com.qbox.app`、`versionName 1.0.2`、`minSdk 24`、`targetSdk 37`、label `QBox`；图标、leanback banner、首页 `ic_logo` 均已换成自有设计。
-  - Release `v1.0.2` 已上传：`QBox-1.0.2-arm64-v8a.apk`（44.6MB）、`QBox-1.0.2-armeabi-v7a.apk`（38.6MB），v2 签名；v1.0.0/1.0.1 保留。
+  - `applicationId com.qbox.app`、`versionName 1.0.3`、`minSdk 24`、`targetSdk 37`、label `QBox`；图标、leanback banner、首页 `ic_logo` 均已换成自有设计。
+  - Release `v1.0.3` 已上传：`QBox-1.0.3-arm64-v8a.apk`（44.6MB）、`QBox-1.0.3-armeabi-v7a.apk`（38.6MB），v2 签名；v1.0.0/1.0.1/1.0.2 保留。
 - 本机（Windows）工具链在 `.toolchain/`：JDK 21 Temurin、SDK 36/37、build-tools 36/37、NDK 29.0.14206865、CMake 3.22.1、Gradle 9.7.1（TV）/9.1.0（media）。
   构建必须把 `JAVA_HOME/ANDROID_HOME/ANDROID_USER_HOME/GRADLE_USER_HOME/TMP/TEMP` 指到工作区内，否则 Gradle 与 adb 会写 `C:\Users\Q` 被沙箱拒绝。
 - 媒体层不在 Maven 上：`media/`（FongMi/media 分支 `release-1.11.0-fongmi`）按仓库 `move.txt` 自编 18 个 `lib-*-release.aar`，放进 `fongmi-561/app/libs/`。**公开 TV 源码与公开 media 分支不同步**：5.7.8+ / 5.8 引用的 `androidx.media3.exoplayer.libass`、`SubtitleTranscript*`、`DecoderManager`、`DiscMenu*` 等类公开 media 仓没有，所以基准选 5.6.1（缺的只有 8 个音效/画质类，已在 `app/src/main/java/androidx/media3/**` 补桩）。
 - Python 爬虫已裁掉：移除 `:chaquo` 依赖与 settings 入口，`com.fongmi.chaquo.Loader` 为占位；py 站点回退 `SpiderNull`。
 - 默认配置：`VodConfig.init()` 首次启动写入 `https://tvbox.laobaitv.net`（→302→ `www.xn--sss604efuw.cc/tv`，JPEG+`**` base64 JSON；解码后 49 站点/6 路直播；spider 是伪装 jpg 的 zip，MD5 `b55978c4...`，dex 内 76 个 `com.github.catvod.spider.*Guard`）。
-- 已知限制：FFMPEG 解码模式不可用（未编 `lib-decoder-ffmpeg`）；UI 仍是 FongMi 原版 leanback；**未完成真机播放验证**（本机模拟器在沙箱内无法创建虚拟机，qemu 启动即退出）。
+- 已知限制：FFMPEG 解码模式不可用（未编 `lib-decoder-ffmpeg`）；UI 仍是 FongMi 原版 leanback（仅品牌层）；**未完成真机播放验证**。模拟器已确认不可用：WHPX 与纯 TCG 都试过，qemu 启动即退出——沙箱禁止命名管道而 qemu 依赖它；`dex2jar` 想把爬虫 dex 转 JVM 类也被 `Files.isWritable` 恒 false 卡住。真机验收只能靠用户电视。
+- 兜底配置：`assets/qbox_default.json`（12KB，49 站点）在默认源拉取失败时由 `VodConfig.load` 回退加载；对应单测 `bundledFallbackConfigParses` 输出 `QBOX_FALLBACK_OK sites=49`。
 - 本机没有 `/opt/data`、`/home/hermes`；下文这些旧路径与 M1 描述仅作历史参考。
 
 ### 本机构建坑（都实际踩过）
