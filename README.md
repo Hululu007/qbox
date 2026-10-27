@@ -1,52 +1,83 @@
 # QBox
 
-自研 TVBox 客户端（Android TV）。对标 OKTV（Fong/OK 系）的操作结构，全新代码库。
+Android TV 的 TVBox 壳。当前产品线基于 **FongMi/TV 5.6.1** 源码定制（自有品牌、自有签名、默认配置、兼容层），
+目标是与 OK影视（FongMi 系）同等的可用性，再叠加自有 UI/功能。
 
-## 特性
+## 两条线
 
-- 纯代码构建 UI（零 XML 布局），扁平克制暗色风格
-- TVBox 配置协议：json 配置、多站点、jar/js spider
-- 饭太硬 jar 兼容：DexClassLoader 动态加载（jar 自包含 Spider 基类，宿主仅需提供 okhttp/gson/sardine）
-- ExoPlayer（media3 官方 maven），支持请求头
-- 体积约 1.8 MB
+| 线 | 说明 | 位置 |
+|---|---|---|
+| **产品壳（主线）** | FongMi/TV 5.6.1 定制，applicationId `com.qbox.app` | 源码仓 [zqs1qiwan/qbox-tv](https://github.com/zqs1qiwan/qbox-tv)，本地构建目录 `fongmi-561/`（gitignore） |
+| 自研 M1 壳 | 纯 Kotlin 三屏原型（配置/jar/ExoPlayer），已被主线取代，保留作参考 | 本仓库 `app/` |
 
-## 构建
+## 下载
 
-```
-./gradlew :app:assembleRelease
-```
+- https://github.com/zqs1qiwan/qbox-tv/releases/tag/v1.0.0
+  - `QBox-1.0.0-arm64-v8a.apk`（44.7 MB，主流电视）
+  - `QBox-1.0.0-armeabi-v7a.apk`（38.7 MB，老电视）
+- `minSdk 24`（Android 7+），v2 签名，证书 SHA-256 `f7c4b32c...f63c62a`。
 
-依赖：JDK 17、Android SDK（compileSdk 36）。签名密钥 `app/qbox-release.jks` + `keystore.properties`（已入库）。
+## 产品特性（v1.0.0）
 
-## 当前状态（M1）
+- TVBox 配置协议全量：sites / lives / parses / rules / hosts / flags / wallpaper / logo
+- 4 种爬虫运行时：jar（csp_，内置 DexClassLoader）、QuickJS（js）、Python（已裁掉，见下）、HTTP API 站
+- 解析：WebView 嗅探 / JSON API / jar Json / Mix / 超级解析
+- 直播：m3u/txt 订阅、EPG、分组选台
+- 播放：ExoPlayer + MPV 双引擎（media3 fork 由本项目自编）、多轨/字幕/倍速/续播
+- 数据：Room（历史/收藏/配置/站点设置）
+- 默认配置：`https://tvbox.laobaitv.net`（老白 TVBOX；实测 49 站点、6 路直播）
+- 首次启动自动载入默认配置；设置页可随时更换
 
-- [x] 配置加载/解析（json/gzip/base64/zip 自动识别）
-- [x] jar spider 动态加载与反射调用
-- [x] 首页（站点网格）/ 点播页（分类+海报网格+翻页）/ 详情页（选集+播放）
-- [x] ExoPlayer 播放（含请求头）
-- [ ] js spider（QuickJS）
-- [ ] 搜索聚合
-- [ ] 直播
-- [ ] 历史/收藏
-- [ ] 设置页
+## 构建（Windows 已验证）
 
-## 使用
-
-1. 安装 APK，启动即用默认测试配置（GitHub 镜像源）
-2. 遥控器**菜单键**可换配置地址（输入 TVBox 配置 URL，保存在本地）
-3. 首页选择站点 → 分类 → 详情 → 选集播放
-
-## 不做（有意）
-
-py 爬虫、迅雷/p2p、cronet、ijkplayer、DLNA、Android Auto——这些是 OKTV 82MB 体积的来源，覆盖不到 5% 的源。
-
-## 结构
+工具链全部在 `.toolchain/`（gitignore，约 8 GB）：
 
 ```
-app/src/main/java/com/qbox/tv/
-  config/   配置协议
-  spider/   jar 加载器 + 统一运行时
-  model/    内容数据模型 + 播放地址解析
-  player/   ExoPlayer 封装
-  ui/       页面与控件（纯代码）
+JDK 21 (Temurin 21.0.12.1)
+Android SDK 36/37 + build-tools 36/37 + platform-tools
+NDK 29.0.14206865 + CMake 3.22.1
+Gradle 9.7.1（TV 5.6.1 构建）/ 9.1.0（media fork 构建）
+```
+
+1. **媒体层**（一次性）：`media/` 是 FongMi/media 的 `release-1.11.0-fongmi` 分支，
+   构建 18 个 Java 模块的 `lib-*-release.aar`，拷进 `fongmi-561/app/libs/`。
+2. **应用**：
+
+```powershell
+$env:JAVA_HOME="<repo>\.toolchain\jdk-extract\jdk-21.0.12.1+1"
+$env:ANDROID_HOME="<repo>\.toolchain\android-sdk"
+$env:ANDROID_USER_HOME="<repo>\.toolchain\android-user-home"
+$env:GRADLE_USER_HOME="<repo>\.toolchain\gradle-home"
+$env:TMP="$env:TEMP"<repo>\.toolchain\tmp"   # 必须指到工作区内
+cd fongmi-561
+.\gradlew.bat :app:assembleLeanbackArm64_v8aRelease :app:assembleLeanbackArmeabi_v7aRelease
+```
+
+产物：`fongmi-561/app/build/outputs/apk/leanback*/release/*.apk`。
+签名密钥：`app/qbox-release.jks` + `keystore.properties`（本仓库，已入库）。
+
+## 已验证
+
+- 默认配置链路：302 → `www.xn--sss604efuw.cc/tv`，JPEG 伪装 + `**` 后接 base64 JSON；
+  解码后 49 站点（46 `csp_` + 3 HTTP）、6 路直播。
+- spider 包：`.../e05f...jpg` 实为 zip（`classes.dex`），MD5 与配置声明一致
+  （`b55978c4fe6d12e2fea9075f17c8a67a`），dex 内 76 个 `com.github.catvod.spider.*Guard` 类。
+- APK：`com.qbox.app` / label `QBox` / v1.0.0 / v2 签名通过 / arm64 44.7MB + armv7 38.7MB。
+
+## 已知限制
+
+- **Python 爬虫已裁掉**（Chaquopy 需要宿主 Python 3.10 才能构建），py 类型站点会回退空实现。
+- FFmpeg 解码器未编（`lib-decoder-ffmpeg` 需要 NDK 原生编译），`解码模式=FFMPEG` 不可用；MPV 引擎可用。
+- 界面仍是 FongMi 原版 leanback 布局，未做 QBox 视觉改造。
+- 未在真机/模拟器上做端到端播放验证（本机模拟器无法在该沙箱内创建虚拟机）；需要电视实测。
+
+## 仓库结构
+
+```
+app/                自研 M1 壳（Kotlin，历史）
+docs/agent-notes/   研究笔记、构建手册、拆解方法
+.toolchain/         本机工具链（gitignore）
+fongmi-561/         产品源码 worktree（gitignore，推送到 qbox-tv）
+media/              media3 fork 源码（gitignore，用于编 aar）
+dist/               构建产物（gitignore）
 ```
