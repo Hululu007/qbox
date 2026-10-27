@@ -99,7 +99,7 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
 
     private void setRecyclerView() {
         mBinding.recycler.requestFocus();
-        mBinding.recycler.setHorizontalSpacing(ResUtil.dp2px(16));
+        mBinding.recycler.setHorizontalSpacing(ResUtil.dp2px(20));
         mBinding.recycler.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
         mBinding.recycler.setAdapter(mAdapter = new TypeAdapter(this));
     }
