@@ -20,7 +20,7 @@ Android TV 的 TVBox 壳。当前产品线基于 **FongMi/TV 5.6.1** 源码定�
 ## 产品特性（v1.3.1）
 
 - 自更新已关闭（原指向 FongMi 官方 Release，会误装官方包），改为提示到 GitHub Release 手动下载
-- 自检：首页标题长按弹出「QBox 自检」（版本 / 配置名 / 地址 / 站点数 / 直播数），电视端排障用
+- 自检：首页标题长按弹出「QBox 自检」（版本 / 配置名 / 地址 / 站点数 / 直播数 / jar 缓存 / spider），电视端排障用；验收步骤见 [docs/acceptance.md](docs/acceptance.md)
 - UI 精修：焦点环 3dp、卡片 12dp 圆角、首页标题栏 32dp 边距 + 56dp logo + 28sp 标题、主色 QBox 蓝、窗口底色 #0B0B0F / surface #18181E、行间距 24dp / 网格 20dp / 海报标题 18sp
 - 默认配置拉取失败时回退到内置快照 `assets/qbox_default.json`（49 站点），断网/源跳转变更也能出站点
 
