@@ -74,6 +74,7 @@ import com.google.common.collect.Lists;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -147,14 +148,21 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         });
     }
 
-    /** QBox 自检：首页标题长按显示版本 / 配置 / 站点 / 直播数，方便电视端排查。 */
+    /** QBox 自检：首页标题长按显示版本 / 配置 / 站点 / 直播 / 爬虫缓存，方便电视端排查。 */
     private void showDiag() {
         Config config = VodConfig.get().getConfig();
+        java.util.List<Site> sites = VodConfig.get().getSites();
+        String jar = sites.isEmpty() || sites.get(0).getJar() == null ? "-" : sites.get(0).getJar();
+        if (jar.length() > 46) jar = "…" + jar.substring(jar.length() - 46);
+        File dir = com.github.catvod.utils.Path.jar();
+        int cached = dir != null && dir.listFiles() != null ? dir.listFiles().length : 0;
         String text = "版本：" + com.fongmi.android.tv.BuildConfig.VERSION_NAME + "\n"
                 + "配置：" + (config == null ? "-" : config.getName()) + "\n"
                 + "地址：" + (config == null ? "-" : config.getUrl()) + "\n"
-                + "站点：" + VodConfig.get().getSites().size() + "\n"
-                + "直播：" + LiveConfig.get().getLives().size();
+                + "站点：" + sites.size() + "\n"
+                + "直播：" + LiveConfig.get().getLives().size() + "\n"
+                + "jar 缓存：" + cached + " 个文件\n"
+                + "spider：" + jar;
         new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
                 .setTitle("QBox 自检")
                 .setMessage(text)
