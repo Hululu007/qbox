@@ -9,9 +9,9 @@
 
 | 包 | 说明 |
 |---|---|
-| `QBox-1.4.0-arm64-v8a.apk` | 当前稳定版（主流电视） |
-| `QBox-1.4.0-armeabi-v7a.apk` | 当前稳定版（32 位老电视，本次测试机就是这种） |
-| Release | https://github.com/zqs1qiwan/qbox-tv/releases/tag/v1.4.0 |
+| `QBox-1.5.0-arm64-v8a.apk` | 当前稳定版（UI v2 首批） |
+| `QBox-1.5.0-armeabi-v7a.apk` | 当前稳定版（32 位老电视，本次测试机就是这种） |
+| Release | https://github.com/zqs1qiwan/qbox-tv/releases/tag/v1.5.0 |
 
 - `applicationId com.qbox.app`，minSdk 24，v2 签名（`f7c4b32c…f63c62a`）。
 - 默认配置 `https://tvbox.laobaitv.net`，首启自动载入；失败回退内置 `assets/qbox_default.json`。
