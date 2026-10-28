@@ -295,6 +295,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.control.action.text.setOnClickListener(this::onTrack);
         mBinding.control.action.audio.setOnClickListener(this::onTrack);
         mBinding.control.action.video.setOnClickListener(this::onTrack);
+        mBinding.control.action.play.setOnClickListener(view -> onKeyCenter());
         mBinding.control.action.ending.setUpListener(this::onEndingAdd);
         mBinding.control.action.ending.setDownListener(this::onEndingSub);
         mBinding.control.action.opening.setUpListener(this::onOpeningAdd);
@@ -668,6 +669,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         if (service() != null && isOwner()) player().setMetadata(metadata);
         mBinding.widget.title.setText(metadata.displayTitle);
         mBinding.widget.title.setSelected(true);
+        mBinding.control.title.setText(metadata.displayTitle);
+        mBinding.control.title.setSelected(true);
     }
 
     @Override
@@ -1077,6 +1080,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     private void showControl(View view) {
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
+        mBinding.control.action.play.setText(player().isPlaying() ? "暂停" : "播放");
         view.requestFocus();
         setR1Callback();
     }
@@ -1286,6 +1290,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     private void setTrackVisible() {
         PlaybackAction.setTracks(player(), mBinding.control.action.text, mBinding.control.action.audio, mBinding.control.action.video);
+        mBinding.control.action.video.setVisibility(View.GONE);
     }
 
     private void setMediaOptionVisible() {
@@ -1404,10 +1409,17 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     @Override
     public void onKeyCenter() {
-        if (player().isPlaying()) onPaused();
-        else if (player().isEmpty()) onRefresh();
-        else onPlay();
-        hideControl();
+        if (player().isPlaying()) {
+            onPaused();
+            hideInfo();
+            showControl(mBinding.control.action.play);
+        } else if (player().isEmpty()) {
+            onRefresh();
+            hideControl();
+        } else {
+            onPlay();
+            hideControl();
+        }
     }
 
     @Override
