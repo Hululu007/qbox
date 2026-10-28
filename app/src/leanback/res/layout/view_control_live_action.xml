@@ -43,13 +43,17 @@
             android:id="@+id/player"
             style="@style/Control"
             android:layout_marginEnd="8dp"
-            android:text="@string/play_exo" />
+            android:text="@string/play_exo" 
+            android:visibility="gone"
+            />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/decode"
             style="@style/Control"
             android:layout_marginEnd="8dp"
-            android:text="@string/play_decode" />
+            android:text="@string/play_decode" 
+            android:visibility="gone"
+            />
 
         <com.fongmi.android.tv.ui.custom.CustomUpDownView
             android:id="@+id/speed"
@@ -87,19 +91,25 @@
             style="@style/Control"
             android:layout_marginEnd="8dp"
             android:tag="2"
-            android:text="@string/play_track_video" />
+            android:text="@string/play_track_video" 
+            android:visibility="gone"
+            />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/invert"
             style="@style/Control"
             android:layout_marginEnd="8dp"
-            android:text="@string/play_invert" />
+            android:text="@string/play_invert" 
+            android:visibility="gone"
+            />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/across"
             style="@style/Control"
             android:layout_marginEnd="8dp"
-            android:text="@string/play_across" />
+            android:text="@string/play_across" 
+            android:visibility="gone"
+            />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/change"

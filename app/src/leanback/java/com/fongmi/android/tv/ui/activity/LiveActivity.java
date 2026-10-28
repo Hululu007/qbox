@@ -819,6 +819,8 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         if (service() != null && isOwner()) player().setMetadata(metadata);
         mBinding.widget.title.setText(metadata.displayTitle);
         mBinding.widget.title.setSelected(true);
+        mBinding.control.title.setText(metadata.displayTitle);
+        mBinding.control.title.setSelected(true);
     }
 
     @Override
