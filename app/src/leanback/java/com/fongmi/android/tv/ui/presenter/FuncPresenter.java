@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.presenter;
 
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -34,7 +35,12 @@ public class FuncPresenter extends Presenter {
         Func item = (Func) object;
         ViewHolder holder = (ViewHolder) viewHolder;
         holder.binding.text.setText(item.getText());
-        holder.binding.icon.setImageResource(item.getDrawable());
+        if (item.getDrawable() == 0) {
+            holder.binding.icon.setVisibility(View.GONE);
+        } else {
+            holder.binding.icon.setVisibility(View.VISIBLE);
+            holder.binding.icon.setImageResource(item.getDrawable());
+        }
         setOnClickListener(holder, view -> listener.onItemClick(item));
         holder.binding.getRoot().setOnLongClickListener(view -> listener.onItemLongClick(item));
     }

@@ -9,15 +9,26 @@ import com.fongmi.android.tv.utils.ResUtil;
 public class Func implements Diffable<Func> {
 
     private final int resId;
+    private final String text;
     private int drawable;
 
     public static Func create(int resId) {
         return new Func(resId);
     }
 
+    public static Func create(String text) {
+        return new Func(text);
+    }
+
     public Func(int resId) {
         this.resId = resId;
+        this.text = null;
         this.setDrawable();
+    }
+
+    public Func(String text) {
+        this.resId = 0;
+        this.text = text;
     }
 
     public int getResId() {
@@ -29,7 +40,7 @@ public class Func implements Diffable<Func> {
     }
 
     public String getText() {
-        return ResUtil.getString(resId);
+        return text != null ? text : ResUtil.getString(resId);
     }
 
     public void setDrawable() {
@@ -45,7 +56,7 @@ public class Func implements Diffable<Func> {
     public boolean equals(@Nullable Object obj) {
         if (this == obj) return true;
         if (!(obj instanceof Func it)) return false;
-        return getResId() == it.getResId();
+        return getResId() == it.getResId() && getText().equals(it.getText());
     }
 
     @Override

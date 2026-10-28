@@ -87,6 +87,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     private ArrayObjectAdapter mFuncAdapter;
     private ArrayObjectAdapter mAdapter;
     private boolean historyShown;
+    private boolean typesShown;
     private HistoryPresenter mPresenter;
     private SiteViewModel mViewModel;
     private Result mResult;
@@ -281,9 +282,23 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void addVideo(Result result) {
+        addTypes(result);
         Style style = result.getStyle(getHome().getStyle());
         if (style.isList()) mAdapter.addAll(mAdapter.size(), result.getList());
         else addGrid(result.getList(), style);
+    }
+
+    /** 分类行：让首页一进来就看到「电影/剧集/综艺…」，不再需要先点「点播」按钮。 */
+    private void addTypes(Result result) {
+        if (typesShown) return;
+        List<Func> items = new ArrayList<>();
+        if (result.getTypes() != null) for (com.fongmi.android.tv.bean.Class type : result.getTypes()) if (!TextUtils.isEmpty(type.getTypeName())) items.add(Func.create(type.getTypeName()));
+        if (items.isEmpty()) items.add(Func.create(R.string.home_vod));
+        ArrayObjectAdapter adapter = new ArrayObjectAdapter(new FuncPresenter(this));
+        adapter.addAll(0, items);
+        mAdapter.add(1, new ListRow(adapter));
+        typesShown = true;
+        App.post(() -> mBinding.recycler.setSelectedPosition(1), 300);
     }
 
     private void addGrid(List<Vod> items, Style style) {
@@ -299,7 +314,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     private void setFunc() {
         List<Func> items = new ArrayList<>();
-        items.add(Func.create(R.string.home_vod));
         if (LiveConfig.hasUrl()) items.add(Func.create(R.string.home_live));
         items.add(Func.create(R.string.home_search));
         items.add(Func.create(R.string.home_keep));
@@ -323,8 +337,9 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                 historyShown = false;
             }
         } else if (!historyShown) {
-            mAdapter.add(1, R.string.home_history);
-            mAdapter.add(2, new ListRow(mHistoryAdapter));
+            int base = typesShown ? 2 : 1;
+            mAdapter.add(base, R.string.home_history);
+            mAdapter.add(base + 1, new ListRow(mHistoryAdapter));
             historyShown = true;
         }
     }
@@ -425,7 +440,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     public void onItemClick(Func item) {
-        if (item.getResId() == R.string.home_vod) VodActivity.start(this, mResult);
+        if (item.getResId() == 0 || item.getResId() == R.string.home_vod) VodActivity.start(this, mResult);
         else if (item.getResId() == R.string.home_live) LiveActivity.start(this);
         else if (item.getResId() == R.string.home_keep) KeepActivity.start(this);
         else if (item.getResId() == R.string.home_push) PushActivity.start(this);
