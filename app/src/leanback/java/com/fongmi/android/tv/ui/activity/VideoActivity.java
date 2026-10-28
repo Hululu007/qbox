@@ -1246,6 +1246,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
                 hideProgress();
                 mVod.playbackEnded();
                 mClock.setCallback(null);
+                hideInfo();
+                showControl(mBinding.control.action.play);
                 break;
         }
     }
