@@ -909,6 +909,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     private void setTrackVisible() {
         PlaybackAction.setTracks(player(), mBinding.control.action.text, mBinding.control.action.audio, mBinding.control.action.video, mBinding.control.action.speed);
+        mBinding.control.action.video.setVisibility(View.GONE);
     }
 
     private void prevChannel() {
@@ -944,8 +945,21 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         return mFocus2 == null || mFocus2.getVisibility() != View.VISIBLE ? mBinding.control.action.config : mFocus2;
     }
 
+    private boolean centerLongPress;
+
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER) {
+            if (event.getAction() == KeyEvent.ACTION_DOWN && event.getRepeatCount() > 0) {
+                centerLongPress = true;
+                showControl(getFocus2());
+                return true;
+            }
+            if (event.getAction() == KeyEvent.ACTION_UP && centerLongPress) {
+                centerLongPress = false;
+                return true;
+            }
+        }
         if (isVisible(mBinding.control.getRoot())) setR1Callback();
         if (isVisible(mBinding.control.getRoot())) mFocus2 = getCurrentFocus();
         if (mKeyDown.hasEvent(event) && service() != null) mKeyDown.onKeyDown(event);
