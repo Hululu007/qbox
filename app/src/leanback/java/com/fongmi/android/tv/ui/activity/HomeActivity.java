@@ -134,21 +134,9 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     protected void initEvent() {
-        mBinding.title.setVisibility(View.GONE);
-        mBinding.tabHome.setOnLongClickListener(v -> {
-            showDiag();
-            return true;
-        });
-        mBinding.tabHome.setOnClickListener(v -> {
-            mBinding.recycler.smoothScrollToPosition(0);
-            mBinding.recycler.requestFocus();
-        });
-        mBinding.tabLive.setOnClickListener(v -> LiveActivity.start(this));
-        mBinding.tabSetting.setOnClickListener(v -> SettingActivity.start(this));
         mBinding.recycler.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
             @Override
             public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
-                mBinding.toolbar.setVisibility(position == 0 ? View.VISIBLE : View.GONE);
                 if (mPresenter.isDelete()) setHistoryDelete(false);
             }
         });
@@ -227,11 +215,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     private void setTitle() {
         List<String> items = Arrays.asList(getHome().getName(), getConfig().getName(), getString(R.string.app_name));
         Optional<String> optional = items.stream().filter(s -> !TextUtils.isEmpty(s)).findFirst();
-        optional.ifPresent(s -> {
-            mBinding.title.setText(s);
-            mBinding.heroTitle.setText(s);
-        });
-        mBinding.heroSub.setText(VodConfig.get().getSites().size() + " 个站点 · " + LiveConfig.get().getLives().size() + " 路直播");
+        optional.ifPresent(s -> mBinding.siteName.setText(s));
     }
 
     private void initConfig() {
@@ -271,9 +255,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void setFocus() {
-        mBinding.title.setSelected(true);
-        App.post(() -> mBinding.title.setFocusable(true), 500);
-        if (!mBinding.title.hasFocus()) mBinding.recycler.requestFocus();
+        App.post(() -> mBinding.recycler.requestFocus(), 300);
     }
 
     private void getVideo() {
@@ -434,6 +416,15 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     @Override
+    public boolean onItemLongClick(Func item) {
+        if (item.getResId() == R.string.home_setting) {
+            showDiag();
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public void onItemClick(Vod item) {
         if (item.isAction()) mViewModel.action(getHome().getKey(), item.getAction());
         else if (getHome().isIndex()) CollectActivity.start(this, item.getName());
@@ -485,7 +476,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (KeyUtil.isMenuKey(event)) showDialog();
-        if (KeyUtil.isActionDown(event) & KeyUtil.isDownKey(event) && getCurrentFocus() == mBinding.title) return mBinding.recycler.getChildAt(0).requestFocus();
         return super.dispatchKeyEvent(event);
     }
 

@@ -32,21 +32,14 @@ public class HomeLayoutTest {
         View root = LayoutInflater.from(context).inflate(R.layout.activity_home, null);
         assertNotNull("root inflate failed", root);
 
-        View hero = root.findViewById(R.id.hero);
-        assertNotNull("hero missing", hero);
-        hero.measure(MeasureSpec.makeMeasureSpec(1920, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
-        assertTrue("hero height = " + hero.getMeasuredHeight(), hero.getMeasuredHeight() > 0);
+        View brand = root.findViewById(R.id.brand);
+        assertNotNull("brand missing", brand);
+        brand.measure(MeasureSpec.makeMeasureSpec(400, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+        assertTrue("brand height = " + brand.getMeasuredHeight(), brand.getMeasuredHeight() > 0);
 
-        View title = root.findViewById(R.id.heroTitle);
-        assertNotNull("heroTitle missing", title);
-        title.measure(MeasureSpec.makeMeasureSpec(1600, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
-        assertTrue("heroTitle height = " + title.getMeasuredHeight(), title.getMeasuredHeight() > 0);
-
-        for (int id : new int[]{R.id.tabHome, R.id.tabLive, R.id.tabSetting}) {
-            View tab = root.findViewById(id);
-            assertNotNull("tab missing: " + id, tab);
-            assertTrue("tab not focusable: " + id, tab.isFocusable());
+        for (int id : new int[]{R.id.logo, R.id.siteName, R.id.clock, R.id.recycler}) {
+            assertNotNull("missing view: " + id, root.findViewById(id));
         }
-        System.out.println("QBOX_UI_OK hero=" + hero.getMeasuredHeight() + "px title=" + title.getMeasuredHeight() + "px");
+        System.out.println("QBOX_UI_OK brand=" + brand.getMeasuredHeight() + "px");
     }
 }
