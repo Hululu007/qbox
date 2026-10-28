@@ -1096,8 +1096,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void setTraffic() {
-        Traffic.setSpeed(mBinding.progress.traffic);
-        App.post(mR3, 1000);
+        // QBox: 不展示 KB/s 这类技术信息，加载态只保留转圈。
+        mBinding.progress.traffic.setVisibility(View.GONE);
     }
 
     private void setR1Callback() {
