@@ -135,6 +135,18 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     protected void initEvent() {
+        mBinding.source.setOnClickListener(v -> showDialog());
+        mBinding.source.setOnLongClickListener(v -> {
+            showDiag();
+            return true;
+        });
+        mBinding.recycler.setOnKeyListener((v, keyCode, event) -> {
+            if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_DPAD_UP && mBinding.recycler.getSelectedPosition() <= 0) {
+                mBinding.source.requestFocus();
+                return true;
+            }
+            return false;
+        });
         mBinding.recycler.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
             @Override
             public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
@@ -215,7 +227,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     private void setTitle() {
         List<String> items = Arrays.asList(getHome().getName(), getConfig().getName(), getString(R.string.app_name));
         Optional<String> optional = items.stream().filter(s -> !TextUtils.isEmpty(s)).findFirst();
-        optional.ifPresent(s -> mBinding.siteName.setText(s));
+        optional.ifPresent(s -> mBinding.source.setText(s));
     }
 
     private void initConfig() {
