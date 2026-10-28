@@ -1067,8 +1067,9 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void showInfo() {
+        // QBox: 暂停/加载统一走底部控制条，中央大播放键不再出现（详情页也会残留巨幅图标）。
         mBinding.widget.top.setVisibility(View.VISIBLE);
-        mBinding.widget.center.setVisibility(View.VISIBLE);
+        mBinding.widget.center.setVisibility(View.GONE);
         mBinding.widget.duration.setText(player().getDurationTime());
         mBinding.widget.position.setText(player().getPositionTime(0));
     }
