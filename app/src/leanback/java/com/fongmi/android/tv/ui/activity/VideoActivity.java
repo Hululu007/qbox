@@ -1367,7 +1367,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     @Override
     public void onSeeking(long time) {
-        mBinding.widget.center.setVisibility(View.VISIBLE);
+        // QBox: 快进/快退的反馈走底部控制条与进度条，不再弹出中央圆形图标。
+        mBinding.widget.center.setVisibility(View.GONE);
         mBinding.widget.duration.setText(player().getDurationTime());
         mBinding.widget.position.setText(player().getPositionTime(time));
         mBinding.widget.action.setImageResource(time > 0 ? R.drawable.ic_widget_forward : R.drawable.ic_widget_rewind);

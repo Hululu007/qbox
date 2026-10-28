@@ -41,14 +41,19 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
     private View mOldView;
 
     public static void start(Activity activity, Result result) {
-        start(activity, VodConfig.get().getHome().getKey(), result);
+        start(activity, VodConfig.get().getHome().getKey(), result, -1);
     }
 
     public static void start(Activity activity, String key, Result result) {
+        start(activity, key, result, -1);
+    }
+
+    public static void start(Activity activity, String key, Result result, int index) {
         if (result == null || result.getTypes().isEmpty()) return;
         Intent intent = new Intent(activity, VodActivity.class);
         intent.putExtra("key", key);
         intent.putExtra("result", result);
+        intent.putExtra("index", index);
         activity.startActivity(intent);
     }
 
@@ -78,6 +83,11 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
         setRecyclerView();
         setTypes();
         setPager();
+        int index = getIntent().getIntExtra("index", -1);
+        if (index >= 0 && index < mAdapter.getItemCount()) {
+            mBinding.recycler.setSelectedPosition(index);
+            mBinding.pager.setCurrentItem(index);
+        }
     }
 
     @Override

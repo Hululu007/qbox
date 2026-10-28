@@ -86,6 +86,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     private ArrayObjectAdapter mHistoryAdapter;
     private ArrayObjectAdapter mFuncAdapter;
     private ArrayObjectAdapter mAdapter;
+    private final List<com.fongmi.android.tv.bean.Class> mTypes = new ArrayList<>();
     private boolean historyShown;
     private boolean typesShown;
     private HistoryPresenter mPresenter;
@@ -291,8 +292,13 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     /** 分类行：让首页一进来就看到「电影/剧集/综艺…」，不再需要先点「点播」按钮。 */
     private void addTypes(Result result) {
         if (typesShown) return;
+        mTypes.clear();
         List<Func> items = new ArrayList<>();
-        if (result.getTypes() != null) for (com.fongmi.android.tv.bean.Class type : result.getTypes()) if (!TextUtils.isEmpty(type.getTypeName())) items.add(Func.create(type.getTypeName()));
+        if (result.getTypes() != null) for (com.fongmi.android.tv.bean.Class type : result.getTypes()) {
+            if (TextUtils.isEmpty(type.getTypeName())) continue;
+            mTypes.add(type);
+            items.add(Func.create(type.getTypeName()));
+        }
         if (items.isEmpty()) items.add(Func.create(R.string.home_vod));
         ArrayObjectAdapter adapter = new ArrayObjectAdapter(new FuncPresenter(this));
         adapter.addAll(0, items);
@@ -440,7 +446,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     public void onItemClick(Func item) {
-        if (item.getResId() == 0 || item.getResId() == R.string.home_vod) VodActivity.start(this, mResult);
+        if (item.getResId() == 0) VodActivity.start(this, getHome().getKey(), mResult, indexOfType(item.getText()));
+        else if (item.getResId() == R.string.home_vod) VodActivity.start(this, mResult);
         else if (item.getResId() == R.string.home_live) LiveActivity.start(this);
         else if (item.getResId() == R.string.home_keep) KeepActivity.start(this);
         else if (item.getResId() == R.string.home_push) PushActivity.start(this);
@@ -455,6 +462,11 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             return true;
         }
         return false;
+    }
+
+    private int indexOfType(String name) {
+        for (int i = 0; i < mTypes.size(); i++) if (name.equals(mTypes.get(i).getTypeName())) return i;
+        return -1;
     }
 
     @Override
