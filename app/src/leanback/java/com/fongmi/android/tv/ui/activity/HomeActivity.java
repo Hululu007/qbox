@@ -300,7 +300,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void getHistory(boolean renew) {
-        List<History> items = History.get();
+        List<History> items = com.fongmi.android.tv.db.AppDatabase.get().getHistoryDao().findRecent();
         if (renew) mHistoryAdapter = new ArrayObjectAdapter(mPresenter = new HistoryPresenter(this));
         mHistoryAdapter.setItems(items, new BaseDiffCallback<History>());
         int recommendIndex = getRecommendIndex();
@@ -311,8 +311,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                 historyShown = false;
             }
         } else if (!historyShown) {
-            mAdapter.add(recommendIndex, R.string.home_history);
-            mAdapter.add(recommendIndex + 1, new ListRow(mHistoryAdapter));
+            mAdapter.add(1, R.string.home_history);
+            mAdapter.add(2, new ListRow(mHistoryAdapter));
             historyShown = true;
         }
     }
