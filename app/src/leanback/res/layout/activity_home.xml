@@ -45,13 +45,21 @@
             android:textStyle="bold"
             tools:text="豆豆｜片单" />
 
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/clock"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_weight="1"
-            android:gravity="end"
+            android:background="@drawable/shape_clock_bg"
+            android:paddingStart="14dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="14dp"
+            android:paddingBottom="4dp"
             android:textColor="@color/white"
             android:textSize="20sp"
             android:textStyle="bold"

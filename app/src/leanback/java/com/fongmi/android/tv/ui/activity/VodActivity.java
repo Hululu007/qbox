@@ -80,6 +80,9 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
 
     @Override
     protected void initView(Bundle savedInstanceState) {
+        mBinding.back.setOnClickListener(v -> finish());
+        mBinding.name.setText(VodConfig.get().getHome().getName());
+        com.fongmi.android.tv.utils.Clock.create(mBinding.clock).start();
         setRecyclerView();
         setTypes();
         setPager();
