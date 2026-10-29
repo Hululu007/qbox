@@ -790,6 +790,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private void setEpisodeAdapter(List<Episode> items) {
         mEpisodeItems = items;
         mBinding.episode.setVisibility(items.isEmpty() ? View.GONE : View.VISIBLE);
+        // 只有一集时不需要「选集」入口。
+        mBinding.control.action.chapter.setVisibility(items.size() > 1 ? View.VISIBLE : View.GONE);
         mEpisodeAdapter.addAll(items);
         setArrayAdapter(items.size());
         setR2Callback();
