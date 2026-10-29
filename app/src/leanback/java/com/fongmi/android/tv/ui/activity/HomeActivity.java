@@ -210,6 +210,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         selector.addPresenter(Vod.class, new VodPresenter(this, Style.list()));
         selector.addPresenter(ListRow.class, new CustomRowPresenter(16), VodPresenter.class);
         selector.addPresenter(ListRow.class, new CustomRowPresenter(16), FuncPresenter.class);
+        selector.addPresenter(ListRow.class, new CustomRowPresenter(16), com.fongmi.android.tv.ui.presenter.FuncTilePresenter.class);
         selector.addPresenter(ListRow.class, new CustomRowPresenter(16, FocusHighlight.ZOOM_FACTOR_SMALL, HorizontalGridView.FOCUS_SCROLL_ALIGNED), HistoryPresenter.class);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
         mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(24));
@@ -244,7 +245,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     private void setAdapter() {
         mHistoryAdapter = new ArrayObjectAdapter(mPresenter = new HistoryPresenter(this));
-        mAdapter.add(mFuncRow = new ListRow(mFuncAdapter = new ArrayObjectAdapter(new FuncPresenter(this))));
+        mAdapter.add(mFuncRow = new ListRow(mFuncAdapter = new ArrayObjectAdapter(new com.fongmi.android.tv.ui.presenter.FuncTilePresenter(this))));
         mAdapter.add(R.string.home_recommend);
     }
 
