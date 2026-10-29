@@ -124,7 +124,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     @Override
     protected void initView(Bundle savedInstanceState) {
         mResult = Result.empty();
-        mClock = Clock.create(mBinding.clock);
+        mClock = Clock.create(mBinding.clock).format("HH:mm:ss  MM/dd  EEE");
         mBinding.progressLayout.showProgress();
         PermissionUtil.requestNotify(this);
         DLNARendererService.start(this);
@@ -309,17 +309,18 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         else addGrid(result.getList(), style);
     }
 
-    /** 分类行：让首页一进来就看到「电影/剧集/综艺…」，不再需要先点「点播」按钮。 */
+    /** 分类行：首页 = 「首页」tab + 站点分类，对齐 OK影视 的顶部 tab 逻辑。 */
     private void addTypes(Result result) {
         if (typesShown) return;
         mTypes.clear();
         List<Func> items = new ArrayList<>();
+        items.add(Func.create("首页"));
         if (result.getTypes() != null) for (com.fongmi.android.tv.bean.Class type : result.getTypes()) {
             if (TextUtils.isEmpty(type.getTypeName())) continue;
             mTypes.add(type);
             items.add(Func.create(type.getTypeName()));
         }
-        if (items.isEmpty()) items.add(Func.create(R.string.home_vod));
+        if (items.size() == 1) items.add(Func.create(R.string.home_vod));
         ArrayObjectAdapter adapter = new ArrayObjectAdapter(new FuncPresenter(this));
         adapter.addAll(0, items);
         mAdapter.add(1, new ListRow(adapter));
@@ -343,6 +344,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         if (LiveConfig.hasUrl()) items.add(Func.create(R.string.home_live));
         items.add(Func.create(R.string.home_search));
         items.add(Func.create(R.string.home_keep));
+        items.add(Func.create(R.string.home_push));
         items.add(Func.create(R.string.home_setting));
         mFuncAdapter.setItems(items, new BaseDiffCallback<Func>());
     }
@@ -466,7 +468,10 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     public void onItemClick(Func item) {
-        if (item.getResId() == 0) VodActivity.start(this, getHome().getKey(), mResult, indexOfType(item.getText()));
+        if (item.getResId() == 0) {
+            if ("首页".equals(item.getText())) mBinding.recycler.smoothScrollToPosition(0);
+            else VodActivity.start(this, getHome().getKey(), mResult, indexOfType(item.getText()));
+        }
         else if (item.getResId() == R.string.home_vod) VodActivity.start(this, mResult);
         else if (item.getResId() == R.string.home_live) LiveActivity.start(this);
         else if (item.getResId() == R.string.home_keep) KeepActivity.start(this);
