@@ -16,8 +16,8 @@ android {
         applicationId "com.qbox.app"
         minSdk libs.versions.minSdk.get().toInteger()
         targetSdk libs.versions.targetSdk.get().toInteger()
-        versionCode 23
-        versionName "1.6.6"
+        versionCode 24
+        versionName "1.6.7"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString(), "eventBusIndex": "com.fongmi.android.tv.event.EventIndex"]

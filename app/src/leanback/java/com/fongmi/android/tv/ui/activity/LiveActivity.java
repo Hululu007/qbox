@@ -156,6 +156,12 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         super.initView(savedInstanceState);
         mClock = Clock.create(mBinding.widget.clock);
         mKeyDown = CustomKeyDownLive.create(this);
+        if (mBinding.control.seek.getTimeBar() instanceof androidx.media3.ui.DefaultTimeBar bar) {
+            bar.setPlayedColor(0xFF4C8DFF);
+            bar.setScrubberColor(0xFF4C8DFF);
+            bar.setBufferedColor(0x66FFFFFF);
+            bar.setUnplayedColor(0x33FFFFFF);
+        }
         mHides = new ArrayList<>();
         mR0 = this::setSelected;
         mR1 = this::hideControl;

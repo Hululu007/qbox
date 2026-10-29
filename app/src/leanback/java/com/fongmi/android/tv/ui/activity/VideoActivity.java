@@ -275,6 +275,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mFrameParams = mBinding.video.getLayoutParams();
         mClock = Clock.create(mBinding.widget.clock);
         mKeyDown = CustomKeyDownVod.create(this);
+        styleSeekBar();
         mR1 = this::hideControl;
         mR2 = this::updateFocus;
         mR3 = this::setTraffic;
@@ -359,6 +360,16 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.quick.setHorizontalSpacing(ResUtil.dp2px(12));
         mBinding.quick.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
         mBinding.quick.setAdapter(mQuickAdapter = new QuickAdapter(this));
+    }
+
+    /** 进度条配色统一到品牌蓝，替代 media3 默认的灰色。 */
+    private void styleSeekBar() {
+        if (mBinding.control.seek.getTimeBar() instanceof androidx.media3.ui.DefaultTimeBar bar) {
+            bar.setPlayedColor(0xFF4C8DFF);
+            bar.setScrubberColor(0xFF4C8DFF);
+            bar.setBufferedColor(0x66FFFFFF);
+            bar.setUnplayedColor(0x33FFFFFF);
+        }
     }
 
     private void setVideoView() {
