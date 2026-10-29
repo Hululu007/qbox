@@ -113,6 +113,8 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         setRecyclerView();
         setViewModel();
         setFilters();
+        // QBox: 对齐 OK影视，筛选条件（类型/年份/地区…）默认展开，不用再按键呼出。
+        if (!mFilters.isEmpty()) toggleFilter(true);
         getVideo();
     }
 

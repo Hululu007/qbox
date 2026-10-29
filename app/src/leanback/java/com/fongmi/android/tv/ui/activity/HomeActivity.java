@@ -87,6 +87,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     private ArrayObjectAdapter mHistoryAdapter;
     private ArrayObjectAdapter mFuncAdapter;
     private ArrayObjectAdapter mAdapter;
+    private androidx.leanback.widget.ListRow mFuncRow;
+    private androidx.leanback.widget.ListRow mTypesRow;
     private final List<com.fongmi.android.tv.bean.Class> mTypes = new ArrayList<>();
     private boolean historyShown;
     private boolean typesShown;
@@ -242,7 +244,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     private void setAdapter() {
         mHistoryAdapter = new ArrayObjectAdapter(mPresenter = new HistoryPresenter(this));
-        mAdapter.add(new ListRow(mFuncAdapter = new ArrayObjectAdapter(new FuncPresenter(this))));
+        mAdapter.add(mFuncRow = new ListRow(mFuncAdapter = new ArrayObjectAdapter(new FuncPresenter(this))));
         mAdapter.add(R.string.home_recommend);
     }
 
@@ -309,9 +311,12 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         else addGrid(result.getList(), style);
     }
 
-    /** 分类行：首页 = 「首页」tab + 站点分类，对齐 OK影视 的顶部 tab 逻辑。 */
+    /** 分类行：「首页」+ 当前源自己的点播分类。每次内容刷新（含换源）都按源重建，不套模板。 */
     private void addTypes(Result result) {
-        if (typesShown) return;
+        if (mTypesRow != null) {
+            mAdapter.remove(mTypesRow);
+            mTypesRow = null;
+        }
         mTypes.clear();
         List<Func> items = new ArrayList<>();
         items.add(Func.create("首页"));
@@ -323,9 +328,14 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         if (items.size() == 1) items.add(Func.create(R.string.home_vod));
         ArrayObjectAdapter adapter = new ArrayObjectAdapter(new FuncPresenter(this));
         adapter.addAll(0, items);
-        mAdapter.add(1, new ListRow(adapter));
+        mTypesRow = new ListRow(adapter);
+        mAdapter.add(0, mTypesRow);
+        if (mFuncRow != null && mAdapter.indexOf(mFuncRow) != 1) {
+            mAdapter.remove(mFuncRow);
+            mAdapter.add(1, mFuncRow);
+        }
         typesShown = true;
-        App.post(() -> mBinding.recycler.setSelectedPosition(1), 300);
+        App.post(() -> mBinding.recycler.setSelectedPosition(0), 300);
     }
 
     private void addGrid(List<Vod> items, Style style) {
