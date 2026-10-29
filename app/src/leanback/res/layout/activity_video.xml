@@ -166,6 +166,28 @@
         android:orientation="horizontal">
 
         <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/play"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/selector_btn_primary"
+            android:clickable="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:gravity="center"
+            android:nextFocusDown="@id/flag"
+            android:nextFocusUp="@id/actor"
+            android:paddingStart="26dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="26dp"
+            android:paddingBottom="10dp"
+            android:singleLine="true"
+            android:text="▶  播放"
+            android:textColor="#101014"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

@@ -109,6 +109,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private VodPlaybackController mVod;
     private FlagAdapter mFlagAdapter;
     private EpisodeAdapter mEpisodeAdapter;
+    private java.util.List<com.fongmi.android.tv.bean.Episode> mEpisodeItems;
     private QualityAdapter mQualityAdapter;
     private ArrayAdapter mArrayAdapter;
     private PartAdapter mPartAdapter;
@@ -292,6 +293,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.video.setOnClickListener(view -> onVideo());
         mBinding.change.setOnClickListener(view -> onChange());
         mBinding.content.setOnClickListener(view -> onContent());
+        mBinding.play.setOnClickListener(view -> onPrimaryPlay());
         mBinding.control.action.text.setOnClickListener(this::onTrack);
         mBinding.control.action.audio.setOnClickListener(this::onTrack);
         mBinding.control.action.video.setOnClickListener(this::onTrack);
@@ -775,10 +777,17 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void setEpisodeAdapter(List<Episode> items) {
+        mEpisodeItems = items;
         mBinding.episode.setVisibility(items.isEmpty() ? View.GONE : View.VISIBLE);
         mEpisodeAdapter.addAll(items);
         setArrayAdapter(items.size());
         setR2Callback();
+    }
+
+    /** 主按钮「播放」：直接播第一个可播剧集；没有剧集时先选中第一条线路。 */
+    private void onPrimaryPlay() {
+        if (mEpisodeItems != null && !mEpisodeItems.isEmpty()) onItemClick(mEpisodeItems.get(0));
+        else if (mFlagAdapter != null && mFlagAdapter.getItemCount() > 0) onItemClick(mFlagAdapter.get(0));
     }
 
     @Override
