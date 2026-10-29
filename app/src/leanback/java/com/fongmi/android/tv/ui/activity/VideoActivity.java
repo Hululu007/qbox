@@ -376,7 +376,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         setSeekNextFocusDown(R.id.next);
         setActionFocusBoundary(mBinding.control.action.getRoot());
         PlayerEngineDialog.setText(mBinding.control.action.player);
-        mBinding.control.action.danmaku.setVisibility(DanmakuSetting.isLoad() ? View.VISIBLE : View.GONE);
+        // QBox: 不提供弹幕入口。
+        mBinding.control.action.danmaku.setVisibility(View.GONE);
     }
 
     private void setPlaybackMode() {

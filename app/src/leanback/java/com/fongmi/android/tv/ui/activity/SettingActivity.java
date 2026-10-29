@@ -74,6 +74,8 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
     protected void initView(Bundle savedInstanceState) {
         mBinding.back.setOnClickListener(v -> finish());
         com.fongmi.android.tv.utils.Clock.create(mBinding.clock).start();
+        // QBox: 去掉弹幕相关入口，保持设置精简。
+        mBinding.danmaku.setVisibility(View.GONE);
         mBinding.vod.requestFocus();
         mBinding.vodUrl.setText(VodConfig.getDesc());
         mBinding.liveUrl.setText(LiveConfig.getDesc());

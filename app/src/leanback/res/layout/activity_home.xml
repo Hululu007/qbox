@@ -91,14 +91,5 @@
 
         </com.fongmi.android.tv.ui.custom.ProgressLayout>
 
-        <!-- 顶栏下方的渐隐，避免滚动时卡片被硬切在顶栏边缘 -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="120dp"
-            android:layout_gravity="top"
-            android:background="@drawable/shape_top_scrim"
-            android:clickable="false"
-            android:focusable="false" />
-
     </FrameLayout>
 </androidx.appcompat.widget.LinearLayoutCompat>
