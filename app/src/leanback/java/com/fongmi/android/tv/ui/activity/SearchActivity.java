@@ -72,6 +72,8 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
 
     @Override
     protected void initView(Bundle savedInstanceState) {
+        mBinding.back.setOnClickListener(v -> finish());
+        com.fongmi.android.tv.utils.Clock.create(mBinding.clock).start();
         CustomKeyboard.init(this, mBinding);
         setRecyclerView();
         checkKeyword();
