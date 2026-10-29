@@ -601,8 +601,8 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private void setTraffic() {
-        Traffic.setSpeed(mBinding.progress.traffic);
-        App.post(mR2, 1000);
+        // QBox: 不展示 KB/s 之类的技术信息，加载态只保留转圈。
+        mBinding.progress.traffic.setVisibility(View.GONE);
     }
 
     private void setR1Callback() {
