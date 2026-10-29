@@ -72,6 +72,8 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
 
     @Override
     protected void initView(Bundle savedInstanceState) {
+        mBinding.back.setOnClickListener(v -> finish());
+        com.fongmi.android.tv.utils.Clock.create(mBinding.clock).start();
         mBinding.vod.requestFocus();
         mBinding.vodUrl.setText(VodConfig.getDesc());
         mBinding.liveUrl.setText(LiveConfig.getDesc());
