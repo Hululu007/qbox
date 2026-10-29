@@ -9,10 +9,10 @@
     android:focusableInTouchMode="true"
     android:gravity="center"
     android:orientation="horizontal"
-    android:paddingStart="18dp"
-    android:paddingTop="9dp"
-    android:paddingEnd="18dp"
-    android:paddingBottom="9dp">
+    android:paddingStart="12dp"
+    android:paddingTop="8dp"
+    android:paddingEnd="12dp"
+    android:paddingBottom="8dp">
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/icon"
@@ -29,7 +29,7 @@
         android:layout_marginStart="8dp"
         android:duplicateParentState="true"
         android:textColor="@color/hero_tab_text"
-        android:textSize="16sp"
+        android:textSize="15sp"
         tools:text="点播" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

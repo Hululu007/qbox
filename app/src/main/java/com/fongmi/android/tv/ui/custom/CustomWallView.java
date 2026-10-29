@@ -89,12 +89,8 @@ public class CustomWallView extends FrameLayout implements DefaultLifecycleObser
     }
 
     private void load() {
-        int wall = Setting.getWall();
-        int type = Setting.getWallType();
-        if (isBuiltIn(wall, type)) loadRes(WALL_PAPERS[wall]);
-        else if (type == TYPE_VIDEO) loadVideo(FileUtil.getWall(wall));
-        else if (type == TYPE_GIF) loadGif(FileUtil.getWall(wall));
-        else loadImage();
+        // QBox: 统一使用深色渐变底，不再加载配置源的花哨壁纸（Infuse/Netflix 式简约）。
+        binding.image.setImageResource(com.fongmi.android.tv.R.drawable.shape_wall_premium);
     }
 
     private void theme() {
