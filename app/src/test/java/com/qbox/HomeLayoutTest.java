@@ -19,8 +19,9 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 /**
- * 首页布局冒烟测试：用应用主题真正 inflate activity_home（含 hero 与三 tab），
- * 断言 hero 能测量出高度、tab 可聚焦。不需要真机，能挡住"布局/token 写错导致首页崩"的问题。
+ * 首页布局冒烟测试：用应用主题真正 inflate activity_home，
+ * 断言顶栏（源名胶囊/时钟）能测量出高度、关键控件都在。
+ * 不需要真机，能挡住"布局写错导致首页崩"的问题。
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 34, qualifiers = "w1920dp-h1080dp-xhdpi")
@@ -32,14 +33,14 @@ public class HomeLayoutTest {
         View root = LayoutInflater.from(context).inflate(R.layout.activity_home, null);
         assertNotNull("root inflate failed", root);
 
-        View brand = root.findViewById(R.id.brand);
-        assertNotNull("brand missing", brand);
-        brand.measure(MeasureSpec.makeMeasureSpec(400, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
-        assertTrue("brand height = " + brand.getMeasuredHeight(), brand.getMeasuredHeight() > 0);
+        View source = root.findViewById(R.id.source);
+        assertNotNull("source pill missing", source);
+        source.measure(MeasureSpec.makeMeasureSpec(400, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+        assertTrue("source height = " + source.getMeasuredHeight(), source.getMeasuredHeight() > 0);
 
-        for (int id : new int[]{R.id.logo, R.id.siteName, R.id.clock, R.id.recycler}) {
+        for (int id : new int[]{R.id.logo, R.id.source, R.id.clock, R.id.recycler, R.id.progressLayout}) {
             assertNotNull("missing view: " + id, root.findViewById(id));
         }
-        System.out.println("QBOX_UI_OK brand=" + brand.getMeasuredHeight() + "px");
+        System.out.println("QBOX_UI_OK source=" + source.getMeasuredHeight() + "px");
     }
 }
