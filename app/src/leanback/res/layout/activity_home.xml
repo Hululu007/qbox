@@ -67,23 +67,38 @@
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
-    <com.fongmi.android.tv.ui.custom.ProgressLayout
-        android:id="@+id/progressLayout"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <androidx.leanback.widget.VerticalGridView
-            android:id="@+id/recycler"
+        <com.fongmi.android.tv.ui.custom.ProgressLayout
+            android:id="@+id/progressLayout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipChildren="false"
-            android:clipToPadding="false"
-            android:paddingStart="24dp"
-            android:paddingTop="6dp"
-            android:paddingEnd="24dp"
-            android:paddingBottom="24dp"
-            app:focusOutEnd="true"
-            app:focusOutFront="true" />
+            android:layout_height="match_parent">
 
-    </com.fongmi.android.tv.ui.custom.ProgressLayout>
+            <androidx.leanback.widget.VerticalGridView
+                android:id="@+id/recycler"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:paddingStart="24dp"
+                android:paddingTop="6dp"
+                android:paddingEnd="24dp"
+                android:paddingBottom="24dp"
+                app:focusOutEnd="true"
+                app:focusOutFront="true" />
+
+        </com.fongmi.android.tv.ui.custom.ProgressLayout>
+
+        <!-- 顶栏下方的渐隐，避免滚动时卡片被硬切在顶栏边缘 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:layout_gravity="top"
+            android:background="@drawable/shape_top_scrim"
+            android:clickable="false"
+            android:focusable="false" />
+
+    </FrameLayout>
 </androidx.appcompat.widget.LinearLayoutCompat>
