@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -89,6 +90,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     private final List<com.fongmi.android.tv.bean.Class> mTypes = new ArrayList<>();
     private boolean historyShown;
     private boolean typesShown;
+    private int homeRetry;
     private HistoryPresenter mPresenter;
     private SiteViewModel mViewModel;
     private Result mResult;
@@ -215,9 +217,27 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         mViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
         mViewModel.getResult().observe(this, result -> {
             mAdapter.remove("progress");
+            if (result == null || (result.getTypes().isEmpty() && result.getList().isEmpty())) {
+                retryHome();
+                return;
+            }
+            homeRetry = 0;
             addVideo(mResult = result);
             Cache.clear().put(result);
         });
+    }
+
+    /** 首页内容请求失败时自动重试，避免只剩一个「点播」入口的空壳状态。 */
+    private void retryHome() {
+        if (homeRetry >= 3) {
+            Toast.makeText(this, "首页内容加载失败，可在设置里换源或稍后重进", Toast.LENGTH_LONG).show();
+            return;
+        }
+        homeRetry++;
+        App.post(() -> {
+            mAdapter.add("progress");
+            mViewModel.homeContent();
+        }, 1500L * homeRetry);
     }
 
     private void setAdapter() {
