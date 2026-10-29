@@ -73,6 +73,8 @@ public class CollectActivity extends BaseActivity {
 
     @Override
     protected void initView(Bundle savedInstanceState) {
+        mBinding.back.setOnClickListener(v -> finish());
+        com.fongmi.android.tv.utils.Clock.create(mBinding.clock).start();
         setRecyclerView();
         setViewModel();
         saveKeyword();
