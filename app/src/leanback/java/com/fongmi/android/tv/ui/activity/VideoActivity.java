@@ -755,6 +755,13 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     private void setText(Vod item) {
         mBinding.content.setTag(item.getContent());
+        String intro = item.getContent();
+        if (intro != null && !intro.trim().isEmpty()) {
+            mBinding.intro.setVisibility(View.VISIBLE);
+            mBinding.intro.setText("简介：".concat(intro.trim()));
+        } else {
+            mBinding.intro.setVisibility(View.GONE);
+        }
         setText(mBinding.year, R.string.detail_year, item.getYear());
         setText(mBinding.area, R.string.detail_area, item.getArea());
         setText(mBinding.type, R.string.detail_type, item.getTypeName());
