@@ -58,7 +58,12 @@ public class DLNARendererService extends AndroidUpnpServiceImpl implements Servi
     private boolean bound;
 
     public static void start(Context context) {
-        context.startService(new Intent(context, DLNARendererService.class));
+        // QBox: Android 12 起后台不允许启动服务，投屏服务启动失败不应拖垮首页。
+        try {
+            context.startService(new Intent(context, DLNARendererService.class));
+        } catch (RuntimeException e) {
+            android.util.Log.w("QBoxDLNA", "start service failed", e);
+        }
     }
 
     public static void stop(Context context) {

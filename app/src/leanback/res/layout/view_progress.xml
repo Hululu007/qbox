@@ -5,27 +5,21 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <androidx.appcompat.widget.AppCompatImageView
-        android:layout_width="96dp"
-        android:layout_height="96dp"
-        android:layout_gravity="center"
-        android:alpha="0.22"
-        android:src="@drawable/ic_logo" />
-
     <com.google.android.material.progressindicator.CircularProgressIndicator
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginTop="120dp"
         android:indeterminate="true"
-        app:indicatorColor="@color/white" />
+        app:indicatorColor="@color/white"
+        app:indicatorSize="40dp"
+        app:trackThickness="3dp" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/traffic"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="56dp"
         android:textColor="@color/white"
         android:textSize="16sp"
         android:visibility="gone"

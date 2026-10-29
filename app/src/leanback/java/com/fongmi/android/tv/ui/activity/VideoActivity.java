@@ -295,7 +295,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.control.action.text.setOnClickListener(this::onTrack);
         mBinding.control.action.audio.setOnClickListener(this::onTrack);
         mBinding.control.action.video.setOnClickListener(this::onTrack);
-        mBinding.control.action.play.setOnClickListener(view -> onKeyCenter());
         mBinding.control.action.ending.setUpListener(this::onEndingAdd);
         mBinding.control.action.ending.setDownListener(this::onEndingSub);
         mBinding.control.action.opening.setUpListener(this::onOpeningAdd);
@@ -1081,7 +1080,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     private void showControl(View view) {
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
-        mBinding.control.action.play.setText(player().isPlaying() ? "暂停" : "播放");
         view.requestFocus();
         setR1Callback();
     }
@@ -1247,7 +1245,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
                 mVod.playbackEnded();
                 mClock.setCallback(null);
                 hideInfo();
-                showControl(mBinding.control.action.play);
+                showControl(mBinding.control.action.replay);
                 break;
         }
     }
@@ -1413,17 +1411,11 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     @Override
     public void onKeyCenter() {
-        if (player().isPlaying()) {
-            onPaused();
-            hideInfo();
-            showControl(mBinding.control.action.play);
-        } else if (player().isEmpty()) {
-            onRefresh();
-            hideControl();
-        } else {
-            onPlay();
-            hideControl();
-        }
+        // OK 键只做播放/暂停切换；控制栏由方向键呼出。
+        if (player().isPlaying()) onPaused();
+        else if (player().isEmpty()) onRefresh();
+        else onPlay();
+        hideControl();
     }
 
     @Override
