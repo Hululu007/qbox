@@ -24,6 +24,7 @@ public class ProgressLayout extends RelativeLayout {
     private List<View> mContentViews;
     private View mProgressView;
     private View mEmptyView;
+    private ViewEmptyBinding mEmptyBinding;
     private State mState;
 
     public ProgressLayout(Context context) {
@@ -47,7 +48,8 @@ public class ProgressLayout extends RelativeLayout {
     }
 
     private void initView() {
-        mEmptyView = ViewEmptyBinding.inflate(LayoutInflater.from(getContext())).getRoot();
+        mEmptyBinding = ViewEmptyBinding.inflate(LayoutInflater.from(getContext()));
+        mEmptyView = mEmptyBinding.getRoot();
         mEmptyView.setTag(TAG_PROGRESS);
         mEmptyView.setVisibility(GONE);
         mProgressView = ViewProgressBinding.inflate(LayoutInflater.from(getContext())).getRoot();
@@ -73,6 +75,21 @@ public class ProgressLayout extends RelativeLayout {
 
     public void showEmpty() {
         switchState(State.EMPTY);
+    }
+
+    /** 空状态文案分场景，例如收藏页与分类页提示不同；hint 为空时隐藏副标题。 */
+    public void showEmpty(CharSequence text, CharSequence hint) {
+        if (mEmptyBinding != null) {
+            if (text != null) mEmptyBinding.text.setText(text);
+            mEmptyBinding.hint.setVisibility(hint == null || hint.length() == 0 ? View.GONE : View.VISIBLE);
+            if (hint != null && hint.length() > 0) mEmptyBinding.hint.setText(hint);
+        }
+        if (mState == State.EMPTY) {
+            mEmptyView.setVisibility(VISIBLE);
+            setContentVisibility(false);
+        } else {
+            switchState(State.EMPTY);
+        }
     }
 
     public void showContent() {

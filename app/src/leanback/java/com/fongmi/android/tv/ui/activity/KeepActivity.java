@@ -53,7 +53,10 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     }
 
     private void getKeep() {
-        mAdapter.setItems(Keep.getVod(), () -> mBinding.progressLayout.showContent(true, mAdapter.getItemCount()));
+        mAdapter.setItems(Keep.getVod(), () -> {
+            if (mAdapter.getItemCount() == 0) mBinding.progressLayout.showEmpty("还没有收藏内容，在详情页点「收藏」加入", null);
+            else mBinding.progressLayout.showContent();
+        });
     }
 
     private void loadConfig(Config config, Keep item) {
