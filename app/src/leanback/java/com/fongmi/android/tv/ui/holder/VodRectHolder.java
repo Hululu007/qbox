@@ -35,7 +35,7 @@ public class VodRectHolder extends BaseVodHolder {
         binding.site.setVisibility(item.getSiteVisible());
         binding.year.setVisibility(item.getYearVisible());
         binding.name.setVisibility(item.getNameVisible());
-        binding.remark.setVisibility(item.getRemarkVisible());
+        binding.remark.setVisibility(item.getRemarkVisible() == android.view.View.VISIBLE && isUsefulRemark(item.getRemarks()) ? android.view.View.VISIBLE : android.view.View.GONE);
         binding.getRoot().setOnClickListener(v -> listener.onItemClick(item));
         binding.getRoot().setOnLongClickListener(v -> listener.onLongClick(item));
         ImgUtil.load(item.getName(), item.getPic(), binding.image);
@@ -44,5 +44,13 @@ public class VodRectHolder extends BaseVodHolder {
     @Override
     public void unbind() {
         Glide.with(binding.image).clear(binding.image);
+    }
+
+    /** 评分 0 或空备注对用户没有信息量，直接不显示，避免卡片上出现「评分：0」。 */
+    static boolean isUsefulRemark(String remark) {
+        if (remark == null) return false;
+        String s = remark.trim();
+        if (s.isEmpty() || s.equals("0") || s.equals("0.0")) return false;
+        return !(s.startsWith("评分：0") || s.startsWith("评分:0") || s.startsWith("评分：0.0") || s.startsWith("评分:0.0"));
     }
 }

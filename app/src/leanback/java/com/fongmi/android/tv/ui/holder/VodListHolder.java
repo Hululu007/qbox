@@ -25,7 +25,7 @@ public class VodListHolder extends BaseVodHolder {
         binding.name.setText(item.getName());
         binding.remark.setText(item.getRemarks());
         binding.name.setVisibility(item.getNameVisible());
-        binding.remark.setVisibility(item.getRemarkVisible());
+        binding.remark.setVisibility(item.getRemarkVisible() == android.view.View.VISIBLE && VodRectHolder.isUsefulRemark(item.getRemarks()) ? android.view.View.VISIBLE : android.view.View.GONE);
         binding.getRoot().setOnClickListener(v -> listener.onItemClick(item));
         binding.getRoot().setOnLongClickListener(v -> listener.onLongClick(item));
         ImgUtil.load(item.getName(), item.getPic(), binding.image, true);
