@@ -241,6 +241,27 @@
             android:textSize="16sp"
             app:drawableStartCompat="@drawable/ic_detail_change" />
 
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/collect"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:background="@drawable/selector_item"
+            android:clickable="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:gravity="center"
+            android:nextFocusUp="@id/actor"
+            android:nextFocusDown="@id/flag"
+            android:paddingStart="18dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="18dp"
+            android:paddingBottom="10dp"
+            android:singleLine="true"
+            android:text="同名源"
+            android:textColor="@color/white"
+            android:textSize="16sp" />
+
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <androidx.core.widget.NestedScrollView

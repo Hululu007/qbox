@@ -293,6 +293,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.keep.setOnClickListener(view -> onKeep());
         mBinding.video.setOnClickListener(view -> onVideo());
         mBinding.change.setOnClickListener(view -> onChange());
+        mBinding.collect.setOnClickListener(view -> onCollect());
         mBinding.content.setOnClickListener(view -> onContent());
         mBinding.play.setOnClickListener(view -> onPrimaryPlay());
         mBinding.control.action.text.setOnClickListener(this::onTrack);
@@ -910,6 +911,13 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     private void onChange() {
         mVod.manualSwitchSource();
+    }
+
+    /** 同名源：直接跳到跨源搜索结果，换一个源看同一部片。 */
+    private void onCollect() {
+        CharSequence name = mBinding.name.getText();
+        if (name == null || name.length() == 0) return;
+        CollectActivity.start(this, name.toString());
     }
 
     private void onRepeat() {
