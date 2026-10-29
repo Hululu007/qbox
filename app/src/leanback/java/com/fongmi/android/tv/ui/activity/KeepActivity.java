@@ -38,6 +38,8 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
 
     @Override
     protected void initView(Bundle savedInstanceState) {
+        mBinding.back.setOnClickListener(v -> finish());
+        com.fongmi.android.tv.utils.Clock.create(mBinding.clock).start();
         setRecyclerView();
         getKeep();
     }
