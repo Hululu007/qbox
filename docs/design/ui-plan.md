@@ -6,7 +6,7 @@
 
 真机截图：`docs/screenshots/ui-cinema/`（JmGO 投影，1920×1080 @320dpi）：
 `v190-home` / `v190-home-toolbar` / `v190-vod` / `v190-vod-filter` / `v190-detail` /
-`v190-detail-episodes` / `v190-osd` / `v190-osd-more` / `v190-stats` / `v190-search` /
+`v190-detail-episodes` / `v190-osd` / `v190-osd-more` / `v190-live-osd` / `v190-stats` / `v190-search` /
 `v190-live-list` / `v190-settings`。
 
 ## 1. Token
@@ -93,6 +93,7 @@ Source   cdn.example.com
 ```
 
 - 加载态中央转圈下方显示实时带宽（`Traffic`），不再隐藏。
+- 直播 OSD 同一套规则：常用行 `配置 首页 暂停 音轨 线路 换源 更多`，其余（引擎/解码/倍速/缩放/字幕/视轨/反色/跨屏）收进「更多」。
 - 弹幕：入口与云搜全部移除（`loadDanmaku` 空实现，设置页入口隐藏）。
 
 ## 7. 其他页面
