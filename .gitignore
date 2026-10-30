@@ -19,3 +19,6 @@ media/
 fongmi-561/
 dist/
 
+
+# local build logs
+*.log
