@@ -20,7 +20,7 @@ public class Product {
 
     public static int[] getSpec(Style style) {
         int column = getColumn(style);
-        int space = ResUtil.dp2px(48) + ResUtil.dp2px(16 * (column - 1));
+        int space = ResUtil.dp2px(64) + ResUtil.dp2px(16 * (column - 1));
         if (style.isOval()) space += ResUtil.dp2px(column * 16);
         return getSpec(space, column, style);
     }

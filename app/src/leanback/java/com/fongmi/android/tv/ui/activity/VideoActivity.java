@@ -32,6 +32,7 @@ import androidx.media3.ui.PlayerView;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
+import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.transition.Transition;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
@@ -1136,22 +1137,33 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private void showControl(View view) {
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
         setExtra(view != null && isInExtra(view));
-        if (view == null || !view.isShown()) view = mBinding.control.action.chapter;
+        if (view == null || !view.isShown()) view = getFocus2();
+        if (view == null || !view.isShown()) view = mBinding.control.action.more;
         view.requestFocus();
+        setSubtitleLift(true);
         setR1Callback();
     }
 
     private void hideControl() {
         mBinding.control.getRoot().setVisibility(View.GONE);
         setExtra(false);
+        setSubtitleLift(false);
         App.removeCallbacks(mR1);
+    }
+
+    /** 控制条弹出来时把字幕抬高，避免字幕和「上集/下集/倍速…」压在同一个位置。 */
+    private void setSubtitleLift(boolean lift) {
+        try {
+            if (mBinding.player.getSubtitleView() != null) mBinding.player.getSubtitleView().setBottomPaddingFraction(lift ? 0.2f : 0.08f);
+        } catch (Throwable ignored) {
+        }
     }
 
     /** 更多面板：非常用开关收在二级行，主行保持一屏放得下。 */
     private void onMore() {
         boolean show = mBinding.control.action.extra.getVisibility() != View.VISIBLE;
         setExtra(show);
-        if (show) App.post(() -> mBinding.control.action.next.requestFocus(), 50);
+        if (show) App.post(() -> mBinding.control.action.scale.requestFocus(), 50);
         setR1Callback();
     }
 
@@ -1319,6 +1331,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private void setArtwork(String url) {
         mHistory.setVodPic(url);
         setArtwork();
+        ImgUtil.load(mHistory.getVodName(), url, mBinding.poster);
+        mBinding.poster.setVisibility(View.VISIBLE);
     }
 
     private void setArtwork() {
@@ -1333,6 +1347,18 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
                 mBinding.player.setDefaultArtwork(errorDrawable);
             }
         });
+        setBackdrop(mHistory.getVodPic());
+    }
+
+    /** 详情页氛围底图：48px 缩略图放大到全屏，等于免费的高斯模糊。 */
+    private void setBackdrop(String url) {
+        try {
+            if (TextUtils.isEmpty(url)) return;
+            Glide.with(this).load(ImgUtil.getUrl(url)).override(24, 24).centerCrop()
+                    .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(700))
+                    .into(mBinding.backdrop);
+        } catch (Throwable ignored) {
+        }
     }
 
     private void setPartAdapter() {
@@ -1455,6 +1481,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     @Override
     protected void onPlayingChanged(boolean isPlaying) {
         if (isPlaying) {
+            mBinding.poster.setVisibility(View.GONE);
             hideCenter();
         } else if (isPaused()) {
             if (isFullscreen()) showInfo();
@@ -1550,7 +1577,10 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private View getFocus2() {
-        return mFocus2 == null || !mFocus2.isShown() || mFocus2 == mBinding.control.action.opening || mFocus2 == mBinding.control.action.ending ? mBinding.control.action.chapter : mFocus2;
+        if (mFocus2 != null && mFocus2.isShown() && mFocus2 != mBinding.control.action.opening && mFocus2 != mBinding.control.action.ending) return mFocus2;
+        if (mBinding.control.action.chapter.isShown()) return mBinding.control.action.chapter;
+        if (mBinding.control.action.prev.isShown()) return mBinding.control.action.prev;
+        return mBinding.control.action.more;
     }
 
     @Override

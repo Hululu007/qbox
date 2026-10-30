@@ -97,19 +97,28 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
         updateFilterState();
     }
 
-    /** 顶栏「筛选」是独立入口：分类 tab 只负责切页，不再兼职开关筛选。 */
+    /** 顶栏「筛选」：始终显示（没有筛选项时置灰不可聚焦），焦点链路固定为 返回 ↔ 筛选 ↓ 分类。 */
     private void bindFilter() {
-        mBinding.home.setOnClickListener(v -> finish());
-        mBinding.home.setOnKeyListener((v, keyCode, event) -> {
-            if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_DPAD_DOWN) return focusGrid();
-            return false;
+        mBinding.filter.setOnClickListener(v -> {
+            if (mBinding.filter.isEnabled()) updateFilter();
         });
-        mBinding.filter.setOnClickListener(v -> updateFilter());
         mBinding.filter.setOnKeyListener((v, keyCode, event) -> {
             if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
                 mBinding.typeRecycler.requestFocus();
                 return true;
             }
+            return false;
+        });
+        mBinding.filter.setNextFocusLeftId(R.id.back);
+        mBinding.back.setNextFocusRightId(R.id.filter);
+        mBinding.typeRecycler.setOnKeyListener((v, keyCode, event) -> {
+            if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
+            if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+                if (mBinding.filter.isFocusable()) mBinding.filter.requestFocus();
+                else mBinding.back.requestFocus();
+                return true;
+            }
+            if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) return focusGrid();
             return false;
         });
         mBinding.back.setOnKeyListener((v, keyCode, event) -> {
@@ -121,21 +130,20 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
         });
     }
 
-    /** 当前分类没有筛选项时直接隐藏按钮，避免按下去没反应。 */
+    /** 没有筛选项时按钮置灰且不进焦点，文案变「无筛选」，用户一眼能看出这个源没有筛选。 */
     private void updateFilterState() {
         Class type = getType();
         boolean hasFilter = type != null && !Cache.get(type).isEmpty();
         boolean opened = type != null && type.getFilter();
-        mBinding.filter.setVisibility(hasFilter ? View.VISIBLE : View.GONE);
-        mBinding.filter.setText(opened ? R.string.filter_close : R.string.filter);
+        mBinding.filter.setText(!hasFilter ? R.string.filter_none : opened ? R.string.filter_close : R.string.filter);
+        mBinding.filter.setEnabled(hasFilter);
+        mBinding.filter.setFocusable(hasFilter);
+        mBinding.filter.setAlpha(hasFilter ? 1f : 0.3f);
+        mBinding.filter.setSelected(opened);
     }
 
     @Override
     protected void initEvent() {
-        mBinding.typeRecycler.setOnKeyListener((v, keyCode, event) -> {
-            if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_DPAD_DOWN) return focusGrid();
-            return false;
-        });
         mBinding.pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
             public void onPageSelected(int position) {
@@ -220,9 +228,8 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
     @Override
     public void onItemClick(Class item) {
         int index = mAdapter.indexOf(item);
-        // 再次点击当前分类 = 展开/收起筛选；点其他分类只切页。
-        if (index == mBinding.pager.getCurrentItem() && !Cache.get(item).isEmpty()) updateFilter(item);
-        else mBinding.pager.setCurrentItem(index);
+        // 分类只管切页；筛选统一走顶栏「筛选」，不再重复一个隐藏入口。
+        mBinding.pager.setCurrentItem(index);
         updateFilterState();
     }
 
@@ -234,6 +241,17 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (KeyUtil.isMenuKey(event)) updateFilter();
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            // 分类条与内容区之间的上下键在 Activity 层处理，避免焦点落到 tab 内部的子 View 后事件被吃掉。
+            if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP && mBinding.typeRecycler.hasFocus()) {
+                if (mBinding.filter.isFocusable()) mBinding.filter.requestFocus();
+                else mBinding.back.requestFocus();
+                return true;
+            }
+            if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN && mBinding.typeRecycler.hasFocus()) {
+                return focusGrid();
+            }
+        }
         return super.dispatchKeyEvent(event);
     }
 

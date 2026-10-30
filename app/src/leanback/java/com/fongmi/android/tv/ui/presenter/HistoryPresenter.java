@@ -35,7 +35,7 @@ public class HistoryPresenter extends Presenter {
     }
 
     private void setLayoutSize() {
-        int space = ResUtil.dp2px(48) + ResUtil.dp2px(16 * (Product.getColumn() - 1));
+        int space = ResUtil.dp2px(64) + ResUtil.dp2px(16 * (Product.getColumn() - 1));
         int base = ResUtil.getScreenWidth() - space;
         width = base / Product.getColumn();
         height = (int) (width / 0.75f);
@@ -69,7 +69,7 @@ public class HistoryPresenter extends Presenter {
     @Override
     public void onBindViewHolder(@NonNull Presenter.ViewHolder viewHolder, Object object) {
         History item = (History) object;
-        boolean same = item.getVodName().equals(item.getVodRemarks());
+        boolean same = item.getVodName().equals(item.getVodRemarks()) || isNumeric(item.getVodRemarks());
         ViewHolder holder = (ViewHolder) viewHolder;
         setClickListener(holder.view, item);
         holder.binding.name.setText(item.getVodName());
@@ -91,6 +91,11 @@ public class HistoryPresenter extends Presenter {
     public void onUnbindViewHolder(@NonNull Presenter.ViewHolder viewHolder) {
         ViewHolder holder = (ViewHolder) viewHolder;
         Glide.with(holder.binding.image).clear(holder.binding.image);
+    }
+
+    /** 纯数字（集数/评分）对卡片没有信息量，直接不显示。 */
+    private static boolean isNumeric(String text) {
+        return text != null && text.trim().matches("^\\d+(\\.\\d+)?$");
     }
 
     public static class ViewHolder extends Presenter.ViewHolder {

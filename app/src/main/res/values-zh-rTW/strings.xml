@@ -6,6 +6,7 @@
     <!-- Common -->
     <string name="back">返回</string>
     <string name="filter">篩選</string>
+    <string name="filter_none">無篩選</string>
     <string name="filter_close">收起</string>
 
     <!-- Home -->
@@ -61,6 +62,7 @@
     <string name="play_chapter">選集</string>
     <string name="play_more">更多</string>
     <string name="play_less">收起</string>
+    <string name="play_close">關閉</string>
     <string name="play_stats_title">詳情</string>
     <string name="play_stats">詳情</string>
     <string name="play_scale">原始</string>

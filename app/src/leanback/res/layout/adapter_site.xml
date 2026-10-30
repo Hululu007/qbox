@@ -11,6 +11,7 @@
     android:orientation="horizontal">
 
     <com.google.android.material.textview.MaterialTextView
+        android:duplicateParentState="true"
         android:id="@+id/text"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -23,6 +24,7 @@
         tools:text="泥巴" />
 
     <com.google.android.material.checkbox.MaterialCheckBox
+        android:duplicateParentState="true"
         android:id="@+id/check"
         android:layout_width="24dp"
         android:layout_height="24dp"

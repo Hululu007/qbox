@@ -83,6 +83,7 @@ public class ImgUtil {
     public static Object getUrl(String url) {
         String param = null;
         url = UrlUtil.convert(url);
+        url = unwrapProxy(url);
         if (url.startsWith("data:")) return url;
         LazyHeaders.Builder builder = new LazyHeaders.Builder();
         if (url.contains("@Headers=")) addHeader(builder, param = url.split("@Headers=")[1].split("@")[0]);
@@ -91,6 +92,22 @@ public class ImgUtil {
         if (url.contains("@User-Agent=")) builder.addHeader(HttpHeaders.USER_AGENT, param = url.split("@User-Agent=")[1].split("@")[0]);
         url = param == null ? url : url.split("@")[0];
         return TextUtils.isEmpty(url) ? null : new GlideUrl(url, builder.build());
+    }
+
+    /**
+     * 部分源的图片走百度图床代理，路径被拼成 gimg/app=...&src=原图，代理地址在电视上只会返回 1px 占位图。
+     * 这里把 src 里的原图地址取出来直接用，海报、背景图都能正常显示。
+     */
+    private static String unwrapProxy(String url) {
+        if (url == null || !url.contains(".baidu.com/gimg")) return url;
+        int start = url.indexOf("src=");
+        if (start < 0) return url;
+        String src = url.substring(start + 4);
+        int end = src.indexOf('&');
+        if (end >= 0) src = src.substring(0, end);
+        if (src.isEmpty()) return url;
+        if (!src.startsWith("http")) src = "https://" + src;
+        return src;
     }
 
     private static void addHeader(LazyHeaders.Builder builder, String header) {

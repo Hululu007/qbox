@@ -6,6 +6,7 @@
     <!-- Common -->
     <string name="back">Back</string>
     <string name="filter">Filter</string>
+    <string name="filter_none">No filter</string>
     <string name="filter_close">Close</string>
 
     <!-- Home -->
@@ -61,6 +62,7 @@
     <string name="play_chapter">Chapter</string>
     <string name="play_more">More</string>
     <string name="play_less">Less</string>
+    <string name="play_close">Close</string>
     <string name="play_stats_title">Stats</string>
     <string name="play_stats">Stats</string>
     <string name="play_scale">Default</string>

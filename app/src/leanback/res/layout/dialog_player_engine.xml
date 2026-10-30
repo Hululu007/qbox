@@ -14,6 +14,7 @@
         android:paddingBottom="16dp">
 
         <com.google.android.material.textview.MaterialTextView
+            android:duplicateParentState="true"
             android:id="@+id/title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -43,6 +44,7 @@
         android:paddingBottom="24dp">
 
         <com.google.android.material.textview.MaterialTextView
+            android:duplicateParentState="true"
             android:id="@+id/exo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -55,6 +57,7 @@
             android:textSize="14sp" />
 
         <com.google.android.material.textview.MaterialTextView
+            android:duplicateParentState="true"
             android:id="@+id/mpv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -67,6 +70,7 @@
             android:textSize="14sp" />
 
         <com.google.android.material.textview.MaterialTextView
+            android:duplicateParentState="true"
             android:id="@+id/other"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

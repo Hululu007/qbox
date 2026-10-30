@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/bg_app"
     android:orientation="vertical">
 
     <androidx.appcompat.widget.LinearLayoutCompat
@@ -62,9 +63,9 @@
         android:layout_height="wrap_content"
         android:clipChildren="false"
         android:clipToPadding="false"
-        android:paddingStart="24dp"
+        android:paddingStart="32dp"
         android:paddingTop="8dp"
-        android:paddingEnd="24dp"
+        android:paddingEnd="32dp"
         app:focusOutEnd="false"
         app:focusOutFront="false" />
 

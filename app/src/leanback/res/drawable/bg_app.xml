@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 深色渐变底：顶部微亮，底部收黑，避免整块死黑。 -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:endColor="#05060A"
+                android:startColor="#0D0F15"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <!-- 左上角冷色柔光，制造体积感。 -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:centerX="0.18"
+                android:centerY="0.02"
+                android:endColor="#00000000"
+                android:gradientRadius="620dp"
+                android:startColor="#332B4A74"
+                android:type="radial" />
+        </shape>
+    </item>
+
+</layer-list>

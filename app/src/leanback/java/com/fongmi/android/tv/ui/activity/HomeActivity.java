@@ -22,6 +22,8 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
@@ -86,15 +88,25 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     private ActivityHomeBinding mBinding;
     private ArrayObjectAdapter mHistoryAdapter;
     private ArrayObjectAdapter mAdapter;
-    private androidx.leanback.widget.ListRow mTypesRow;
     private final List<com.fongmi.android.tv.bean.Class> mTypes = new ArrayList<>();
+    private ArrayObjectAdapter mTypeAdapter;
     private boolean historyShown;
-    private boolean typesShown;
     private int homeRetry;
     private HistoryPresenter mPresenter;
     private SiteViewModel mViewModel;
     private Result mResult;
     private Clock mClock;
+    private String mBackdropUrl;
+    private String mFallbackPic;
+
+    /** 氛围底图：跟随当前焦点卡片的海报做低分辨率放大，形成柔和的背景光，避免纯黑死板。 */
+    private final Runnable mBackdropTask = new Runnable() {
+        @Override
+        public void run() {
+            updateBackdrop();
+            App.post(this, 600);
+        }
+    };
 
     private Site getHome() {
         return VodConfig.get().getHome();
@@ -156,7 +168,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         });
         mBinding.recycler.setOnKeyListener((v, keyCode, event) -> {
             if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_DPAD_UP && mBinding.recycler.getSelectedPosition() <= 0) {
-                mBinding.search.requestFocus();
+                if (mTypeAdapter != null && mTypeAdapter.size() > 0) mBinding.typeRecycler.requestFocus();
+                else mBinding.search.requestFocus();
                 return true;
             }
             return false;
@@ -176,7 +189,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         view.setOnKeyListener((v, keyCode, event) -> {
             if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
             if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-                mBinding.recycler.requestFocus();
+                if (mTypeAdapter != null && mTypeAdapter.size() > 0) mBinding.typeRecycler.requestFocus();
+                else mBinding.recycler.requestFocus();
                 return true;
             }
             return false;
@@ -230,11 +244,14 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         selector.addPresenter(Integer.class, new HeaderPresenter());
         selector.addPresenter(String.class, new ProgressPresenter());
         selector.addPresenter(Vod.class, new VodPresenter(this, Style.list()));
-        selector.addPresenter(ListRow.class, new CustomRowPresenter(16), VodPresenter.class);
-        selector.addPresenter(ListRow.class, new CustomRowPresenter(16), FuncPresenter.class);
-        selector.addPresenter(ListRow.class, new CustomRowPresenter(16, FocusHighlight.ZOOM_FACTOR_SMALL, HorizontalGridView.FOCUS_SCROLL_ALIGNED), HistoryPresenter.class);
+        selector.addPresenter(ListRow.class, new CustomRowPresenter(16, FocusHighlight.ZOOM_FACTOR_NONE), VodPresenter.class);
+        selector.addPresenter(ListRow.class, new CustomRowPresenter(16, FocusHighlight.ZOOM_FACTOR_NONE), FuncPresenter.class);
+        selector.addPresenter(ListRow.class, new CustomRowPresenter(16, FocusHighlight.ZOOM_FACTOR_NONE, HorizontalGridView.FOCUS_SCROLL_ALIGNED), HistoryPresenter.class);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
         mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(24));
+        mBinding.typeRecycler.setHorizontalSpacing(ResUtil.dp2px(20));
+        mBinding.typeRecycler.setRowHeight(android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+        mBinding.typeRecycler.setAdapter(new ItemBridgeAdapter(mTypeAdapter = new ArrayObjectAdapter(new FuncPresenter(this))));
     }
 
     private void setViewModel() {
@@ -315,6 +332,40 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         App.post(() -> mBinding.recycler.requestFocus(), 300);
     }
 
+    private void updateBackdrop() {
+        try {
+            View focus = getCurrentFocus();
+            if (focus == null) return;
+            String url = null;
+            RecyclerView grid = null;
+            View child = focus;
+            while (child != null) {
+                if (child.getParent() instanceof RecyclerView) {
+                    grid = (RecyclerView) child.getParent();
+                    break;
+                }
+                child = child.getParent() instanceof View ? (View) child.getParent() : null;
+            }
+            if (grid != null && grid.getAdapter() instanceof ItemBridgeAdapter) {
+                int position = grid.getChildAdapterPosition(child);
+                RecyclerView.ViewHolder holder = position < 0 ? null : grid.findViewHolderForAdapterPosition(position);
+                if (holder instanceof ItemBridgeAdapter.ViewHolder) {
+                    Object item = ((ItemBridgeAdapter.ViewHolder) holder).getItem();
+                    if (item instanceof Vod) url = ((Vod) item).getPic();
+                    else if (item instanceof History) url = ((History) item).getVodPic();
+                }
+            }
+            if (TextUtils.isEmpty(url)) url = mFallbackPic;
+            if (TextUtils.isEmpty(url) || url.equals(mBackdropUrl)) return;
+            mBackdropUrl = url;
+            Glide.with(this).load(ImgUtil.getUrl(url)).override(24, 24).centerCrop()
+                    .transition(DrawableTransitionOptions.withCrossFade(600))
+                    .into(mBinding.backdrop);
+            mBinding.backdrop.setVisibility(View.VISIBLE);
+        } catch (Throwable ignored) {
+        }
+    }
+
     private void getVideo() {
         mResult = Result.empty();
         int index = getRecommendIndex();
@@ -327,17 +378,25 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     private void addVideo(Result result) {
         addTypes(result);
+        boolean empty = result.getList() == null || result.getList().isEmpty();
+        if (!empty) for (Vod vod : result.getList()) if (!TextUtils.isEmpty(vod.getPic())) { mFallbackPic = vod.getPic(); break; }
+        setRecommendHeader(!empty);
+        if (empty) return;
         Style style = result.getStyle(getHome().getStyle());
         if (style.isList()) mAdapter.addAll(mAdapter.size(), result.getList());
         else addGrid(result.getList(), style);
     }
 
+    /** 源没有推荐位（网盘/配置类源）时不显示空的「更新推荐」标题。 */
+    private void setRecommendHeader(boolean show) {
+        int index = mAdapter.indexOf(R.string.home_recommend);
+        if (show && index < 0) mAdapter.add(0, R.string.home_recommend);
+        else if (!show && index >= 0) mAdapter.removeItems(index, 1);
+    }
+
     /** 分类行：「首页」+ 当前源自己的点播分类。每次内容刷新（含换源）都按源重建，不套模板。 */
     private void addTypes(Result result) {
-        if (mTypesRow != null) {
-            mAdapter.remove(mTypesRow);
-            mTypesRow = null;
-        }
+
         mTypes.clear();
         List<Func> items = new ArrayList<>();
         if (result.getTypes() != null) for (com.fongmi.android.tv.bean.Class type : result.getTypes()) {
@@ -346,12 +405,10 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             items.add(Func.create(type.getTypeName()));
         }
         if (items.isEmpty()) items.add(Func.create(R.string.home_vod));
-        ArrayObjectAdapter adapter = new ArrayObjectAdapter(new FuncPresenter(this));
-        adapter.addAll(0, items);
-        mTypesRow = new ListRow(adapter);
-        mAdapter.add(0, mTypesRow);
-        typesShown = true;
-        App.post(() -> mBinding.recycler.setSelectedPosition(0), 300);
+        mTypeAdapter.clear();
+        mTypeAdapter.addAll(0, items);
+        mBinding.typeRecycler.setSelectedPosition(0);
+        mBinding.typeRecycler.scrollToPosition(0);
     }
 
     private void addGrid(List<Vod> items, Style style) {
@@ -386,7 +443,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                 historyShown = false;
             }
         } else if (!historyShown) {
-            int base = typesShown ? 1 : 0;
+            int base = 0;
             mAdapter.add(base, R.string.home_history);
             mAdapter.add(base + 1, new ListRow(mHistoryAdapter));
             historyShown = true;
@@ -410,7 +467,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private int getRecommendIndex() {
-        return mAdapter.indexOf(R.string.home_recommend) + 1;
+        int index = mAdapter.indexOf(R.string.home_recommend);
+        return index < 0 ? 0 : index + 1;
     }
 
     private void setLogo() {
@@ -566,6 +624,24 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (KeyUtil.isMenuKey(event)) showDialog();
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            // 顶栏、分类条、内容区三者之间的上下键在 Activity 层统一处理，避免 Leanback 把事件吃掉。
+            if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP && mBinding.recycler.hasFocus()
+                    && mBinding.recycler.getSelectedPosition() <= 0
+                    && mTypeAdapter != null && mTypeAdapter.size() > 0) {
+                mBinding.recycler.setSelectedPosition(0);
+                mBinding.typeRecycler.requestFocus();
+                return true;
+            }
+            if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN && mBinding.typeRecycler.hasFocus()) {
+                mBinding.recycler.requestFocus();
+                return true;
+            }
+            if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP && mBinding.typeRecycler.hasFocus()) {
+                mBinding.source.requestFocus();
+                return true;
+            }
+        }
         return super.dispatchKeyEvent(event);
     }
 
@@ -573,12 +649,14 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     protected void onResume() {
         super.onResume();
         mClock.start();
+        App.post(mBackdropTask, 700);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         mClock.stop();
+        App.removeCallbacks(mBackdropTask);
     }
 
     @Override

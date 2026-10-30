@@ -1,11 +1,33 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/qbox_bg"
-    android:orientation="vertical">
+    android:background="@drawable/bg_app">
+
+    <!-- 氛围底图：当前影片海报低分辨率放大，形成柔和的光晕。 -->
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/backdrop"
+        android:layout_width="match_parent"
+        android:layout_height="460dp"
+        android:alpha="0.45"
+        android:importantForAccessibility="no"
+        android:scaleType="fitXY" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="540dp"
+        android:background="@drawable/shape_backdrop_scrim" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="160dp"
+        android:background="@drawable/shape_top_scrim" />
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/toolbar"
@@ -13,9 +35,9 @@
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="40dp"
+        android:paddingStart="32dp"
         android:paddingTop="22dp"
-        android:paddingEnd="40dp"
+        android:paddingEnd="32dp"
         android:paddingBottom="2dp">
 
         <androidx.appcompat.widget.AppCompatImageView
@@ -236,6 +258,19 @@
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
+    <!-- 分类固定条：不跟随内容滚动，任何位置都能一眼看到当前源有哪些分类。 -->
+    <androidx.leanback.widget.HorizontalGridView
+        android:id="@+id/typeRecycler"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp"
+        app:focusOutEnd="true"
+        app:focusOutFront="true" />
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -250,15 +285,22 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:clipChildren="false"
-                android:clipToPadding="false"
-                android:paddingStart="40dp"
-                android:paddingTop="4dp"
-                android:paddingEnd="40dp"
+                android:clipToPadding="true"
+                android:paddingStart="32dp"
+                android:paddingTop="28dp"
+                android:paddingEnd="32dp"
                 android:paddingBottom="32dp"
                 app:focusOutEnd="true"
                 app:focusOutFront="true" />
 
         </com.fongmi.android.tv.ui.custom.ProgressLayout>
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:background="@drawable/shape_content_fade"
+            android:importantForAccessibility="no" />
+
     </FrameLayout>
 </androidx.appcompat.widget.LinearLayoutCompat>
+</FrameLayout>
