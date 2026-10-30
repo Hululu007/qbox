@@ -129,7 +129,6 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         selector.addPresenter(ListRow.class, new CustomRowPresenter(16), VodPresenter.class);
         selector.addPresenter(ListRow.class, new CustomRowPresenter(8, FocusHighlight.ZOOM_FACTOR_NONE, HorizontalGridView.FOCUS_SCROLL_ALIGNED), FilterPresenter.class);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
-        mBinding.recycler.setHeader(getActivity(), R.id.recycler);
         mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(16));
     }
 
@@ -234,6 +233,11 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         this.filterVisible = visible;
         if (visible) showFilter();
         else hideFilter();
+    }
+
+    public boolean requestFocus() {
+        if (mBinding == null) return false;
+        return mBinding.recycler.requestFocus();
     }
 
     private void checkFilter() {

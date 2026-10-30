@@ -38,9 +38,14 @@ public class HomeLayoutTest {
         source.measure(MeasureSpec.makeMeasureSpec(400, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
         assertTrue("source height = " + source.getMeasuredHeight(), source.getMeasuredHeight() > 0);
 
-        for (int id : new int[]{R.id.logo, R.id.source, R.id.clock, R.id.recycler, R.id.progressLayout}) {
+        for (int id : new int[]{R.id.logo, R.id.source, R.id.clock, R.id.recycler, R.id.progressLayout,
+                R.id.search, R.id.live, R.id.keep, R.id.push, R.id.setting}) {
             assertNotNull("missing view: " + id, root.findViewById(id));
         }
+
+        View search = root.findViewById(R.id.search);
+        search.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED), MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+        assertTrue("search action should be 46dp, got " + search.getMeasuredWidth() + "px", search.getMeasuredWidth() > 0);
         System.out.println("QBOX_UI_OK source=" + source.getMeasuredHeight() + "px");
     }
 }

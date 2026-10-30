@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/qbox_bg"
     android:orientation="vertical">
 
     <androidx.appcompat.widget.LinearLayoutCompat
@@ -12,16 +13,17 @@
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="32dp"
-        android:paddingTop="20dp"
-        android:paddingEnd="32dp"
-        android:paddingBottom="6dp">
+        android:paddingStart="40dp"
+        android:paddingTop="22dp"
+        android:paddingEnd="40dp"
+        android:paddingBottom="2dp">
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/logo"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:layout_marginEnd="12dp"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:layout_marginEnd="14dp"
+            android:contentDescription="@string/app_name"
             android:src="@drawable/ic_logo" />
 
         <com.google.android.material.textview.MaterialTextView
@@ -33,7 +35,8 @@
             android:ellipsize="end"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:maxWidth="720dp"
+            android:letterSpacing="0.01"
+            android:maxWidth="560dp"
             android:paddingStart="16dp"
             android:paddingTop="6dp"
             android:paddingEnd="16dp"
@@ -41,29 +44,195 @@
             android:singleLine="true"
             android:text="@string/app_name"
             android:textColor="@color/hero_tab_text"
-            android:textSize="22sp"
+            android:textSize="20sp"
             android:textStyle="bold"
-            tools:text="豆豆｜片单" />
+            tools:text="玩偶哥哥 | 4K弹幕" />
 
         <View
             android:layout_width="0dp"
             android:layout_height="1dp"
             android:layout_weight="1" />
 
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/search"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:background="@drawable/selector_action_icon"
+                android:clickable="true"
+                android:contentDescription="@string/home_search"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:padding="12dp"
+                android:src="@drawable/ic_home_search"
+                app:tint="@color/text" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/searchLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="14dp"
+                android:duplicateParentState="false"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:singleLine="true"
+                android:text="@string/home_search"
+                android:textColor="@color/qbox_text_dim"
+                android:textSize="11sp"
+                android:visibility="invisible" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/live"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:background="@drawable/selector_action_icon"
+                android:clickable="true"
+                android:contentDescription="@string/home_live"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:padding="12dp"
+                android:src="@drawable/ic_home_live"
+                app:tint="@color/text" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/liveLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="14dp"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:singleLine="true"
+                android:text="@string/home_live"
+                android:textColor="@color/qbox_text_dim"
+                android:textSize="11sp"
+                android:visibility="invisible" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/keep"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:background="@drawable/selector_action_icon"
+                android:clickable="true"
+                android:contentDescription="@string/home_keep"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:padding="12dp"
+                android:src="@drawable/ic_home_keep"
+                app:tint="@color/text" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/keepLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="14dp"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:singleLine="true"
+                android:text="@string/home_keep"
+                android:textColor="@color/qbox_text_dim"
+                android:textSize="11sp"
+                android:visibility="invisible" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/push"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:background="@drawable/selector_action_icon"
+                android:clickable="true"
+                android:contentDescription="@string/home_push"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:padding="12dp"
+                android:src="@drawable/ic_home_push"
+                app:tint="@color/text" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/pushLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="14dp"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:singleLine="true"
+                android:text="@string/home_push"
+                android:textColor="@color/qbox_text_dim"
+                android:textSize="11sp"
+                android:visibility="invisible" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/setting"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:background="@drawable/selector_action_icon"
+                android:clickable="true"
+                android:contentDescription="@string/home_setting"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:padding="12dp"
+                android:src="@drawable/ic_qbox_setting"
+                app:tint="@color/text" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/settingLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="14dp"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:singleLine="true"
+                android:text="@string/home_setting"
+                android:textColor="@color/qbox_text_dim"
+                android:textSize="11sp"
+                android:visibility="invisible" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/clock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:background="@drawable/shape_clock_bg"
-            android:paddingStart="14dp"
-            android:paddingTop="4dp"
-            android:paddingEnd="14dp"
-            android:paddingBottom="4dp"
-            android:textColor="@color/white"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            tools:text="09:20:00" />
+            android:layout_marginStart="20dp"
+            android:fontFeatureSettings="tnum"
+            android:letterSpacing="0.02"
+            android:textColor="@color/qbox_text_dim"
+            android:textSize="15sp"
+            tools:text="09:20  10/30 周五" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -82,10 +251,10 @@
                 android:layout_height="match_parent"
                 android:clipChildren="false"
                 android:clipToPadding="false"
-                android:paddingStart="24dp"
-                android:paddingTop="6dp"
-                android:paddingEnd="24dp"
-                android:paddingBottom="24dp"
+                android:paddingStart="40dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="40dp"
+                android:paddingBottom="32dp"
                 app:focusOutEnd="true"
                 app:focusOutFront="true" />
 

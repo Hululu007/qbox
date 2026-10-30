@@ -127,6 +127,11 @@ public class CollectFragment extends BaseFragment implements CustomScroller.Call
         return false;
     }
 
+    public boolean requestFocus() {
+        if (mBinding == null) return false;
+        return mBinding.recycler.requestFocus();
+    }
+
     @Override
     public boolean onLoadMore(String page) {
         if (mCollect == null || "all".equals(mCollect.getSite().getKey())) return false;

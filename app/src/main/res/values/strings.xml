@@ -3,6 +3,19 @@
     <!-- App -->
     <string name="app_name">QBox</string>
 
+    <!-- Common -->
+    <string name="back">Back</string>
+    <string name="filter">Filter</string>
+    <string name="filter_close">Close</string>
+
+    <!-- Home -->
+    <string name="home_tab">Home</string>
+    <string name="home_search">Search</string>
+    <string name="home_live">Live</string>
+    <string name="home_keep">Favorites</string>
+    <string name="home_push">Push</string>
+    <string name="home_setting">Settings</string>
+
     <!-- Live -->
     <string name="live_pass">Pass</string>
     <string name="live_refresh">Refresh</string>
@@ -14,8 +27,8 @@
     <string name="detail_year">Year: <xliff:g name="name">%s</xliff:g></string>
     <string name="detail_area">Area: <xliff:g name="name">%s</xliff:g></string>
     <string name="detail_type">Type: <xliff:g name="name">%s</xliff:g></string>
-    <string name="detail_director">Director: <xliff:g name="name">%s</xliff:g></string>
-    <string name="detail_actor">Actor: <xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_director">Director · %s</string>
+    <string name="detail_actor">Cast · %s</string>
     <string name="detail_content">Summary: <xliff:g name="name">%s</xliff:g></string>
     <string name="detail_desc">Summary</string>
 
@@ -46,6 +59,10 @@
     <string name="play_timer">Timer</string>
     <string name="play_edition">Title</string>
     <string name="play_chapter">Chapter</string>
+    <string name="play_more">More</string>
+    <string name="play_less">Less</string>
+    <string name="play_stats_title">Stats</string>
+    <string name="play_stats">Stats</string>
     <string name="play_scale">Default</string>
     <string name="play_config">Config</string>
     <string name="play_change">Change</string>

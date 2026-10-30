@@ -85,9 +85,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     private ActivityHomeBinding mBinding;
     private ArrayObjectAdapter mHistoryAdapter;
-    private ArrayObjectAdapter mFuncAdapter;
     private ArrayObjectAdapter mAdapter;
-    private androidx.leanback.widget.ListRow mFuncRow;
     private androidx.leanback.widget.ListRow mTypesRow;
     private final List<com.fongmi.android.tv.bean.Class> mTypes = new ArrayList<>();
     private boolean historyShown;
@@ -126,7 +124,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     @Override
     protected void initView(Bundle savedInstanceState) {
         mResult = Result.empty();
-        mClock = Clock.create(mBinding.clock).format("HH:mm:ss  MM/dd  EEE");
+        mClock = Clock.create(mBinding.clock).format("HH:mm  MM/dd EEE");
         mBinding.progressLayout.showProgress();
         PermissionUtil.requestNotify(this);
         DLNARendererService.start(this);
@@ -137,6 +135,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         initConfig();
         setTitle();
         setLogo();
+        setFunc();
     }
 
     @Override
@@ -146,9 +145,18 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             showDiag();
             return true;
         });
+        bindAction(mBinding.search, mBinding.searchLabel, () -> SearchActivity.start(this));
+        bindAction(mBinding.live, mBinding.liveLabel, () -> LiveActivity.start(this));
+        bindAction(mBinding.keep, mBinding.keepLabel, () -> KeepActivity.start(this));
+        bindAction(mBinding.push, mBinding.pushLabel, () -> PushActivity.start(this));
+        bindAction(mBinding.setting, mBinding.settingLabel, () -> SettingActivity.start(this));
+        mBinding.setting.setOnLongClickListener(v -> {
+            showDiag();
+            return true;
+        });
         mBinding.recycler.setOnKeyListener((v, keyCode, event) -> {
             if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_DPAD_UP && mBinding.recycler.getSelectedPosition() <= 0) {
-                mBinding.source.requestFocus();
+                mBinding.search.requestFocus();
                 return true;
             }
             return false;
@@ -158,6 +166,20 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
                 if (mPresenter.isDelete()) setHistoryDelete(false);
             }
+        });
+    }
+
+    /** 顶栏图标入口：聚焦时在图标下方显示文字说明，点击进页面，按下方向键回到内容区。 */
+    private void bindAction(View view, View label, Runnable action) {
+        view.setOnClickListener(v -> action.run());
+        view.setOnFocusChangeListener((v, hasFocus) -> label.setVisibility(hasFocus ? View.VISIBLE : View.INVISIBLE));
+        view.setOnKeyListener((v, keyCode, event) -> {
+            if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
+            if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+                mBinding.recycler.requestFocus();
+                return true;
+            }
+            return false;
         });
     }
 
@@ -210,7 +232,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         selector.addPresenter(Vod.class, new VodPresenter(this, Style.list()));
         selector.addPresenter(ListRow.class, new CustomRowPresenter(16), VodPresenter.class);
         selector.addPresenter(ListRow.class, new CustomRowPresenter(16), FuncPresenter.class);
-        selector.addPresenter(ListRow.class, new CustomRowPresenter(16), com.fongmi.android.tv.ui.presenter.FuncTilePresenter.class);
         selector.addPresenter(ListRow.class, new CustomRowPresenter(16, FocusHighlight.ZOOM_FACTOR_SMALL, HorizontalGridView.FOCUS_SCROLL_ALIGNED), HistoryPresenter.class);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
         mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(24));
@@ -245,7 +266,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     private void setAdapter() {
         mHistoryAdapter = new ArrayObjectAdapter(mPresenter = new HistoryPresenter(this));
-        mAdapter.add(mFuncRow = new ListRow(mFuncAdapter = new ArrayObjectAdapter(new com.fongmi.android.tv.ui.presenter.FuncTilePresenter(this))));
         mAdapter.add(R.string.home_recommend);
     }
 
@@ -320,21 +340,16 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         }
         mTypes.clear();
         List<Func> items = new ArrayList<>();
-        items.add(Func.create("首页"));
         if (result.getTypes() != null) for (com.fongmi.android.tv.bean.Class type : result.getTypes()) {
             if (TextUtils.isEmpty(type.getTypeName())) continue;
             mTypes.add(type);
             items.add(Func.create(type.getTypeName()));
         }
-        if (items.size() == 1) items.add(Func.create(R.string.home_vod));
+        if (items.isEmpty()) items.add(Func.create(R.string.home_vod));
         ArrayObjectAdapter adapter = new ArrayObjectAdapter(new FuncPresenter(this));
         adapter.addAll(0, items);
         mTypesRow = new ListRow(adapter);
         mAdapter.add(0, mTypesRow);
-        if (mFuncRow != null && mAdapter.indexOf(mFuncRow) != 1) {
-            mAdapter.remove(mFuncRow);
-            mAdapter.add(1, mFuncRow);
-        }
         typesShown = true;
         App.post(() -> mBinding.recycler.setSelectedPosition(0), 300);
     }
@@ -351,13 +366,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void setFunc() {
-        List<Func> items = new ArrayList<>();
-        if (LiveConfig.hasUrl()) items.add(Func.create(R.string.home_live));
-        items.add(Func.create(R.string.home_search));
-        items.add(Func.create(R.string.home_keep));
-        items.add(Func.create(R.string.home_push));
-        items.add(Func.create(R.string.home_setting));
-        mFuncAdapter.setItems(items, new BaseDiffCallback<Func>());
+        mBinding.live.setVisibility(LiveConfig.hasUrl() ? View.VISIBLE : View.GONE);
+        mBinding.liveLabel.setVisibility(View.INVISIBLE);
     }
 
     private void getHistory() {
@@ -376,7 +386,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                 historyShown = false;
             }
         } else if (!historyShown) {
-            int base = typesShown ? 2 : 1;
+            int base = typesShown ? 1 : 0;
             mAdapter.add(base, R.string.home_history);
             mAdapter.add(base + 1, new ListRow(mHistoryAdapter));
             historyShown = true;
@@ -480,8 +490,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     @Override
     public void onItemClick(Func item) {
         if (item.getResId() == 0) {
-            if ("首页".equals(item.getText())) mBinding.recycler.smoothScrollToPosition(0);
-            else VodActivity.start(this, getHome().getKey(), mResult, indexOfType(item.getText()));
+            VodActivity.start(this, getHome().getKey(), mResult, indexOfType(item.getText()));
         }
         else if (item.getResId() == R.string.home_vod) VodActivity.start(this, mResult);
         else if (item.getResId() == R.string.home_live) LiveActivity.start(this);

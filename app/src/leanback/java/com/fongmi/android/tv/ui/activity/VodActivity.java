@@ -18,7 +18,9 @@ import androidx.viewbinding.ViewBinding;
 import androidx.viewpager.widget.ViewPager;
 
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
+import com.fongmi.android.tv.bean.Cache;
 import com.fongmi.android.tv.bean.Class;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.databinding.ActivityVodBinding;
@@ -86,23 +88,63 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
         setRecyclerView();
         setTypes();
         setPager();
+        bindFilter();
         int index = getIntent().getIntExtra("index", -1);
         if (index >= 0 && index < mAdapter.getItemCount()) {
-            mBinding.recycler.setSelectedPosition(index);
+            mBinding.typeRecycler.setSelectedPosition(index);
             mBinding.pager.setCurrentItem(index);
         }
+        updateFilterState();
+    }
+
+    /** 顶栏「筛选」是独立入口：分类 tab 只负责切页，不再兼职开关筛选。 */
+    private void bindFilter() {
+        mBinding.home.setOnClickListener(v -> finish());
+        mBinding.home.setOnKeyListener((v, keyCode, event) -> {
+            if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_DPAD_DOWN) return focusGrid();
+            return false;
+        });
+        mBinding.filter.setOnClickListener(v -> updateFilter());
+        mBinding.filter.setOnKeyListener((v, keyCode, event) -> {
+            if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+                mBinding.typeRecycler.requestFocus();
+                return true;
+            }
+            return false;
+        });
+        mBinding.back.setOnKeyListener((v, keyCode, event) -> {
+            if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+                mBinding.typeRecycler.requestFocus();
+                return true;
+            }
+            return false;
+        });
+    }
+
+    /** 当前分类没有筛选项时直接隐藏按钮，避免按下去没反应。 */
+    private void updateFilterState() {
+        Class type = getType();
+        boolean hasFilter = type != null && !Cache.get(type).isEmpty();
+        boolean opened = type != null && type.getFilter();
+        mBinding.filter.setVisibility(hasFilter ? View.VISIBLE : View.GONE);
+        mBinding.filter.setText(opened ? R.string.filter_close : R.string.filter);
     }
 
     @Override
     protected void initEvent() {
+        mBinding.typeRecycler.setOnKeyListener((v, keyCode, event) -> {
+            if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_DPAD_DOWN) return focusGrid();
+            return false;
+        });
         mBinding.pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
             public void onPageSelected(int position) {
-                mBinding.recycler.setSelectedPosition(position);
-                mBinding.recycler.requestFocus();
+                mBinding.typeRecycler.setSelectedPosition(position);
+                mBinding.typeRecycler.requestFocus();
+                updateFilterState();
             }
         });
-        mBinding.recycler.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
+        mBinding.typeRecycler.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
             @Override
             public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
                 onChildSelected(child);
@@ -111,13 +153,25 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
     }
 
     private void setRecyclerView() {
-        mBinding.recycler.requestFocus();
-        mBinding.recycler.setHorizontalSpacing(ResUtil.dp2px(20));
-        mBinding.recycler.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-        mBinding.recycler.setAdapter(mAdapter = new TypeAdapter(this));
+        mBinding.typeRecycler.requestFocus();
+        mBinding.typeRecycler.setHorizontalSpacing(ResUtil.dp2px(20));
+        mBinding.typeRecycler.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+        mBinding.typeRecycler.setAdapter(mAdapter = new TypeAdapter(this));
+        App.post(() -> mBinding.typeRecycler.requestFocus(), 200);
+    }
+
+    /** 从分类 tab 按下方向键直接进内容网格，不要先在 pager 上空转一格。 */
+    private boolean focusGrid() {
+        try {
+            return getFragment().requestFocus();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private void setTypes() {
+        // QBox: 每次进入分类页都从「筛选收起」开始，不沿用上次的展开状态。
+        for (com.fongmi.android.tv.bean.Class type : getResult().getTypes()) type.setFilter(false);
         mAdapter.addAll(getResult().getTypes());
     }
 
@@ -135,7 +189,7 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
     private final Runnable mRunnable = new Runnable() {
         @Override
         public void run() {
-            mBinding.pager.setCurrentItem(mBinding.recycler.getSelectedPosition());
+            mBinding.pager.setCurrentItem(mBinding.typeRecycler.getSelectedPosition());
         }
     };
 
@@ -151,6 +205,7 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
         item.setFilter(!item.getFilter());
         getFragment().toggleFilter(item.getFilter());
         mAdapter.notifyItemRangeChanged(mAdapter.indexOf(item), 1);
+        updateFilterState();
     }
 
     public void closeFilter() {
@@ -164,7 +219,11 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
 
     @Override
     public void onItemClick(Class item) {
-        updateFilter(item);
+        int index = mAdapter.indexOf(item);
+        // 再次点击当前分类 = 展开/收起筛选；点其他分类只切页。
+        if (index == mBinding.pager.getCurrentItem() && !Cache.get(item).isEmpty()) updateFilter(item);
+        else mBinding.pager.setCurrentItem(index);
+        updateFilterState();
     }
 
     @Override

@@ -89,6 +89,12 @@ public class FolderFragment extends BaseFragment {
         return getChildFragmentManager().getBackStackEntryCount() > 0;
     }
 
+    /** 交给子分类页处理焦点，供顶栏往下时直接落到第一张卡片。 */
+    public boolean requestFocus() {
+        TypeFragment child = getChild();
+        return child != null && child.requestFocus();
+    }
+
     public void goBack() {
         getChildFragmentManager().popBackStack();
     }

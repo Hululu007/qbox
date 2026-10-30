@@ -1,9 +1,20 @@
 <resources>
 
+    <!-- QBox「Cinema」设计 token：纯黑画布 + 单色文字 + 克制的蓝色点缀。
+         参考 Netflix 的影院感与 Infuse 的精致留白，避免大面积彩色块。 -->
+    <color name="qbox_bg">#000000</color>
+    <color name="qbox_bg_soft">#0B0B0E</color>
+    <color name="qbox_surface">#17171C</color>
+    <color name="qbox_surface_hi">#232329</color>
+    <color name="qbox_line">#2B2B33</color>
+    <color name="qbox_text">#FFFFFF</color>
+    <color name="qbox_text_dim">#A6A6B0</color>
+    <color name="qbox_text_mute">#70707A</color>
+    <color name="qbox_accent">#5B8CFF</color>
+    <color name="qbox_accent_soft">#1E2B4D</color>
+    <color name="qbox_focus_text">#0B0B0F</color>
+
     <color name="transparent">#00000000</color>
-    <color name="qbox_bg">#0B0B0F</color>
-    <color name="qbox_surface">#18181E</color>
-    <color name="qbox_accent">#4C8DFF</color>
     <color name="black">#000000</color>
     <color name="black_05">#0D000000</color>
     <color name="black_10">#1A000000</color>

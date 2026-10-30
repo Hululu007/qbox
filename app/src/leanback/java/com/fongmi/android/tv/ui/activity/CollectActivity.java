@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -85,6 +86,10 @@ public class CollectActivity extends BaseActivity {
 
     @Override
     protected void initEvent() {
+        mBinding.recycler.setOnKeyListener((v, keyCode, event) -> {
+            if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_DPAD_DOWN) return focusGrid();
+            return false;
+        });
         mBinding.pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
             public void onPageSelected(int position) {
@@ -104,6 +109,17 @@ public class CollectActivity extends BaseActivity {
         mBinding.recycler.setHorizontalSpacing(ResUtil.dp2px(20));
         mBinding.recycler.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
         mBinding.recycler.setAdapter(mAdapter = new CollectAdapter());
+        App.post(() -> mBinding.recycler.requestFocus(), 200);
+    }
+
+    /** 从站点 tab 按下方向键直接进结果网格，避免第一次按下只把焦点丢给 pager。 */
+    private boolean focusGrid() {
+        try {
+            CollectFragment fragment = getFragment();
+            return fragment != null && fragment.requestFocus();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private void setViewModel() {

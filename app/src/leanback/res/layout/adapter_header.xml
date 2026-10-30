@@ -4,6 +4,8 @@
     android:id="@+id/text"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:textColor="@color/white"
-    android:textSize="24sp"
+    android:letterSpacing="0.01"
+    android:textColor="@color/qbox_text"
+    android:textSize="21sp"
+    android:textStyle="bold"
     tools:text="@string/home_recommend" />

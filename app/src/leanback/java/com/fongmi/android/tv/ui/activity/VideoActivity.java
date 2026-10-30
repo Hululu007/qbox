@@ -16,12 +16,16 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.leanback.widget.OnChildViewHolderSelectedListener;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.media3.common.C;
+import androidx.media3.common.Format;
 import androidx.media3.common.MediaMetadata;
+import androidx.media3.common.MimeTypes;
 import androidx.media3.common.Player;
+import androidx.media3.common.Tracks;
 import androidx.media3.common.VideoSize;
 import androidx.media3.ui.PlayerSeekView;
 import androidx.media3.ui.PlayerView;
@@ -62,6 +66,7 @@ import com.fongmi.android.tv.playback.vod.VodPlaybackMedia;
 import com.fongmi.android.tv.player.media.PlaySpec;
 import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.setting.DanmakuSetting;
+import com.fongmi.android.tv.setting.DecodeSetting;
 import com.fongmi.android.tv.setting.PlayerSetting;
 import com.fongmi.android.tv.setting.SpeedSetting;
 import com.fongmi.android.tv.ui.adapter.ArrayAdapter;
@@ -91,7 +96,6 @@ import com.fongmi.android.tv.utils.Sniffer;
 import com.fongmi.android.tv.utils.Traffic;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.fongmi.android.tv.utils.Util;
-import com.github.bassaer.library.MDColor;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -100,6 +104,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, CustomKeyDownVod.Listener, ParseDialog.Listener, ArrayAdapter.OnClickListener, FlagAdapter.OnClickListener, EpisodeAdapter.OnClickListener, QualityAdapter.OnClickListener, QuickAdapter.OnClickListener, Clock.Callback {
@@ -123,6 +128,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private Runnable mR2;
     private Runnable mR3;
     private Runnable mR4;
+    private Runnable mR5;
     private History mHistory;
     private boolean fullscreen;
     private boolean useParse;
@@ -280,6 +286,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mR2 = this::updateFocus;
         mR3 = this::setTraffic;
         mR4 = this::showEmpty;
+        mR5 = this::updateStats;
         setRecyclerView();
         setVideoView();
         setViewModel();
@@ -320,6 +327,9 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.control.action.speed.setOnLongClickListener(view -> onSpeedLong());
         mBinding.control.action.ending.setOnLongClickListener(view -> onEndingReset());
         mBinding.control.action.opening.setOnLongClickListener(view -> onOpeningReset());
+        mBinding.control.action.more.setOnClickListener(view -> onMore());
+        mBinding.control.action.statsButton.setOnClickListener(view -> onStats());
+        mBinding.stats.getRoot().setOnClickListener(view -> onStats());
         mBinding.video.setOnTouchListener((view, event) -> mKeyDown.onTouchEvent(event));
         mBinding.flag.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
             @Override
@@ -373,8 +383,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void setVideoView() {
-        setSeekNextFocusDown(R.id.next);
-        setActionFocusBoundary(mBinding.control.action.getRoot());
+        setSeekNextFocusDown(R.id.chapter);
+        setActionFocusBoundary(mBinding.control.action.main);
         PlayerEngineDialog.setText(mBinding.control.action.player);
         // QBox: 不提供弹幕入口。
         mBinding.control.action.danmaku.setVisibility(View.GONE);
@@ -564,7 +574,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     @Override
     public void loadDanmaku(Result result, History history, Episode episode) {
-        VodPlaybackMedia.searchDanmaku(result, history, episode, player()::setDanmaku, player()::addDanmaku);
+        // QBox: 弹幕云搜整体撤掉，不再请求第三方弹幕接口。
     }
 
     @Override
@@ -759,24 +769,38 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         String intro = item.getContent();
         if (intro != null && !intro.trim().isEmpty()) {
             mBinding.intro.setVisibility(View.VISIBLE);
-            mBinding.intro.setText("简介：".concat(intro.trim()));
+            mBinding.intro.setText(intro.trim());
         } else {
             mBinding.intro.setVisibility(View.GONE);
         }
-        setText(mBinding.year, R.string.detail_year, item.getYear());
-        setText(mBinding.area, R.string.detail_area, item.getArea());
-        setText(mBinding.type, R.string.detail_type, item.getTypeName());
-        setText(mBinding.site, R.string.detail_site, getSite().getName());
+        setMeta(item);
         setText(mBinding.director, R.string.detail_director, item.getDirector());
         setText(mBinding.actor, R.string.detail_actor, item.getActor());
         setText(mBinding.remark, 0, item.getRemarks());
+    }
+
+    /** 站源 / 年份 / 地区 / 类型合并成一行弱化信息，标签文案不上屏。 */
+    private void setMeta(Vod item) {
+        List<String> parts = new ArrayList<>();
+        addMeta(parts, getSite().getName());
+        addMeta(parts, item.getYear());
+        addMeta(parts, item.getArea());
+        addMeta(parts, item.getTypeName());
+        mBinding.year.setVisibility(View.GONE);
+        mBinding.area.setVisibility(View.GONE);
+        mBinding.type.setVisibility(View.GONE);
+        setText(mBinding.site, 0, TextUtils.join("  ·  ", parts));
+    }
+
+    private void addMeta(List<String> parts, String text) {
+        if (!TextUtils.isEmpty(text)) parts.add(text.trim());
     }
 
     private void setText(TextView view, int resId, String text) {
         if (TextUtils.isEmpty(text) && !TextUtils.isEmpty(view.getText())) return;
         view.setText(Sniffer.buildClickable(resId > 0 ? getString(resId, text) : text, this::clickableSpan), TextView.BufferType.SPANNABLE);
         view.setVisibility(text.isEmpty() ? View.GONE : View.VISIBLE);
-        view.setLinkTextColor(MDColor.YELLOW_500);
+        view.setLinkTextColor(ContextCompat.getColor(this, R.color.qbox_accent));
         CustomMovement.bind(view);
     }
 
@@ -1079,6 +1103,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     private void hideProgress() {
         mBinding.progress.getRoot().setVisibility(View.GONE);
+        mBinding.progress.traffic.setVisibility(View.GONE);
         App.removeCallbacks(mR3);
         Traffic.reset();
     }
@@ -1110,13 +1135,41 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     private void showControl(View view) {
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
+        setExtra(view != null && isInExtra(view));
+        if (view == null || !view.isShown()) view = mBinding.control.action.chapter;
         view.requestFocus();
         setR1Callback();
     }
 
     private void hideControl() {
         mBinding.control.getRoot().setVisibility(View.GONE);
+        setExtra(false);
         App.removeCallbacks(mR1);
+    }
+
+    /** 更多面板：非常用开关收在二级行，主行保持一屏放得下。 */
+    private void onMore() {
+        boolean show = mBinding.control.action.extra.getVisibility() != View.VISIBLE;
+        setExtra(show);
+        if (show) App.post(() -> mBinding.control.action.next.requestFocus(), 50);
+        setR1Callback();
+    }
+
+    private void setExtra(boolean show) {
+        int visibility = show ? View.VISIBLE : View.GONE;
+        if (mBinding.control.action.extra.getVisibility() == visibility) return;
+        mBinding.control.action.extra.setVisibility(visibility);
+        mBinding.control.action.more.setText(show ? R.string.play_less : R.string.play_more);
+    }
+
+    private boolean isInExtra(View view) {
+        View extra = mBinding.control.action.extra;
+        while (view != null) {
+            if (view == extra) return true;
+            if (!(view.getParent() instanceof View)) return false;
+            view = (View) view.getParent();
+        }
+        return false;
     }
 
     private void hideCenter() {
@@ -1125,8 +1178,127 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void setTraffic() {
-        // QBox: 不展示 KB/s 这类技术信息，加载态只保留转圈。
-        mBinding.progress.traffic.setVisibility(View.GONE);
+        // QBox: 加载态保留带宽速度，方便判断是网络慢还是源慢。
+        Traffic.setSpeed(mBinding.progress.traffic);
+    }
+
+    private void onStats() {
+        View root = mBinding.stats.getRoot();
+        if (root.getVisibility() == View.VISIBLE) {
+            root.setVisibility(View.GONE);
+            App.removeCallbacks(mR5);
+        } else {
+            root.setVisibility(View.VISIBLE);
+            updateStats();
+        }
+        setR1Callback();
+    }
+
+    private void updateStats() {
+        if (mBinding.stats.getRoot().getVisibility() != View.VISIBLE) return;
+        mBinding.stats.text.setText(buildStats());
+        App.post(mR5, 1000);
+    }
+
+    /** Stats for nerds：引擎/解码/分辨率/码率/音轨/输出/网速/缓冲，1s 刷新。 */
+    private String buildStats() {
+        Player p = player().getPlayer();
+        StringBuilder sb = new StringBuilder();
+        sb.append("QBox stats\n");
+        if (p == null) return sb.append("player idle").toString();
+        sb.append("Engine   ").append(PlayerSetting.isMpv() ? "MPV" : "EXO").append(" · ").append(player().getDecodeText()).append(" · ").append(PlayerSetting.getRender() == 0 ? "Surface" : "Texture").append('\n');
+        sb.append("State    ").append(stateText()).append(" · ").append(String.format(Locale.US, "%.1fx", player().getSpeed())).append('\n');
+        Format video = findSelectedFormat(C.TRACK_TYPE_VIDEO);
+        VideoSize size = p.getVideoSize();
+        int width = video != null && video.width > 0 ? video.width : size.width;
+        int height = video != null && video.height > 0 ? video.height : size.height;
+        sb.append("Video    ").append(width).append('×').append(height);
+        if (video != null && video.frameRate > 0) sb.append(String.format(Locale.US, " · %.2ffps", video.frameRate));
+        sb.append(" · ").append(hdr(video)).append('\n');
+        if (video != null) {
+            sb.append("Codec    ").append(codec(video.sampleMimeType, video.codecs));
+            String rate = bitrate(video.bitrate > 0 ? video.bitrate : video.averageBitrate);
+            if (!"-".equals(rate)) sb.append(" · ").append(rate);
+            sb.append('\n');
+        }
+        Format audio = findSelectedFormat(C.TRACK_TYPE_AUDIO);
+        sb.append("Audio    ");
+        if (audio == null) sb.append("-");
+        else {
+            sb.append(codec(audio.sampleMimeType, audio.codecs));
+            if (audio.channelCount > 0) sb.append(" · ").append(audio.channelCount).append("ch");
+            if (audio.sampleRate > 0) sb.append(" · ").append(audio.sampleRate / 1000f).append("kHz");
+            if (!TextUtils.isEmpty(audio.language) && !"und".equals(audio.language)) sb.append(" · ").append(audio.language);
+        }
+        sb.append('\n');
+        String output = DecodeSetting.isAudioPassThrough() ? "Passthrough" : "PCM";
+        String surround = audio == null ? null : surround(audio.sampleMimeType);
+        sb.append("Output   ").append(output).append(surround == null ? "" : " · " + surround).append('\n');
+        sb.append("Net      ").append(Traffic.getText()).append('\n');
+        sb.append("Buffer   ").append(String.format(Locale.US, "%.1fs", Math.max(0, p.getBufferedPosition() - p.getCurrentPosition()) / 1000f)).append('\n');
+        String url = player().getUrl();
+        if (!TextUtils.isEmpty(url)) {
+            String host = Uri.parse(url).getHost();
+            sb.append("Source   ").append(TextUtils.isEmpty(host) ? "-" : host);
+        }
+        return sb.toString();
+    }
+
+    private String stateText() {
+        switch (player().getPlaybackState()) {
+            case Player.STATE_BUFFERING:
+                return "BUFFERING";
+            case Player.STATE_READY:
+                return player().isPlaying() ? "PLAYING" : "PAUSED";
+            case Player.STATE_ENDED:
+                return "ENDED";
+            default:
+                return "IDLE";
+        }
+    }
+
+    private Format findSelectedFormat(int type) {
+        for (Tracks.Group group : player().getCurrentTracks().getGroups()) {
+            if (group.getType() != type) continue;
+            for (int i = 0; i < group.length; i++) if (group.isTrackSelected(i)) return group.getTrackFormat(i);
+        }
+        return null;
+    }
+
+    private String codec(String mime, String codecs) {
+        if (!TextUtils.isEmpty(codecs)) return codecs;
+        if (TextUtils.isEmpty(mime)) return "-";
+        return mime.substring(mime.indexOf('/') + 1);
+    }
+
+    private String bitrate(int bitrate) {
+        if (bitrate <= 0) return "-";
+        return String.format(Locale.US, "%.2f Mbps", bitrate / 1000000f);
+    }
+
+    private String hdr(Format format) {
+        if (format == null) return "-";
+        if (MimeTypes.VIDEO_DOLBY_VISION.equals(format.sampleMimeType)) return "Dolby Vision";
+        if (format.colorInfo == null) return "SDR";
+        switch (format.colorInfo.colorTransfer) {
+            case C.COLOR_TRANSFER_ST2084:
+                return "HDR10";
+            case C.COLOR_TRANSFER_HLG:
+                return "HLG";
+            default:
+                return "SDR";
+        }
+    }
+
+    private String surround(String mime) {
+        if (mime == null) return null;
+        String value = mime.toLowerCase(Locale.ROOT);
+        if (value.contains("ac-4") || value.contains("ac4")) return "Dolby AC-4";
+        if (value.contains("eac3") || value.contains("e-ac-3")) return "Dolby Digital+";
+        if (value.contains("ac3") || value.contains("ac-3")) return "Dolby Digital";
+        if (value.contains("truehd")) return "Dolby TrueHD";
+        if (value.contains("dts")) return "DTS";
+        return null;
     }
 
     private void setR1Callback() {
@@ -1378,7 +1550,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private View getFocus2() {
-        return mFocus2 == null || mFocus2.getVisibility() != View.VISIBLE || mFocus2 == mBinding.control.action.opening || mFocus2 == mBinding.control.action.ending ? mBinding.control.action.next : mFocus2;
+        return mFocus2 == null || !mFocus2.isShown() || mFocus2 == mBinding.control.action.opening || mFocus2 == mBinding.control.action.ending ? mBinding.control.action.chapter : mFocus2;
     }
 
     @Override
@@ -1497,7 +1669,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         saveHistory(true);
         DanmakuApi.cancel();
         RefreshEvent.keep();
-        App.removeCallbacks(mR1, mR2, mR3, mR4);
+        App.removeCallbacks(mR1, mR2, mR3, mR4, mR5);
         super.onDestroy();
     }
 }

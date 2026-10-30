@@ -4,11 +4,7 @@
 
     <corners android:radius="10dp" />
 
-    <solid android:color="#33FFFFFF" />
-
-    <stroke
-        android:width="3dp"
-        android:color="@color/white" />
+    <solid android:color="@color/qbox_text" />
 
     <padding
         android:bottom="10dp"

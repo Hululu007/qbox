@@ -1,52 +1,140 @@
 <?xml version="1.0" encoding="utf-8"?>
-<HorizontalScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:fillViewport="true"
-    android:scrollbars="none">
+    android:orientation="vertical">
 
+    <!-- 更多：非常用开关收在二级面板里，主行永远一屏放得下、不滚动。 -->
     <androidx.appcompat.widget.LinearLayoutCompat
-        android:layout_width="wrap_content"
+        android:id="@+id/extra"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/next"
+                style="@style/Control"
+                android:layout_marginEnd="8dp"
+                android:text="@string/play_next" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/prev"
+                style="@style/Control"
+                android:layout_marginEnd="8dp"
+                android:text="@string/play_prev" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/scale"
+                style="@style/Control"
+                android:layout_marginEnd="8dp"
+                android:text="@string/play_scale" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/video"
+                style="@style/Control"
+                android:layout_marginEnd="8dp"
+                android:tag="2"
+                android:text="@string/play_track_video" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/decode"
+                style="@style/Control"
+                android:layout_marginEnd="8dp"
+                android:text="@string/play_decode" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/player"
+                style="@style/Control"
+                android:layout_marginEnd="8dp"
+                android:text="@string/play_exo" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/reset"
+                style="@style/Control"
+                android:layout_marginEnd="8dp"
+                android:text="@string/play_reset" />
+
+            <com.fongmi.android.tv.ui.custom.CustomUpDownView
+                android:id="@+id/opening"
+                style="@style/Control"
+                android:layout_marginEnd="8dp"
+                android:text="@string/play_op" />
+
+            <com.fongmi.android.tv.ui.custom.CustomUpDownView
+                android:id="@+id/ending"
+                style="@style/Control"
+                android:layout_marginEnd="8dp"
+                android:text="@string/play_ed" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/repeat"
+                style="@style/Control"
+                android:layout_marginEnd="8dp"
+                android:text="@string/play_repeat" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/replay"
+                style="@style/Control"
+                android:layout_marginEnd="8dp"
+                android:text="@string/play_replay" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/edition"
+                style="@style/Control"
+                android:layout_marginEnd="8dp"
+                android:text="@string/play_edition"
+                android:visibility="gone" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/parse"
+                style="@style/Control"
+                android:layout_marginEnd="8dp"
+                android:text="@string/parse"
+                android:visibility="gone" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/danmaku"
+                style="@style/Control"
+                android:layout_marginEnd="8dp"
+                android:text="@string/danmaku"
+                android:visibility="gone" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <!-- 常用行：一屏放得下，不滚动。 -->
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/main"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal">
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/next"
-            style="@style/Control"
-            android:layout_marginEnd="8dp"
-            android:text="@string/play_next" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/prev"
-            style="@style/Control"
-            android:layout_marginEnd="8dp"
-            android:text="@string/play_prev" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/chapter"
             style="@style/Control"
             android:layout_marginEnd="8dp"
             android:text="@string/play_chapter" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/reset"
-            style="@style/Control"
-            android:layout_marginEnd="8dp"
-            android:text="@string/play_reset" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/player"
-            style="@style/Control"
-            android:layout_marginEnd="8dp"
-            android:text="@string/play_exo" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/decode"
-            style="@style/Control"
-            android:layout_marginEnd="8dp"
-            android:text="@string/play_decode" />
 
         <com.fongmi.android.tv.ui.custom.CustomUpDownView
             android:id="@+id/speed"
@@ -56,10 +144,11 @@
             android:text="@string/play_speed" />
 
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/scale"
+            android:id="@+id/audio"
             style="@style/Control"
             android:layout_marginEnd="8dp"
-            android:text="@string/play_scale" />
+            android:tag="1"
+            android:text="@string/play_track_audio" />
 
         <com.fongmi.android.tv.ui.custom.CustomUpDownView
             android:id="@+id/text"
@@ -69,63 +158,16 @@
             android:text="@string/play_track_text" />
 
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/audio"
+            android:id="@+id/statsButton"
             style="@style/Control"
             android:layout_marginEnd="8dp"
-            android:tag="1"
-            android:text="@string/play_track_audio" />
+            android:text="@string/play_stats" />
 
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/video"
+            android:id="@+id/more"
             style="@style/Control"
-            android:layout_marginEnd="8dp"
-            android:tag="2"
-            android:text="@string/play_track_video" />
-
-        <com.fongmi.android.tv.ui.custom.CustomUpDownView
-            android:id="@+id/opening"
-            style="@style/Control"
-            android:layout_marginEnd="8dp"
-            android:text="@string/play_op" />
-
-        <com.fongmi.android.tv.ui.custom.CustomUpDownView
-            android:id="@+id/ending"
-            style="@style/Control"
-            android:layout_marginEnd="8dp"
-            android:text="@string/play_ed" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/repeat"
-            style="@style/Control"
-            android:layout_marginEnd="8dp"
-            android:text="@string/play_repeat" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/replay"
-            style="@style/Control"
-            android:layout_marginEnd="8dp"
-            android:text="@string/play_replay" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/edition"
-            style="@style/Control"
-            android:layout_marginEnd="8dp"
-            android:text="@string/play_edition"
-            android:visibility="gone" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/parse"
-            style="@style/Control"
-            android:layout_marginEnd="8dp"
-            android:text="@string/parse"
-            android:visibility="gone" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/danmaku"
-            style="@style/Control"
-            android:layout_marginEnd="8dp"
-            android:text="@string/danmaku"
-            android:visibility="gone" />
+            android:text="@string/play_more" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
-</HorizontalScrollView>
+
+</androidx.appcompat.widget.LinearLayoutCompat>

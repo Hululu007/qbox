@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 首页导航 tab 只是入口，不表示"当前分类"，所以只响应焦点。 -->
+    <item android:drawable="@drawable/shape_tab_underline" android:state_focused="true" />
+    <item android:drawable="@android:color/transparent" />
+</selector>

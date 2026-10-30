@@ -2,11 +2,12 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
 
+    <!-- 直播频道表：左侧压暗保证文字可读，右侧渐隐露出画面。 -->
     <gradient
         android:angle="0"
-        android:centerColor="@color/black_40"
-        android:endColor="@color/black_05"
-        android:startColor="@color/black_80"
+        android:centerColor="#A6000000"
+        android:endColor="#00000000"
+        android:startColor="#F0000000"
         android:type="linear" />
 
 </shape>

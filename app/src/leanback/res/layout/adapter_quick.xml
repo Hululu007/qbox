@@ -13,30 +13,32 @@
         android:id="@+id/name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:duplicateParentState="true"
         android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        tools:text="蜘蛛人" />
+        android:textColor="@color/text"
+        android:textSize="15sp"
+        tools:text="蜘蛛侠" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/site"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
+        android:duplicateParentState="true"
         android:singleLine="true"
-        android:textColor="@color/green_a_400"
-        android:textSize="14sp"
-        tools:text="泥巴"
-        tools:visibility="visible" />
+        android:textColor="@color/text_dim"
+        android:textSize="12sp"
+        tools:text="泥巴" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/remark"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
+        android:duplicateParentState="true"
         android:singleLine="true"
-        android:textColor="@color/yellow_500"
-        android:textSize="14sp"
+        android:textColor="@color/text_dim"
+        android:textSize="12sp"
         tools:text="1080p" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

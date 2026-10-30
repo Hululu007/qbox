@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:color="@color/qbox_accent" android:state_focused="true" android:state_selected="true" />
-    <item android:color="@color/qbox_accent" android:state_selected="true" />
-    <item android:color="@color/qbox_accent" android:state_checked="true" />
-    <item android:color="@color/white" />
+    <!-- 焦点态背景统一为白色药丸，文字反色；选中态深色底 + 白字；普通态次级灰白。 -->
+    <item android:color="@color/qbox_focus_text" android:state_focused="true" />
+    <item android:color="@color/qbox_text" android:state_selected="true" />
+    <item android:color="@color/qbox_text" android:state_checked="true" />
+    <item android:color="#C9C9D1" />
 </selector>

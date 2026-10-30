@@ -3,16 +3,19 @@
     <style name="Theme.Base" parent="Theme.Material3.Dark.NoActionBar">
         <item name="colorPrimary">@color/qbox_accent</item>
         <item name="colorSurface">@color/qbox_surface</item>
+        <item name="colorOnSurface">@color/qbox_text</item>
+        <item name="android:colorBackground">@color/qbox_bg</item>
         <item name="android:windowBackground">@color/qbox_bg</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowTranslucentStatus">true</item>
         <item name="android:windowTranslucentNavigation">true</item>
         <item name="android:windowAnimationStyle">@style/NoAnim</item>
+        <item name="android:fontFamily">sans-serif</item>
     </style>
 
     <style name="Theme.Splash" parent="Theme.SplashScreen">
         <item name="postSplashScreenTheme">@style/Theme.App</item>
-        <item name="windowSplashScreenBackground">#141218</item>
+        <item name="windowSplashScreenBackground">#000000</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
     </style>
 

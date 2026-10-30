@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 顶部分类 tab：当前页/焦点为白色，其余为次级灰。 -->
+    <item android:color="@color/qbox_text" android:state_focused="true" />
+    <item android:color="@color/qbox_text" android:state_selected="true" />
+    <item android:color="@color/qbox_text_dim" />
+</selector>

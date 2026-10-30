@@ -1,5 +1,7 @@
 package com.fongmi.android.tv.ui.holder;
 
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 
 import com.bumptech.glide.Glide;
@@ -28,17 +30,26 @@ public class VodRectHolder extends BaseVodHolder {
 
     @Override
     public void initView(Vod item) {
+        String meta = getMeta(item);
         binding.name.setText(item.getName());
-        binding.year.setText(item.getYear());
-        binding.site.setText(item.getSiteName());
-        binding.remark.setText(item.getRemarks());
-        binding.site.setVisibility(item.getSiteVisible());
-        binding.year.setVisibility(item.getYearVisible());
         binding.name.setVisibility(item.getNameVisible());
-        binding.remark.setVisibility(item.getRemarkVisible() == android.view.View.VISIBLE && isUsefulRemark(item.getRemarks()) ? android.view.View.VISIBLE : android.view.View.GONE);
+        binding.site.setText(item.getSiteName());
+        binding.site.setVisibility(item.getSiteVisible());
+        binding.year.setVisibility(android.view.View.GONE);
+        binding.remark.setText(meta);
+        binding.remark.setVisibility(TextUtils.isEmpty(meta) ? android.view.View.GONE : android.view.View.VISIBLE);
         binding.getRoot().setOnClickListener(v -> listener.onItemClick(item));
         binding.getRoot().setOnLongClickListener(v -> listener.onLongClick(item));
         ImgUtil.load(item.getName(), item.getPic(), binding.image);
+    }
+
+    /** 年份与备注合并成一行次要信息（2026 · 更新至第4集），卡片上不放彩色角标。 */
+    private String getMeta(Vod item) {
+        String year = item.getYearVisible() == android.view.View.VISIBLE ? item.getYear() : "";
+        String remark = item.getRemarkVisible() == android.view.View.VISIBLE && isUsefulRemark(item.getRemarks()) ? item.getRemarks() : "";
+        if (TextUtils.isEmpty(year)) return TextUtils.isEmpty(remark) ? "" : remark.trim();
+        if (TextUtils.isEmpty(remark)) return year.trim();
+        return year.trim() + " · " + remark.trim();
     }
 
     @Override
@@ -51,6 +62,6 @@ public class VodRectHolder extends BaseVodHolder {
         if (remark == null) return false;
         String s = remark.trim();
         if (s.isEmpty() || s.equals("0") || s.equals("0.0")) return false;
-        return !(s.startsWith("评分：0") || s.startsWith("评分:0") || s.startsWith("评分：0.0") || s.startsWith("评分:0.0"));
+        return !(s.startsWith("评分：") || s.startsWith("评分:0") || s.startsWith("评分：0") || s.startsWith("评分:0.0"));
     }
 }

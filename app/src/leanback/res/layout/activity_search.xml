@@ -4,56 +4,53 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/qbox_bg"
     android:orientation="vertical">
 
     <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="32dp"
-        android:paddingTop="18dp"
+        android:paddingTop="16dp"
         android:paddingEnd="32dp"
-        android:paddingBottom="4dp">
+        android:paddingBottom="2dp">
 
-        <com.google.android.material.textview.MaterialTextView
+        <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/back"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/selector_hero_tab"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:background="@drawable/selector_action_icon"
             android:clickable="true"
+            android:contentDescription="@string/back"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:paddingStart="16dp"
-            android:paddingTop="6dp"
-            android:paddingEnd="16dp"
-            android:paddingBottom="6dp"
-            android:text="‹ 返回"
-            android:textColor="@color/hero_tab_text"
-            android:textSize="16sp" />
+            android:padding="12dp"
+            android:src="@drawable/ic_back"
+            app:tint="@color/text" />
 
         <com.google.android.material.textview.MaterialTextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="14dp"
             android:layout_weight="1"
+            android:letterSpacing="0.04"
             android:singleLine="true"
-            android:text="搜索"
-            android:textColor="@color/white"
-            android:textSize="20sp"
+            android:text="@string/home_search"
+            android:textColor="@color/qbox_text"
+            android:textSize="19sp"
             android:textStyle="bold" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/clock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/shape_clock_bg"
-            android:paddingStart="14dp"
-            android:paddingTop="4dp"
-            android:paddingEnd="14dp"
-            android:paddingBottom="4dp"
-            android:textColor="@color/white"
-            android:textSize="18sp"
+            android:fontFeatureSettings="tnum"
+            android:letterSpacing="0.02"
+            android:textColor="@color/qbox_text_dim"
+            android:textSize="15sp"
             tools:text="09:20:00" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
@@ -65,24 +62,30 @@
         android:clipChildren="false"
         android:clipToPadding="false"
         android:orientation="horizontal"
-        android:padding="24dp">
+        android:paddingStart="32dp"
+        android:paddingTop="20dp"
+        android:paddingEnd="32dp"
+        android:paddingBottom="24dp">
 
         <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_marginEnd="24dp"
+            android:layout_marginEnd="32dp"
             android:orientation="vertical">
 
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:layout_height="64dp"
+                android:background="@drawable/shape_search_field"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp">
 
                 <com.fongmi.android.tv.ui.custom.CustomMic
                     android:id="@+id/mic"
                     android:layout_width="36dp"
                     android:layout_height="36dp"
-                    android:layout_gravity="center_vertical"
                     android:layout_marginEnd="12dp"
                     android:focusable="true"
                     android:focusableInTouchMode="true"
@@ -93,7 +96,6 @@
                     android:id="@+id/keyword"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
                     android:background="@null"
                     android:focusable="true"
                     android:focusableInTouchMode="true"
@@ -104,10 +106,10 @@
                     android:maxLength="255"
                     android:nextFocusDown="@id/keyboard"
                     android:singleLine="true"
-                    android:textColor="@color/white"
-                    android:textColorHint="@color/white"
+                    android:textColor="@color/qbox_text"
+                    android:textColorHint="@color/qbox_text_mute"
                     android:textCursorDrawable="@drawable/shape_cursor"
-                    android:textSize="24sp" />
+                    android:textSize="22sp" />
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -115,7 +117,7 @@
                 android:id="@+id/keyboard"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="20dp"
                 android:clipChildren="false"
                 android:clipToPadding="false"
                 android:overScrollMode="never"
@@ -142,17 +144,18 @@
                     android:id="@+id/recordLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="28dp"
                     android:orientation="vertical"
                     android:visibility="gone">
 
                     <com.google.android.material.textview.MaterialTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="14dp"
+                        android:layout_marginBottom="12dp"
+                        android:letterSpacing="0.08"
                         android:text="@string/search_record"
-                        android:textColor="@color/white"
-                        android:textSize="24sp" />
+                        android:textColor="@color/qbox_text_mute"
+                        android:textSize="14sp" />
 
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/recordRecycler"
@@ -171,10 +174,11 @@
                     android:id="@+id/word"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="14dp"
+                    android:layout_marginBottom="12dp"
+                    android:letterSpacing="0.08"
                     android:text="@string/search_hot"
-                    android:textColor="@color/white"
-                    android:textSize="24sp" />
+                    android:textColor="@color/qbox_text_mute"
+                    android:textSize="14sp" />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/wordRecycler"
@@ -189,6 +193,7 @@
 
             </androidx.appcompat.widget.LinearLayoutCompat>
         </androidx.core.widget.NestedScrollView>
+
     </androidx.appcompat.widget.LinearLayoutCompat>
 
 </androidx.appcompat.widget.LinearLayoutCompat>

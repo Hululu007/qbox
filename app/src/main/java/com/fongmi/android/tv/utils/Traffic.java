@@ -33,6 +33,12 @@ public class Traffic {
         return speed < 1000 ? speed + UNIT_KB : format.format(speed / 1024f) + UNIT_MB;
     }
 
+    /** 供播放详情面板使用：返回瞬时下载速度文本。 */
+    public static String getText() {
+        if (TrafficStats.getUidRxBytes(UID) == TrafficStats.UNSUPPORTED) return "-";
+        return getSpeed();
+    }
+
     public static void reset() {
         lastTotalRxBytes = 0;
         lastTimeStamp = 0;
