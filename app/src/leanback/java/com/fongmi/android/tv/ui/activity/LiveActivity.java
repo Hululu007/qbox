@@ -195,6 +195,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mBinding.control.action.player.setOnClickListener(view -> onPlayer());
         mBinding.control.action.decode.setOnClickListener(view -> onDecode());
         mBinding.control.action.speed.setOnLongClickListener(view -> onSpeedLong());
+        mBinding.control.action.more.setOnClickListener(view -> onMore());
         mBinding.video.setOnTouchListener((view, event) -> mKeyDown.onTouchEvent(event));
         mBinding.group.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
             @Override
@@ -216,7 +217,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     private void setVideoView() {
         setScale(LiveSetting.getScale());
         setSeekNextFocusDown(R.id.config);
-        setActionFocusBoundary(mBinding.control.action.getRoot());
+        setActionFocusBoundary(mBinding.control.action.main);
         PlayerEngineDialog.setText(mBinding.control.action.player);
         mBinding.control.action.invert.setSelected(LiveSetting.isInvert());
         mBinding.control.action.across.setSelected(LiveSetting.isAcross());
@@ -573,6 +574,8 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     private void showControl(View view) {
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
         mBinding.widget.top.setVisibility(View.VISIBLE);
+        setExtra(view != null && isInExtra(view));
+        if (view == null || !view.isShown()) view = mBinding.control.action.config;
         App.post(view::requestFocus, 25);
         setR1Callback();
         hideInfo();
@@ -581,7 +584,33 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     private void hideControl() {
         mBinding.control.getRoot().setVisibility(View.GONE);
         mBinding.widget.top.setVisibility(View.GONE);
+        setExtra(false);
         App.removeCallbacks(mR1);
+    }
+
+    /** 更多面板：非常用开关收在二级行，主行保持一屏放得下。 */
+    private void onMore() {
+        boolean show = mBinding.control.action.extra.getVisibility() != View.VISIBLE;
+        setExtra(show);
+        if (show) App.post(() -> mBinding.control.action.scale.requestFocus(), 50);
+        setR1Callback();
+    }
+
+    private void setExtra(boolean show) {
+        int visibility = show ? View.VISIBLE : View.GONE;
+        if (mBinding.control.action.extra.getVisibility() == visibility) return;
+        mBinding.control.action.extra.setVisibility(visibility);
+        mBinding.control.action.more.setText(show ? R.string.play_less : R.string.play_more);
+    }
+
+    private boolean isInExtra(View view) {
+        View extra = mBinding.control.action.extra;
+        while (view != null) {
+            if (view == extra) return true;
+            if (!(view.getParent() instanceof View)) return false;
+            view = (View) view.getParent();
+        }
+        return false;
     }
 
     private void hideCenter() {
@@ -948,7 +977,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private View getFocus2() {
-        return mFocus2 == null || mFocus2.getVisibility() != View.VISIBLE ? mBinding.control.action.config : mFocus2;
+        return mFocus2 == null || !mFocus2.isShown() ? mBinding.control.action.config : mFocus2;
     }
 
     private boolean centerLongPress;

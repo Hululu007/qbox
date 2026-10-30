@@ -57,11 +57,13 @@ public class VodRectHolder extends BaseVodHolder {
         Glide.with(binding.image).clear(binding.image);
     }
 
-    /** 评分 0 或空备注对用户没有信息量，直接不显示，避免卡片上出现「评分：0」。 */
+    /** 评分 0、纯数字评分（如「7.0」）或空备注对用户没有信息量，直接不显示。 */
     static boolean isUsefulRemark(String remark) {
         if (remark == null) return false;
         String s = remark.trim();
         if (s.isEmpty() || s.equals("0") || s.equals("0.0")) return false;
+        if (s.matches("^\\d+(\\.\\d+)?$")) return false;
+        if (s.matches("^\\d+(\\.\\d+)?\\s*[分點点]$")) return false;
         return !(s.startsWith("评分：") || s.startsWith("评分:0") || s.startsWith("评分：0") || s.startsWith("评分:0.0"));
     }
 }

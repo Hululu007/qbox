@@ -81,6 +81,10 @@ android {
             signingConfig = signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro', 'proguard-rules-media.pro'
         }
+        debug {
+            // QBox: 调试包同样用 release 证书，debug/release 可互相覆盖安装，不再因签名不一致清数据。
+            signingConfig = signingConfigs.release
+        }
     }
 
     configurations.configureEach {
