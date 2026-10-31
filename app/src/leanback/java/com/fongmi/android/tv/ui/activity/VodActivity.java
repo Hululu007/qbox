@@ -3,6 +3,7 @@ package com.fongmi.android.tv.ui.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,22 +13,27 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.leanback.widget.ItemBridgeAdapter;
 import androidx.leanback.widget.OnChildViewHolderSelectedListener;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewpager.widget.ViewPager;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Cache;
 import com.fongmi.android.tv.bean.Class;
 import com.fongmi.android.tv.bean.Result;
+import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.ActivityVodBinding;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.ui.adapter.TypeAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.fragment.FolderFragment;
+import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.KeyUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 
@@ -40,6 +46,17 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
 
     private ActivityVodBinding mBinding;
     private TypeAdapter mAdapter;
+    private String mBackdropUrl;
+    private String mFallbackPic;
+
+    /** 当前聚焦海报的 24px 缩略图放大成氛围底图，切页/滚动都不再露黑底。 */
+    private final Runnable mBackdropTask = new Runnable() {
+        @Override
+        public void run() {
+            updateBackdrop();
+            App.post(this, 600);
+        }
+    };
 
     public static void start(Activity activity, Result result) {
         start(activity, VodConfig.get().getHome().getKey(), result, -1);
@@ -94,6 +111,75 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
         mBinding.pager.setCurrentItem(index);
         mAdapter.setPosition(index);
         updateFilterState();
+        mFallbackPic = firstPic(getResult());
+        updateBackdrop();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        App.post(mBackdropTask, 400);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        App.removeCallbacks(mBackdropTask);
+    }
+
+    private static String firstPic(Result result) {
+        if (result == null || result.getList() == null) return null;
+        for (Vod vod : result.getList()) if (!TextUtils.isEmpty(vod.getPic())) return vod.getPic();
+        return null;
+    }
+
+    /** 当前焦点如果在海报上，返回该海报地址；在顶栏/分类条上则返回 null。 */
+    private String focusPic() {
+        View focus = getCurrentFocus();
+        if (focus == null) return null;
+        View child = focus;
+        RecyclerView grid = null;
+        while (child != null) {
+            if (child.getParent() instanceof RecyclerView) {
+                grid = (RecyclerView) child.getParent();
+                break;
+            }
+            child = child.getParent() instanceof View ? (View) child.getParent() : null;
+        }
+        if (grid == null || !(grid.getAdapter() instanceof ItemBridgeAdapter)) return null;
+        int position = grid.getChildAdapterPosition(child);
+        RecyclerView.ViewHolder holder = position < 0 ? null : grid.findViewHolderForAdapterPosition(position);
+        if (!(holder instanceof ItemBridgeAdapter.ViewHolder)) return null;
+        Object item = ((ItemBridgeAdapter.ViewHolder) holder).getItem();
+        return item instanceof Vod ? ((Vod) item).getPic() : null;
+    }
+
+    private void updateBackdrop() {
+        String url = focusPic();
+        if (TextUtils.isEmpty(url)) {
+            // 焦点在顶栏/分类条时保持当前氛围图，避免回到首页或上移焦点时背景闪一下。
+            if (mBackdropUrl != null) return;
+            url = mFallbackPic;
+        }
+        if (TextUtils.isEmpty(url) || url.equals(mBackdropUrl)) return;
+        mBackdropUrl = url;
+        Glide.with(this).load(ImgUtil.getUrl(url)).override(24, 24).centerCrop()
+                .transition(DrawableTransitionOptions.withCrossFade(500))
+                .into(mBinding.backdrop);
+    }
+
+    /** 当前分类第一张海报加载完成：顶栏没有焦点海报时用它做氛围底图。 */
+    public void onFirstPic(String pic) {
+        if (TextUtils.isEmpty(pic) || pic.equals(mFallbackPic)) return;
+        mFallbackPic = pic;
+        if (focusPic() == null) {
+            mBackdropUrl = null;
+            updateBackdrop();
+        }
+    }
+
+    public FolderFragment getCurrentFolder() {
+        return getFragment();
     }
 
     /** 顶栏「筛选」：始终显示（没有筛选项时置灰不可聚焦），焦点链路固定为 返回 ↔ 筛选 ↓ 分类。 */
@@ -126,6 +212,13 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
                 mBinding.typeRecycler.setSelectedPosition(position);
                 mAdapter.setPosition(position);
                 updateFilterState();
+                FolderFragment folder = getFragment();
+                String pic = folder == null ? null : folder.getFirstPic();
+                if (!TextUtils.isEmpty(pic)) mFallbackPic = pic;
+                if (focusPic() == null) {
+                    mBackdropUrl = null;
+                    updateBackdrop();
+                }
             }
         });
     }

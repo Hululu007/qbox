@@ -30,6 +30,7 @@ import com.fongmi.android.tv.databinding.FragmentTypeBinding;
 import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.ui.activity.CollectActivity;
 import com.fongmi.android.tv.ui.activity.VideoActivity;
+import com.fongmi.android.tv.ui.activity.VodActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.custom.CustomRowPresenter;
 import com.fongmi.android.tv.ui.custom.CustomScroller;
@@ -55,6 +56,7 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     private List<Filter> mFilters;
     private boolean headerVisible;
     private boolean filterVisible;
+    private String mFirstPic;
 
     public static TypeFragment newInstance(String key, String typeId, Style style, HashMap<String, String> extend, boolean folder) {
         Bundle args = new Bundle();
@@ -176,10 +178,26 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     }
 
     private void addVideo(Result result) {
+        if (mFirstPic == null) for (Vod vod : result.getList()) if (vod.getPic() != null && !vod.getPic().isEmpty()) {
+            mFirstPic = vod.getPic();
+            break;
+        }
+        notifyBackdrop();
         Style style = result.getStyle(getStyle());
         if (style.isList()) mAdapter.addAll(mAdapter.size(), result.getList());
         else addGrid(result.getList(), style);
         checkMore();
+    }
+
+    /** 当前分类第一张海报：给 VodActivity 的整屏氛围底图兜底。 */
+    public String getFirstPic() {
+        return mFirstPic;
+    }
+
+    private void notifyBackdrop() {
+        if (mFirstPic == null || !(getActivity() instanceof VodActivity)) return;
+        VodActivity activity = (VodActivity) getActivity();
+        if (getParentFragment() == activity.getCurrentFolder()) activity.onFirstPic(mFirstPic);
     }
 
     private void checkMore() {
@@ -246,7 +264,9 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         androidx.recyclerview.widget.RecyclerView recycler = mBinding.recycler;
         if (recycler.getChildCount() == 0) return true;
         android.view.View first = recycler.getChildAt(0);
-        return first != null && recycler.getChildAdapterPosition(first) <= 0;
+        if (first == null) return true;
+        int tolerance = Math.max(2, Math.round(8 * getResources().getDisplayMetrics().density));
+        return first.getTop() >= recycler.getPaddingTop() - tolerance;
     }
 
     private void checkFilter() {

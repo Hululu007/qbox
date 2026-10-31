@@ -122,6 +122,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private PartAdapter mPartAdapter;
     private QuickAdapter mQuickAdapter;
     private ViewGroup.LayoutParams mFrameParams;
+    private Drawable mVideoBg;
     private CustomKeyDownVod mKeyDown;
     private Clock mClock;
     private View mFocus1;
@@ -281,6 +282,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     protected void initView(Bundle savedInstanceState) {
         super.initView(savedInstanceState);
         mFrameParams = mBinding.video.getLayoutParams();
+        mVideoBg = mBinding.video.getBackground();
         mClock = Clock.create(mBinding.widget.clock);
         mKeyDown = CustomKeyDownVod.create(this);
         styleSeekBar();
@@ -922,6 +924,9 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mFocus1 = getCurrentFocus();
         mBinding.video.requestFocus();
         mBinding.video.setForeground(null);
+        // 真全屏：去掉详情态的 12dp 圆角背景与裁剪，否则四角会露出底色。
+        mBinding.video.setBackground(null);
+        mBinding.video.setClipToOutline(false);
         mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
         mBinding.flag.setSelectedPosition(mFlagAdapter.getPosition());
         mKeyDown.setFull(true);
@@ -932,6 +937,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private void exitFullscreen() {
         mBinding.video.setForeground(ResUtil.getDrawable(R.drawable.selector_video));
         mBinding.video.setLayoutParams(mFrameParams);
+        mBinding.video.setBackground(mVideoBg);
+        mBinding.video.setClipToOutline(true);
         getFocus1().requestFocus();
         mKeyDown.setFull(false);
         setFullscreen(false);

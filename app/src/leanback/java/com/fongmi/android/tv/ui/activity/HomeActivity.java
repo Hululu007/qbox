@@ -362,7 +362,11 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                     else if (item instanceof History) url = ((History) item).getVodPic();
                 }
             }
-            if (TextUtils.isEmpty(url)) url = mFallbackPic;
+            if (TextUtils.isEmpty(url)) {
+                // 焦点在顶栏/分类条时保持上一张氛围图，避免每次上移都闪回推荐位海报。
+                if (mBackdropUrl != null) return;
+                url = mFallbackPic;
+            }
             if (TextUtils.isEmpty(url) || url.equals(mBackdropUrl)) return;
             mBackdropUrl = url;
             Glide.with(this).load(ImgUtil.getUrl(url)).override(24, 24).centerCrop()

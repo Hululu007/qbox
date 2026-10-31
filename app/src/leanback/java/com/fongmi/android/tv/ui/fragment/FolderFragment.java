@@ -101,6 +101,11 @@ public class FolderFragment extends BaseFragment {
         return child == null || child.isAtTop();
     }
 
+    public String getFirstPic() {
+        TypeFragment child = getChild();
+        return child == null ? null : child.getFirstPic();
+    }
+
     public void goBack() {
         getChildFragmentManager().popBackStack();
     }

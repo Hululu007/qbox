@@ -1,107 +1,133 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_app"
-    android:orientation="vertical">
+    android:background="@drawable/bg_app">
+
+    <!-- 当前聚焦海报的低分辨率氛围底图：整屏铺满，滚动和切页时不再出现黑底切线。 -->
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/backdrop"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.5"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/shape_backdrop_scrim" />
+
+    <!-- 顶栏只是轻微压暗的海报上层，不再是一条实心色带。 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="140dp"
+        android:background="@drawable/shape_top_fade" />
 
     <androidx.appcompat.widget.LinearLayoutCompat
-        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="32dp"
-        android:paddingTop="16dp"
-        android:paddingEnd="32dp"
-        android:paddingBottom="2dp">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/back"
-            android:layout_width="46dp"
-            android:layout_height="46dp"
-            android:background="@drawable/selector_action_icon"
-            android:clickable="true"
-            android:contentDescription="@string/back"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:padding="12dp"
-            android:src="@drawable/ic_back"
-            app:tint="@color/text" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/name"
-            android:layout_width="0dp"
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="14dp"
-            android:layout_weight="1"
-            android:ellipsize="end"
-            android:letterSpacing="0.04"
-            android:singleLine="true"
-            android:textColor="@color/qbox_text"
-            android:textSize="19sp"
-            android:textStyle="bold"
-            tools:text="豆豆" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="32dp"
+            android:paddingTop="16dp"
+            android:paddingEnd="32dp"
+            android:paddingBottom="2dp">
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/filter"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/selector_filter_chip"
-            android:clickable="true"
-            android:drawablePadding="6dp"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:letterSpacing="0.02"
-            android:paddingStart="13dp"
-            android:paddingTop="5dp"
-            android:paddingEnd="14dp"
-            android:paddingBottom="5dp"
-            android:text="@string/filter"
-            android:textColor="@color/hero_tab_text"
-            android:textSize="13sp"
-            app:drawableStartCompat="@drawable/ic_filter"
-            app:drawableTint="@color/hero_tab_text"
-            tools:visibility="visible" />
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/back"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:background="@drawable/selector_action_icon"
+                android:clickable="true"
+                android:contentDescription="@string/back"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:padding="12dp"
+                android:src="@drawable/ic_back"
+                app:tint="@color/text" />
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/clock"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:fontFeatureSettings="tnum"
-            android:letterSpacing="0.02"
-            android:textColor="@color/qbox_text_dim"
-            android:textSize="15sp"
-            tools:text="09:20:00" />
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:letterSpacing="0.04"
+                android:singleLine="true"
+                android:textColor="@color/qbox_text"
+                android:textSize="19sp"
+                android:textStyle="bold"
+                tools:text="豆豆" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/selector_filter_chip"
+                android:clickable="true"
+                android:drawablePadding="6dp"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:letterSpacing="0.02"
+                android:paddingStart="13dp"
+                android:paddingTop="5dp"
+                android:paddingEnd="14dp"
+                android:paddingBottom="5dp"
+                android:text="@string/filter"
+                android:textColor="@color/hero_tab_text"
+                android:textSize="13sp"
+                app:drawableStartCompat="@drawable/ic_filter"
+                app:drawableTint="@color/hero_tab_text"
+                tools:visibility="visible" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/clock"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:fontFeatureSettings="tnum"
+                android:letterSpacing="0.02"
+                android:textColor="@color/qbox_text_dim"
+                android:textSize="15sp"
+                tools:text="09:20:00" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <!-- 分类条：高度固定，类型还没加载完时也不让内容跳位。 -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="42dp"
+            android:layout_marginTop="6dp">
+
+            <androidx.leanback.widget.HorizontalGridView
+                android:id="@+id/typeRecycler"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:paddingStart="32dp"
+                android:paddingEnd="32dp"
+                app:focusOutEnd="false"
+                app:focusOutFront="false" />
+
+        </FrameLayout>
+
+        <com.fongmi.android.tv.ui.custom.CustomViewPager
+            android:id="@+id/pager"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
-    <!-- 分类条：高度固定，类型还没加载完时也不让内容跳位。 -->
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="42dp"
-        android:layout_marginTop="6dp">
-
-        <androidx.leanback.widget.HorizontalGridView
-            android:id="@+id/typeRecycler"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipChildren="false"
-            android:clipToPadding="false"
-            android:paddingStart="32dp"
-            android:paddingEnd="32dp"
-            app:focusOutEnd="false"
-            app:focusOutFront="false" />
-
-    </FrameLayout>
-
-    <com.fongmi.android.tv.ui.custom.CustomViewPager
-        android:id="@+id/pager"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
-
-</androidx.appcompat.widget.LinearLayoutCompat>
+</FrameLayout>

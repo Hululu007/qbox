@@ -98,7 +98,12 @@ public class ActionChip extends LinearLayoutCompat {
     private void collapse() {
         if (!expanded) return;
         expanded = false;
-        animateWidth(label.getLayoutParams().width, 0);
+        // 收回不做动画：只让展开有生长感，避免切换按钮时整排图标跟着抖。
+        if (animator != null) animator.cancel();
+        ViewGroup.LayoutParams params = label.getLayoutParams();
+        params.width = 0;
+        label.setLayoutParams(params);
+        label.setVisibility(View.GONE);
     }
 
     private int measureLabel() {

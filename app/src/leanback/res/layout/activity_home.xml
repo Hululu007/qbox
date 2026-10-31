@@ -5,19 +5,25 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_app">
 
-    <!-- 氛围底图：当前影片海报低分辨率放大，形成柔和的光晕。 -->
+    <!-- 氛围底图：当前聚焦海报低分辨率放大，整屏铺满，滚动时不会露出黑底。 -->
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/backdrop"
         android:layout_width="match_parent"
-        android:layout_height="460dp"
-        android:alpha="0.45"
+        android:layout_height="match_parent"
+        android:alpha="0.5"
         android:importantForAccessibility="no"
-        android:scaleType="fitXY" />
+        android:scaleType="centerCrop" />
 
     <View
         android:layout_width="match_parent"
-        android:layout_height="540dp"
+        android:layout_height="match_parent"
         android:background="@drawable/shape_backdrop_scrim" />
+
+    <!-- 顶栏悬浮层：轻压暗渐变，避免和下方内容出现硬切线。 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="140dp"
+        android:background="@drawable/shape_top_fade" />
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
