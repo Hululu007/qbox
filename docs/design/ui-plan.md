@@ -5,7 +5,7 @@
 > 不引入 Compose，保留 FongMi leanback 的遥控器焦点链路。
 
 真机截图：`docs/screenshots/ui-cinema/`（JmGO 投影 1920×1080 @320dpi / 机顶盒 IP810N 1280×720 @160dpi）：
-`v193-box-home` / `v193-box-vod` / `v193-box-collect`（1.9.3，720p 机顶盒），
+`v193-box-home` / `v193-box-vod` / `v193-box-collect` / `v193-box-sites`（1.9.3，720p 机顶盒），
 `v192-home` / `v192-home-scrolled` / `v192-vod` / `v192-filter` / `v192-detail` / `v192-osd` /
 `v192-search` / `v192-search-keyboard`（1.9.2，1080p 投影），
 1.9.1 存档 `v191-home` / `v191-vod` / `v191-filter` / `v191-detail` / `v191-osd`，
@@ -29,6 +29,9 @@
 - **键盘图标反色（修）**：`adapter_keyboard_icon` 加 `app:tint="@color/text"`，
   白色药丸焦点下图标变深，不再「按键白底白图标」看不见。
 - **详情页年份归一**：`1970-01-01`（源没给年份）直接丢弃，`2026-08-14` 只显示 `2026`。
+- **对话框去紫灰**：Material3 默认按 elevation 给 surface 叠一层紫灰，换源/配置对话框比页面亮一档、
+  偏紫。新增 `ThemeOverlay.QBox.Dialog`（`colorSurface` = `#17171C`、`elevationOverlayEnabled=false`），
+  对话框回到和页面同一套近黑面板。
 - 720p 机顶盒（1280×720 @160dpi）实测：5 列 3:4 海报、一屏 1.5 行，
   分类条 7 个分类、筛选药丸、聚合搜索结果页均正常。
 
