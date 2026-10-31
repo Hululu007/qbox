@@ -69,6 +69,10 @@
         android:orientation="vertical"
         android:padding="24dp">
 
+        <com.google.android.material.textview.MaterialTextView
+            style="@style/SettingHeader"
+            android:text="内容源" />
+
         <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -78,9 +82,9 @@
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/vod"
             android:paddingStart="20dp"
-            android:paddingTop="12dp"
+            android:paddingTop="9dp"
             android:paddingEnd="20dp"
-            android:paddingBottom="12dp"
+            android:paddingBottom="9dp"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
@@ -98,7 +102,7 @@
                     android:layout_weight="0.3"
                     android:text="@string/setting_vod"
                     android:textColor="@color/text"
-                    android:textSize="18sp" />
+                    android:textSize="16sp" />
 
                 <com.google.android.material.textview.MaterialTextView
                 android:duplicateParentState="true"
@@ -110,7 +114,7 @@
                     android:gravity="end"
                     android:singleLine="true"
                     android:textColor="@color/text"
-                    android:textSize="18sp"
+                    android:textSize="16sp"
                     tools:ignore="NestedWeights"
                     tools:text="https://" />
 
@@ -144,16 +148,16 @@
         <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/live"
             android:paddingStart="20dp"
-            android:paddingTop="12dp"
+            android:paddingTop="9dp"
             android:paddingEnd="20dp"
-            android:paddingBottom="12dp"
+            android:paddingBottom="9dp"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
@@ -171,7 +175,7 @@
                     android:layout_weight="0.3"
                     android:text="@string/setting_live"
                     android:textColor="@color/text"
-                    android:textSize="18sp" />
+                    android:textSize="16sp" />
 
                 <com.google.android.material.textview.MaterialTextView
                 android:duplicateParentState="true"
@@ -183,7 +187,7 @@
                     android:gravity="end"
                     android:singleLine="true"
                     android:textColor="@color/text"
-                    android:textSize="18sp"
+                    android:textSize="16sp"
                     tools:ignore="NestedWeights"
                     tools:text="https://" />
 
@@ -217,16 +221,16 @@
         <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/wall"
             android:paddingStart="20dp"
-            android:paddingTop="12dp"
+            android:paddingTop="9dp"
             android:paddingEnd="20dp"
-            android:paddingBottom="12dp"
+            android:paddingBottom="9dp"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
@@ -244,7 +248,7 @@
                     android:layout_weight="0.3"
                     android:text="@string/setting_wall"
                     android:textColor="@color/text"
-                    android:textSize="18sp" />
+                    android:textSize="16sp" />
 
                 <com.google.android.material.textview.MaterialTextView
                 android:duplicateParentState="true"
@@ -256,7 +260,7 @@
                     android:gravity="end"
                     android:singleLine="true"
                     android:textColor="@color/text"
-                    android:textSize="18sp"
+                    android:textSize="16sp"
                     tools:ignore="NestedWeights"
                     tools:text="https://" />
 
@@ -287,15 +291,18 @@
 
         </androidx.appcompat.widget.LinearLayoutCompat>
 
+        <com.google.android.material.textview.MaterialTextView
+            style="@style/SettingHeader"
+            android:text="播放" />
+
         <androidx.appcompat.widget.LinearLayoutCompat
             android:id="@+id/player"
             android:paddingStart="20dp"
-            android:paddingTop="12dp"
+            android:paddingTop="9dp"
             android:paddingEnd="20dp"
-            android:paddingBottom="12dp"
+            android:paddingBottom="9dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
             android:background="@drawable/selector_item"
             android:focusable="true"
             android:focusableInTouchMode="true"
@@ -307,19 +314,19 @@
                 android:layout_height="wrap_content"
                 android:text="@string/setting_player"
                 android:textColor="@color/text"
-                android:textSize="18sp" />
+                android:textSize="16sp" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
 
         <androidx.appcompat.widget.LinearLayoutCompat
             android:id="@+id/danmaku"
             android:paddingStart="20dp"
-            android:paddingTop="12dp"
+            android:paddingTop="9dp"
             android:paddingEnd="20dp"
-            android:paddingBottom="12dp"
+            android:paddingBottom="9dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
             android:background="@drawable/selector_item"
             android:focusable="true"
             android:focusableInTouchMode="true"
@@ -331,19 +338,23 @@
                 android:layout_height="wrap_content"
                 android:text="@string/setting_danmaku"
                 android:textColor="@color/text"
-                android:textSize="18sp" />
+                android:textSize="16sp" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <com.google.android.material.textview.MaterialTextView
+            style="@style/SettingHeader"
+            android:text="系统" />
 
         <androidx.appcompat.widget.LinearLayoutCompat
             android:id="@+id/incognito"
             android:paddingStart="20dp"
-            android:paddingTop="12dp"
+            android:paddingTop="9dp"
             android:paddingEnd="20dp"
-            android:paddingBottom="12dp"
+            android:paddingBottom="9dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
             android:background="@drawable/selector_item"
             android:focusable="true"
             android:focusableInTouchMode="true"
@@ -356,7 +367,7 @@
                 android:layout_marginEnd="16dp"
                 android:text="@string/setting_incognito"
                 android:textColor="@color/text"
-                android:textSize="18sp" />
+                android:textSize="16sp" />
 
             <com.google.android.material.textview.MaterialTextView
             android:duplicateParentState="true"
@@ -365,7 +376,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="end"
                 android:textColor="@color/text"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 tools:text="Off" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
@@ -373,12 +384,12 @@
         <androidx.appcompat.widget.LinearLayoutCompat
             android:id="@+id/doh"
             android:paddingStart="20dp"
-            android:paddingTop="12dp"
+            android:paddingTop="9dp"
             android:paddingEnd="20dp"
-            android:paddingBottom="12dp"
+            android:paddingBottom="9dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
             android:background="@drawable/selector_item"
             android:focusable="true"
             android:focusableInTouchMode="true"
@@ -391,7 +402,7 @@
                 android:layout_marginEnd="16dp"
                 android:text="@string/setting_doh"
                 android:textColor="@color/text"
-                android:textSize="18sp" />
+                android:textSize="16sp" />
 
             <com.google.android.material.textview.MaterialTextView
             android:duplicateParentState="true"
@@ -400,7 +411,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="end"
                 android:textColor="@color/text"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 tools:text="Google" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
@@ -408,12 +419,12 @@
         <androidx.appcompat.widget.LinearLayoutCompat
             android:id="@+id/size"
             android:paddingStart="20dp"
-            android:paddingTop="12dp"
+            android:paddingTop="9dp"
             android:paddingEnd="20dp"
-            android:paddingBottom="12dp"
+            android:paddingBottom="9dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
             android:background="@drawable/selector_item"
             android:focusable="true"
             android:focusableInTouchMode="true"
@@ -427,7 +438,7 @@
                 android:layout_marginEnd="16dp"
                 android:text="@string/setting_size"
                 android:textColor="@color/text"
-                android:textSize="18sp" />
+                android:textSize="16sp" />
 
             <com.google.android.material.textview.MaterialTextView
             android:duplicateParentState="true"
@@ -436,23 +447,27 @@
                 android:layout_height="wrap_content"
                 android:gravity="end"
                 android:textColor="@color/text"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 tools:text="Medium" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
 
+        <com.google.android.material.textview.MaterialTextView
+            style="@style/SettingHeader"
+            android:text="维护" />
+
         <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
             android:orientation="horizontal">
 
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/backup"
             android:paddingStart="20dp"
-            android:paddingTop="12dp"
+            android:paddingTop="9dp"
             android:paddingEnd="20dp"
-            android:paddingBottom="12dp"
+            android:paddingBottom="9dp"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
@@ -468,16 +483,16 @@
                     android:layout_height="wrap_content"
                     android:text="@string/setting_backup"
                     android:textColor="@color/text"
-                    android:textSize="18sp" />
+                    android:textSize="16sp" />
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/restore"
             android:paddingStart="20dp"
-            android:paddingTop="12dp"
+            android:paddingTop="9dp"
             android:paddingEnd="20dp"
-            android:paddingBottom="12dp"
+            android:paddingBottom="9dp"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -492,7 +507,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/setting_restore"
                     android:textColor="@color/text"
-                    android:textSize="18sp" />
+                    android:textSize="16sp" />
 
             </androidx.appcompat.widget.LinearLayoutCompat>
         </androidx.appcompat.widget.LinearLayoutCompat>
@@ -500,15 +515,15 @@
         <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
             android:orientation="horizontal">
 
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/cache"
             android:paddingStart="20dp"
-            android:paddingTop="12dp"
+            android:paddingTop="9dp"
             android:paddingEnd="20dp"
-            android:paddingBottom="12dp"
+            android:paddingBottom="9dp"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
@@ -525,7 +540,7 @@
                     android:layout_marginEnd="16dp"
                     android:text="@string/setting_cache"
                     android:textColor="@color/text"
-                    android:textSize="18sp" />
+                    android:textSize="16sp" />
 
                 <com.google.android.material.textview.MaterialTextView
                 android:duplicateParentState="true"
@@ -534,7 +549,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="end"
                     android:textColor="@color/text"
-                    android:textSize="18sp"
+                    android:textSize="16sp"
                     tools:text="1.0 MB" />
 
             </androidx.appcompat.widget.LinearLayoutCompat>
@@ -542,9 +557,9 @@
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/version"
             android:paddingStart="20dp"
-            android:paddingTop="12dp"
+            android:paddingTop="9dp"
             android:paddingEnd="20dp"
-            android:paddingBottom="12dp"
+            android:paddingBottom="9dp"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -560,7 +575,7 @@
                     android:layout_marginEnd="16dp"
                     android:text="@string/setting_version"
                     android:textColor="@color/text"
-                    android:textSize="18sp" />
+                    android:textSize="16sp" />
 
                 <com.google.android.material.textview.MaterialTextView
                 android:duplicateParentState="true"
@@ -569,7 +584,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="end"
                     android:textColor="@color/text"
-                    android:textSize="18sp"
+                    android:textSize="16sp"
                     tools:text="1.2.1" />
 
             </androidx.appcompat.widget.LinearLayoutCompat>

@@ -22,6 +22,17 @@
 
     <style name="Theme.App" parent="Theme.Base" />
 
+    <!-- 设置页分区标题：小字号、字距拉开、压暗，和可聚焦的行区分开。 -->
+    <style name="SettingHeader">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">18dp</item>
+        <item name="android:layout_marginBottom">4dp</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:textColor">@color/qbox_text_mute</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+
     <!-- 对话框：Material3 默认会按 elevation 给 surface 叠加一层紫灰，和纯黑界面不搭，这里关掉叠色。 -->
     <style name="ThemeOverlay.QBox.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
         <item name="colorSurface">@color/qbox_surface</item>
