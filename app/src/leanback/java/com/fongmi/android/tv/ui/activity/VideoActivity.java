@@ -784,13 +784,26 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private void setMeta(Vod item) {
         List<String> parts = new ArrayList<>();
         addMeta(parts, getSite().getName());
-        addMeta(parts, item.getYear());
+        addYear(parts, item.getYear());
         addMeta(parts, item.getArea());
         addMeta(parts, item.getTypeName());
         mBinding.year.setVisibility(View.GONE);
         mBinding.area.setVisibility(View.GONE);
         mBinding.type.setVisibility(View.GONE);
         setText(mBinding.site, 0, TextUtils.join("  ·  ", parts));
+    }
+
+    /** 年份归一：`2026-08-14` 只留 `2026`，`1970-01-01`（源没给年份）直接丢掉。 */
+    private void addYear(List<String> parts, String year) {
+        if (TextUtils.isEmpty(year)) return;
+        String value = year.trim();
+        if (value.length() < 4 || !value.substring(0, 4).matches("\\d{4}")) {
+            parts.add(value);
+            return;
+        }
+        int y = Integer.parseInt(value.substring(0, 4));
+        if (y < 1900 || y > 2100) return;
+        parts.add(String.valueOf(y));
     }
 
     private void addMeta(List<String> parts, String text) {

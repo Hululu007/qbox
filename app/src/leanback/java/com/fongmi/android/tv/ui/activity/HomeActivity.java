@@ -69,6 +69,7 @@ import com.fongmi.android.tv.utils.KeyUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.utils.ScrollUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.net.OkHttp;
@@ -183,7 +184,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         mBinding.recycler.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                mBinding.topFade.setVisibility(recyclerView.canScrollVertically(-1) ? View.VISIBLE : View.GONE);
+                
+                mBinding.topFade.setVisibility(ScrollUtil.isScrolledFromTop(recyclerView) ? View.VISIBLE : View.GONE);
             }
         });
     }

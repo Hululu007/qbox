@@ -2,11 +2,12 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
 
-    <!-- 滚动时的顶部压暗：上半段完全盖住上一排被裁掉的半截文字，下半段自然过渡。 -->
+    <!-- 滚动时的顶部压暗：上方 70% 完全不透明，把上一排滚剩的标题/元信息彻底盖住，
+         下方 30% 过渡回背景。之前只盖 45%，上一排的文字会半透明地透出来。 -->
     <gradient
         android:angle="270"
         android:centerColor="#FF0A0B10"
-        android:centerY="0.5"
+        android:centerY="0.70"
         android:endColor="#000A0B10"
         android:startColor="#FF0A0B10"
         android:type="linear" />

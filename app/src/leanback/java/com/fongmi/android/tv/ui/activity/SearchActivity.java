@@ -82,6 +82,8 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
 
     @Override
     protected void initEvent() {
+        mBinding.keyword.setOnFocusChangeListener((v, hasFocus) -> updateFieldFocus());
+        mBinding.mic.setOnFocusChangeListener((v, hasFocus) -> updateFieldFocus());
         mBinding.keyword.setOnEditorActionListener((textView, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) onSearch();
             return true;
@@ -102,8 +104,13 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
         });
     }
 
-    private void setRecyclerView() {
-        mBinding.wordRecycler.setItemAnimator(null);
+    /** 搜索框（含麦克风）有焦点时整条变白描边，离开就恢复，避免和键盘上的焦点同时亮。 */
+    private void updateFieldFocus() {
+        boolean focused = mBinding.keyword.hasFocus() || mBinding.mic.hasFocus();
+        mBinding.field.setBackgroundResource(focused ? R.drawable.shape_search_field_focus : R.drawable.shape_search_field);
+    }
+
+    private void setRecyclerView() {        mBinding.wordRecycler.setItemAnimator(null);
         mBinding.wordRecycler.setHasFixedSize(false);
         mBinding.wordRecycler.setLayoutManager(new FlexboxLayoutManager(this, FlexDirection.ROW));
         mBinding.wordRecycler.setAdapter(mWordAdapter = new WordAdapter(this));
@@ -254,6 +261,8 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
     }
 
     private boolean handleKeywordKey(KeyEvent event) {
+        // 搜索框里按「下」进软键盘（RecyclerView 自身不可聚焦，nextFocusDown 指不到具体按键，必须落到第一个键上）。
+        if (KeyUtil.isDownKey(event)) return focusFirst(mBinding.keyboard);
         if (!KeyUtil.isRightKey(event)) return false;
         if (mBinding.keyword.getSelectionEnd() < mBinding.keyword.getText().length()) return false;
         boolean hasRecord = mBinding.recordLayout.getVisibility() == View.VISIBLE;

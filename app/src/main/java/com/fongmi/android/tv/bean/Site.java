@@ -17,6 +17,7 @@ import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.gson.ExtAdapter;
 import com.fongmi.android.tv.gson.HeaderAdapter;
 import com.fongmi.android.tv.utils.UrlUtil;
+import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Trans;
@@ -163,7 +164,7 @@ public class Site implements Parcelable {
     }
 
     public String getName() {
-        return TextUtils.isEmpty(name) ? "" : name;
+        return TextUtils.isEmpty(name) ? "" : Util.cleanName(name);
     }
 
     public void setName(String name) {

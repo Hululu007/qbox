@@ -79,17 +79,24 @@
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
-    <androidx.leanback.widget.HorizontalGridView
-        android:id="@+id/typeRecycler"
+    <!-- 分类条：高度固定，类型还没加载完时也不让内容跳位。 -->
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:clipChildren="false"
-        android:clipToPadding="false"
-        android:paddingStart="32dp"
-        android:paddingEnd="32dp"
-        app:focusOutEnd="false"
-        app:focusOutFront="false" />
+        android:layout_height="42dp"
+        android:layout_marginTop="6dp">
+
+        <androidx.leanback.widget.HorizontalGridView
+            android:id="@+id/typeRecycler"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:paddingStart="32dp"
+            android:paddingEnd="32dp"
+            app:focusOutEnd="false"
+            app:focusOutFront="false" />
+
+    </FrameLayout>
 
     <com.fongmi.android.tv.ui.custom.CustomViewPager
         android:id="@+id/pager"

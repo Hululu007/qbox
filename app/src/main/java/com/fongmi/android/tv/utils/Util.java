@@ -5,6 +5,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Paint;
 import android.os.Build;
 import android.os.IBinder;
 import android.provider.Settings;
@@ -31,6 +32,37 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Util {
+
+    private static Paint mGlyphPaint;
+
+    /**
+     * 站点名/标签清洗：配置里常用 emoji 和图标字体做装饰，低端盒子（Android 9）字体不全，
+     * 会渲染成豆腐块。这里去掉系统字体渲染不出来的字符，保留正常文字。
+     */
+    public static String cleanName(String text) {
+        if (TextUtils.isEmpty(text)) return "";
+        StringBuilder sb = new StringBuilder(text.length());
+        for (int i = 0; i < text.length(); ) {
+            int code = text.codePointAt(i);
+            int size = Character.charCount(code);
+            String ch = text.substring(i, i + size);
+            i += size;
+            if (code == 0x200D || code == 0xFE0F || code == 0xFE0E) continue;
+            if (code >= 0xE000 && code <= 0xF8FF) continue;
+            if (code > 0xFFFF && !canRender(ch)) continue;
+            sb.append(ch);
+        }
+        return sb.toString().trim();
+    }
+
+    private static boolean canRender(String text) {
+        try {
+            if (mGlyphPaint == null) mGlyphPaint = new Paint();
+            return mGlyphPaint.hasGlyph(text);
+        } catch (Exception e) {
+            return true;
+        }
+    }
 
     private static final Pattern EPISODE = Pattern.compile("(?i)(?:ep|第|e|[\\-\\.\\s])\\s?(\\d{1,4})");
 

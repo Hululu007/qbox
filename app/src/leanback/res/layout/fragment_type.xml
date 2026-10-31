@@ -33,7 +33,7 @@
     <View
         android:id="@+id/topFade"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_height="88dp"
         android:background="@drawable/shape_content_fade"
         android:importantForAccessibility="no"
         android:visibility="gone" />
