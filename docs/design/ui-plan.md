@@ -6,6 +6,7 @@
 
 真机截图：`docs/screenshots/ui-cinema/`（JmGO 投影 1920×1080 @320dpi / 机顶盒 IP810N 1280×720 @160dpi）：
 `v193-box-home` / `v193-box-vod` / `v193-box-collect` / `v193-box-sites`（1.9.3，720p 机顶盒），
+`v194-box-settings`（1.9.4，设置页分区），
 `v192-home` / `v192-home-scrolled` / `v192-vod` / `v192-filter` / `v192-detail` / `v192-osd` /
 `v192-search` / `v192-search-keyboard`（1.9.2，1080p 投影），
 1.9.1 存档 `v191-home` / `v191-vod` / `v191-filter` / `v191-detail` / `v191-osd`，
@@ -13,7 +14,6 @@
 `v190-live-osd` / `v190-stats` / `v190-search` / `v190-live-list` / `v190-settings`。
 
 ### 1.9.3 增补（720p 机顶盒适配 + 细节修正）
-
 - **顶部渐隐误伤第一行标题（修）**：Leanback 首行会有 1px 亚像素偏移，
   `top < paddingTop` 直接判定「已滚动」，入口页第一行标题被 88dp 渐隐整块盖住。
   改为留 6dp 容差（`ScrollUtil.isScrolledFromTop`），静止时渐变完全隐藏，滚动后才压暗。
@@ -34,6 +34,14 @@
   对话框回到和页面同一套近黑面板。
 - 720p 机顶盒（1280×720 @160dpi）实测：5 列 3:4 海报、一屏 1.5 行，
   分类条 7 个分类、筛选药丸、聚合搜索结果页均正常。
+
+### 1.9.4 增补（设置页信息架构）
+
+- 设置页从「一长串同样的行」改成 **四个分区**：内容源 / 播放 / 系统 / 维护。
+  分区标题 13sp、字距 0.08、`qbox_text_mute`，和可聚焦的行拉开层级（`SettingHeader`）。
+- 行更紧凑：上下 padding 12 → 9dp，行距 12 → 8dp，720p 一屏从 6 行变 7 行；
+  标签/值 18sp → 16sp，值仍锁定 `@color/text`，白药丸焦点时整体反色。
+- 焦点仍是整行白药丸（系统里唯一的强焦点语言），右侧「主页/重置/刷新」图标单独可聚焦。
 
 
 ### 1.9.2 增补（交互修正，以此为准）
