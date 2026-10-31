@@ -4,6 +4,7 @@
         <item name="colorPrimary">@color/qbox_accent</item>
         <item name="colorSurface">@color/qbox_surface</item>
         <item name="colorOnSurface">@color/qbox_text</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.QBox.Dialog</item>
         <item name="android:colorBackground">@color/qbox_bg</item>
         <item name="android:windowBackground">@color/qbox_bg</item>
         <item name="android:windowFullscreen">true</item>
@@ -20,6 +21,14 @@
     </style>
 
     <style name="Theme.App" parent="Theme.Base" />
+
+    <!-- 对话框：Material3 默认会按 elevation 给 surface 叠加一层紫灰，和纯黑界面不搭，这里关掉叠色。 -->
+    <style name="ThemeOverlay.QBox.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorSurface">@color/qbox_surface</item>
+        <item name="colorSurfaceContainerHigh">@color/qbox_surface</item>
+        <item name="colorSurfaceContainer">@color/qbox_surface</item>
+        <item name="elevationOverlayEnabled">false</item>
+    </style>
 
     <style name="HeroTab">
         <item name="android:layout_width">wrap_content</item>
