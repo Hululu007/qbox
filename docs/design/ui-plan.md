@@ -8,6 +8,7 @@
 `v193-box-home` / `v193-box-vod` / `v193-box-collect` / `v193-box-sites`（1.9.3，720p 机顶盒），
 `v194-box-settings`（1.9.4，设置页分区），
 `v195-box-home` / `v195-box-vod-filter` / `v195-box-player` / `v195-box-settings`（1.9.5，720p 机顶盒），
+`v196-box-home` / `v196-box-vod`（1.9.6，整屏氛围底图 + 历史进度条），
 `v192-home` / `v192-home-scrolled` / `v192-vod` / `v192-filter` / `v192-detail` / `v192-osd` /
 `v192-search` / `v192-search-keyboard`（1.9.2，1080p 投影），
 1.9.1 存档 `v191-home` / `v191-vod` / `v191-filter` / `v191-detail` / `v191-osd`，
@@ -35,6 +36,23 @@
   对话框回到和页面同一套近黑面板。
 - 720p 机顶盒（1280×720 @160dpi）实测：5 列 3:4 海报、一屏 1.5 行，
   分类条 7 个分类、筛选药丸、聚合搜索结果页均正常。
+
+### 1.9.6 增补（滚动回顶 / 全屏 / 氛围背景）
+
+- **分类页滚下去回不了第一行（修）**：`TypeFragment.isAtTop()` 原来只看 `getChildAt(0)` 的
+  adapter position；RecyclerView 会保留视口外的 child，position 0 常驻，导致任何位置都判定「在顶部」，
+  按 ↑ 直接跳回分类条。改为按第一个 child 的 `getTop()` 与 `paddingTop` 比较（8dp 容差），
+  滚几行后 ↑ 逐行回退，真正到顶才回分类条。
+- **首页胶囊收回不再抖**：`ActionChip` 只保留展开动画；失去焦点时宽度/文字立即归零，
+  不再让上一颗胶囊边收边挤动整排图标。
+- **全屏真四角**：`enterFullscreen()` 去掉详情态的 `shape_video_bg` 12dp 圆角背景与 `clipToOutline`，
+  退出全屏再恢复；四角不再露出底色。
+- **最近观看进度条**：进度条加粗到 4dp、左右缩进 8dp，蓝色进度 + 20% 白轨道，播放过的历史一眼能看到进度。
+- **氛围底图改成整屏**：首页/点播页的 `backdrop` 从 460dp 顶部图改成 `match_parent` + `centerCrop`，
+  配合整屏 `shape_backdrop_scrim` 与 140dp `shape_top_fade`，顶栏/分类条悬浮在海报模糊层上，
+  滚动和切分类不再出现上下两块不同背景的硬切线。
+- **点播页跟随焦点海报**：`VodActivity` 每 600ms 取当前焦点海报的 24px 缩略图做底图，
+  切 tab / 移动焦点时背景跟着换；没有焦点海报时保持当前底图，不闪回推荐位。
 
 ### 1.9.5 增补（顶部黑块 / 动作按钮 / 播放条）
 
