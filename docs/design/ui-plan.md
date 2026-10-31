@@ -4,11 +4,34 @@
 > 近黑渐变画布 + 当前海报氛围底图、单色文字、克制的品牌蓝，只靠留白、字重和焦点态建立层次。
 > 不引入 Compose，保留 FongMi leanback 的遥控器焦点链路。
 
-真机截图：`docs/screenshots/ui-cinema/`（JmGO 投影，1920×1080 @320dpi）：
-`v192-home` / `v192-home-tabs` / `v192-vod` / `v192-filter` / `v192-detail` / `v192-osd`（1.9.2 最新），
+真机截图：`docs/screenshots/ui-cinema/`（JmGO 投影 1920×1080 @320dpi / 机顶盒 IP810N 1280×720 @160dpi）：
+`v193-box-home` / `v193-box-vod` / `v193-box-collect`（1.9.3，720p 机顶盒），
+`v192-home` / `v192-home-scrolled` / `v192-vod` / `v192-filter` / `v192-detail` / `v192-osd` /
+`v192-search` / `v192-search-keyboard`（1.9.2，1080p 投影），
 1.9.1 存档 `v191-home` / `v191-vod` / `v191-filter` / `v191-detail` / `v191-osd`，
 以及 1.9.0 存档 `v190-home` / `v190-vod` / `v190-vod-filter` / `v190-detail-episodes` /
 `v190-live-osd` / `v190-stats` / `v190-search` / `v190-live-list` / `v190-settings`。
+
+### 1.9.3 增补（720p 机顶盒适配 + 细节修正）
+
+- **顶部渐隐误伤第一行标题（修）**：Leanback 首行会有 1px 亚像素偏移，
+  `top < paddingTop` 直接判定「已滚动」，入口页第一行标题被 88dp 渐隐整块盖住。
+  改为留 6dp 容差（`ScrollUtil.isScrolledFromTop`），静止时渐变完全隐藏，滚动后才压暗。
+- **站点名 emoji 豆腐块（修）**：源配置爱用 emoji / 图标字体装饰站点名，
+  低端盒子（Android 9，字体不全）会渲染成 ▯。`Util.cleanName()` 用 `Paint.hasGlyph`
+  逐字判断，渲染不出来的星平面字符、私有区字符、ZWJ/变体选择符直接去掉，
+  站点名、卡片角标、聚合搜索 chip 全部走 `Site.getName()`，一处收口。
+- **分类条高度写死 42dp**：配置还没拉回来时不再出现「整页内容先上移、数据到了再跳一下」。
+- **搜索页可达性（修）**：搜索框按「下」进软键盘（RecyclerView 自身不可聚焦，
+  原来的 `nextFocusDown` 指不过去，遥控器用户根本按不到字母键）；
+  搜索框获得焦点时整条白描边（`selector_search_field` + 焦点监听），
+  焦点进键盘后描边自动消失，不会同时出现两个焦点。
+- **键盘图标反色（修）**：`adapter_keyboard_icon` 加 `app:tint="@color/text"`，
+  白色药丸焦点下图标变深，不再「按键白底白图标」看不见。
+- **详情页年份归一**：`1970-01-01`（源没给年份）直接丢弃，`2026-08-14` 只显示 `2026`。
+- 720p 机顶盒（1280×720 @160dpi）实测：5 列 3:4 海报、一屏 1.5 行，
+  分类条 7 个分类、筛选药丸、聚合搜索结果页均正常。
+
 
 ### 1.9.2 增补（交互修正，以此为准）
 
