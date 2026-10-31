@@ -120,12 +120,6 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     protected void initEvent() {
         mBinding.swipeLayout.setOnRefreshListener(this);
         mBinding.recycler.addOnScrollListener(mScroller);
-        mBinding.recycler.addOnScrollListener(new androidx.recyclerview.widget.RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(@NonNull androidx.recyclerview.widget.RecyclerView recyclerView, int dx, int dy) {
-                mBinding.topFade.setVisibility(com.fongmi.android.tv.utils.ScrollUtil.isScrolledFromTop(recyclerView) ? android.view.View.VISIBLE : android.view.View.GONE);
-            }
-        });
     }
 
     @SuppressLint("RestrictedApi")

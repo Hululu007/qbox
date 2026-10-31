@@ -122,6 +122,11 @@ public class PlayerManager implements ParseCallback {
         return player.isPlaying();
     }
 
+    /** 用户意图上的播放状态：缓冲中也算「正在播」，用来决定暂停/播放按钮显示什么。 */
+    public boolean isPlayWhenReady() {
+        return player.getPlayWhenReady();
+    }
+
     public boolean isReleased() {
         return player == null;
     }

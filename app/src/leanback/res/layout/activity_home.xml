@@ -19,11 +19,6 @@
         android:layout_height="540dp"
         android:background="@drawable/shape_backdrop_scrim" />
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="160dp"
-        android:background="@drawable/shape_top_scrim" />
-
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -75,175 +70,44 @@
             android:layout_height="1dp"
             android:layout_weight="1" />
 
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <com.fongmi.android.tv.ui.custom.ActionChip
+            android:id="@+id/search"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:orientation="vertical">
+            android:layout_height="46dp"
+            app:chipIcon="@drawable/ic_home_search"
+            app:chipText="@string/home_search" />
 
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/search"
-                android:layout_width="46dp"
-                android:layout_height="46dp"
-                android:background="@drawable/selector_action_icon"
-                android:clickable="true"
-                android:contentDescription="@string/home_search"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:padding="12dp"
-                android:src="@drawable/ic_home_search"
-                app:tint="@color/text" />
-
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/searchLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="14dp"
-                android:duplicateParentState="false"
-                android:gravity="center"
-                android:includeFontPadding="false"
-                android:singleLine="true"
-                android:text="@string/home_search"
-                android:textColor="@color/qbox_text_dim"
-                android:textSize="11sp"
-                android:visibility="invisible" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <com.fongmi.android.tv.ui.custom.ActionChip
+            android:id="@+id/live"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="46dp"
             android:layout_marginStart="6dp"
-            android:gravity="center_horizontal"
-            android:orientation="vertical">
+            app:chipIcon="@drawable/ic_home_live"
+            app:chipText="@string/home_live" />
 
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/live"
-                android:layout_width="46dp"
-                android:layout_height="46dp"
-                android:background="@drawable/selector_action_icon"
-                android:clickable="true"
-                android:contentDescription="@string/home_live"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:padding="12dp"
-                android:src="@drawable/ic_home_live"
-                app:tint="@color/text" />
-
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/liveLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="14dp"
-                android:gravity="center"
-                android:includeFontPadding="false"
-                android:singleLine="true"
-                android:text="@string/home_live"
-                android:textColor="@color/qbox_text_dim"
-                android:textSize="11sp"
-                android:visibility="invisible" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <com.fongmi.android.tv.ui.custom.ActionChip
+            android:id="@+id/keep"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="46dp"
             android:layout_marginStart="6dp"
-            android:gravity="center_horizontal"
-            android:orientation="vertical">
+            app:chipIcon="@drawable/ic_home_keep"
+            app:chipText="@string/home_keep" />
 
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/keep"
-                android:layout_width="46dp"
-                android:layout_height="46dp"
-                android:background="@drawable/selector_action_icon"
-                android:clickable="true"
-                android:contentDescription="@string/home_keep"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:padding="12dp"
-                android:src="@drawable/ic_home_keep"
-                app:tint="@color/text" />
-
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/keepLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="14dp"
-                android:gravity="center"
-                android:includeFontPadding="false"
-                android:singleLine="true"
-                android:text="@string/home_keep"
-                android:textColor="@color/qbox_text_dim"
-                android:textSize="11sp"
-                android:visibility="invisible" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <com.fongmi.android.tv.ui.custom.ActionChip
+            android:id="@+id/push"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="46dp"
             android:layout_marginStart="6dp"
-            android:gravity="center_horizontal"
-            android:orientation="vertical">
+            app:chipIcon="@drawable/ic_home_push"
+            app:chipText="@string/home_push" />
 
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/push"
-                android:layout_width="46dp"
-                android:layout_height="46dp"
-                android:background="@drawable/selector_action_icon"
-                android:clickable="true"
-                android:contentDescription="@string/home_push"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:padding="12dp"
-                android:src="@drawable/ic_home_push"
-                app:tint="@color/text" />
-
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/pushLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="14dp"
-                android:gravity="center"
-                android:includeFontPadding="false"
-                android:singleLine="true"
-                android:text="@string/home_push"
-                android:textColor="@color/qbox_text_dim"
-                android:textSize="11sp"
-                android:visibility="invisible" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <com.fongmi.android.tv.ui.custom.ActionChip
+            android:id="@+id/setting"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="46dp"
             android:layout_marginStart="6dp"
-            android:gravity="center_horizontal"
-            android:orientation="vertical">
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/setting"
-                android:layout_width="46dp"
-                android:layout_height="46dp"
-                android:background="@drawable/selector_action_icon"
-                android:clickable="true"
-                android:contentDescription="@string/home_setting"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:padding="12dp"
-                android:src="@drawable/ic_qbox_setting"
-                app:tint="@color/text" />
-
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/settingLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="14dp"
-                android:gravity="center"
-                android:includeFontPadding="false"
-                android:singleLine="true"
-                android:text="@string/home_setting"
-                android:textColor="@color/qbox_text_dim"
-                android:textSize="11sp"
-                android:visibility="invisible" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
+            app:chipIcon="@drawable/ic_qbox_setting"
+            app:chipText="@string/home_setting" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/clock"
@@ -302,14 +166,6 @@
                 app:focusOutFront="true" />
 
         </com.fongmi.android.tv.ui.custom.ProgressLayout>
-
-        <View
-            android:id="@+id/topFade"
-            android:layout_width="match_parent"
-            android:layout_height="88dp"
-            android:background="@drawable/shape_content_fade"
-            android:importantForAccessibility="no"
-            android:visibility="gone" />
 
     </FrameLayout>
 </androidx.appcompat.widget.LinearLayoutCompat>

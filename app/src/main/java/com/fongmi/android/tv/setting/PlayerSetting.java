@@ -110,4 +110,13 @@ public class PlayerSetting {
     public static void putBuffer(int buffer) {
         Prefers.put("buffer", Math.clamp(buffer, MIN_BUFFER, MAX_BUFFER));
     }
+
+    /** 全屏时 OK 键：0 = 播放/暂停（默认），1 = 呼出控制栏。 */
+    public static boolean isOkMenu() {
+        return Prefers.getInt("player_ok_action") == 1;
+    }
+
+    public static void putOkMenu(boolean menu) {
+        Prefers.put("player_ok_action", menu ? 1 : 0);
+    }
 }

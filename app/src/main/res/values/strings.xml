@@ -274,6 +274,9 @@
     <string name="setting_live">Live</string>
     <string name="setting_wall">Wallpaper</string>
     <string name="setting_player">Player setting</string>
+    <string name="setting_ok_action">OK key</string>
+    <string name="setting_ok_pause">Pause / Play</string>
+    <string name="setting_ok_menu">Open menu</string>
     <string name="setting_danmaku">Danmaku setting</string>
     <string name="setting_incognito">Incognito mode</string>
     <string name="setting_theme_color">Theme color</string>

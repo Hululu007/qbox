@@ -69,7 +69,7 @@ import com.fongmi.android.tv.utils.KeyUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.ResUtil;
-import com.fongmi.android.tv.utils.ScrollUtil;
+import com.fongmi.android.tv.ui.custom.ActionChip;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.net.OkHttp;
@@ -158,17 +158,17 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             showDiag();
             return true;
         });
-        bindAction(mBinding.search, mBinding.searchLabel, () -> SearchActivity.start(this));
-        bindAction(mBinding.live, mBinding.liveLabel, () -> LiveActivity.start(this));
-        bindAction(mBinding.keep, mBinding.keepLabel, () -> KeepActivity.start(this));
-        bindAction(mBinding.push, mBinding.pushLabel, () -> PushActivity.start(this));
-        bindAction(mBinding.setting, mBinding.settingLabel, () -> SettingActivity.start(this));
+        bindAction(mBinding.search, () -> SearchActivity.start(this));
+        bindAction(mBinding.live, () -> LiveActivity.start(this));
+        bindAction(mBinding.keep, () -> KeepActivity.start(this));
+        bindAction(mBinding.push, () -> PushActivity.start(this));
+        bindAction(mBinding.setting, () -> SettingActivity.start(this));
         mBinding.setting.setOnLongClickListener(v -> {
             showDiag();
             return true;
         });
         mBinding.recycler.setOnKeyListener((v, keyCode, event) -> {
-            if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_DPAD_UP && mBinding.recycler.getSelectedPosition() <= 0) {
+            if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_DPAD_UP && isRecyclerAtTop()) {
                 if (mTypeAdapter != null && mTypeAdapter.size() > 0) mBinding.typeRecycler.requestFocus();
                 else mBinding.search.requestFocus();
                 return true;
@@ -181,19 +181,18 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                 if (mPresenter.isDelete()) setHistoryDelete(false);
             }
         });
-        mBinding.recycler.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                
-                mBinding.topFade.setVisibility(ScrollUtil.isScrolledFromTop(recyclerView) ? View.VISIBLE : View.GONE);
-            }
-        });
     }
 
-    /** 顶栏图标入口：聚焦时在图标下方显示文字说明，点击进页面，按下方向键回到内容区。 */
-    private void bindAction(View view, View label, Runnable action) {
+    /** 内容区是否还在最顶端：在顶端按上才回分类条，滚动中按上仍然滚内容。 */
+    private boolean isRecyclerAtTop() {
+        if (mBinding.recycler.getChildCount() == 0) return true;
+        int tolerance = Math.max(2, Math.round(8 * getResources().getDisplayMetrics().density));
+        return mBinding.recycler.getChildAt(0).getTop() >= mBinding.recycler.getPaddingTop() - tolerance;
+    }
+
+    /** 顶栏动作按钮：聚焦时在药丸内部横向展开文字，点击进页面，按下方向键回到内容区。 */
+    private void bindAction(ActionChip view, Runnable action) {
         view.setOnClickListener(v -> action.run());
-        view.setOnFocusChangeListener((v, hasFocus) -> label.setVisibility(hasFocus ? View.VISIBLE : View.INVISIBLE));
         view.setOnKeyListener((v, keyCode, event) -> {
             if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
             if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
@@ -438,7 +437,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     private void setFunc() {
         mBinding.live.setVisibility(LiveConfig.hasUrl() ? View.VISIBLE : View.GONE);
-        mBinding.liveLabel.setVisibility(View.INVISIBLE);
     }
 
     private void getHistory() {

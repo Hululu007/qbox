@@ -78,6 +78,7 @@ import com.fongmi.android.tv.ui.adapter.QualityAdapter;
 import com.fongmi.android.tv.ui.adapter.QuickAdapter;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownVod;
 import com.fongmi.android.tv.ui.custom.CustomMovement;
+import com.fongmi.android.tv.ui.custom.CustomUpDownView;
 import com.fongmi.android.tv.ui.dialog.ChapterDialog;
 import com.fongmi.android.tv.ui.dialog.ContentDialog;
 import com.fongmi.android.tv.ui.dialog.DanmakuDialog;
@@ -312,6 +313,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.control.action.opening.setDownListener(this::onOpeningSub);
         mBinding.control.action.next.setOnClickListener(view -> checkNext());
         mBinding.control.action.prev.setOnClickListener(view -> checkPrev());
+        mBinding.control.action.playPause.setOnClickListener(view -> onPlayPause());
         mBinding.control.action.scale.setOnClickListener(view -> onScale());
         mBinding.control.action.speed.setOnClickListener(view -> onSpeed());
         mBinding.control.action.reset.setOnClickListener(view -> onReset());
@@ -1150,6 +1152,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private void showControl(View view) {
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
         setExtra(view != null && isInExtra(view));
+        updatePlayPause();
         if (view == null || !view.isShown()) view = getFocus2();
         if (view == null || !view.isShown()) view = mBinding.control.action.more;
         view.requestFocus();
@@ -1471,6 +1474,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     @Override
     protected void onStateChanged(int state) {
+        updatePlayPause();
         switch (state) {
             case Player.STATE_BUFFERING:
                 showProgress();
@@ -1493,6 +1497,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     @Override
     protected void onPlayingChanged(boolean isPlaying) {
+        updatePlayPause();
         if (isPlaying) {
             mBinding.poster.setVisibility(View.GONE);
             hideCenter();
@@ -1559,6 +1564,24 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         controller().play();
     }
 
+    /** 控制栏里的播放/暂停按钮：和 OK 键走同一套状态判断。 */
+    private void onPlayPause() {
+        if (service() == null) return;
+        if (player().isPlayWhenReady()) onPaused();
+        else if (player().isEmpty()) onRefresh();
+        else onPlay();
+        updatePlayPause();
+    }
+
+    /** 按钮文字跟随播放意图：缓冲中也显示「暂停」，避免按钮在加载时乱跳。 */
+    private void updatePlayPause() {
+        if (service() == null || mBinding == null) return;
+        try {
+            mBinding.control.action.playPause.setText(player().isPlayWhenReady() ? R.string.pause : R.string.play);
+        } catch (Throwable ignored) {
+        }
+    }
+
     private boolean onSeekBack() {
         controller().seekBack();
         return true;
@@ -1591,6 +1614,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     private View getFocus2() {
         if (mFocus2 != null && mFocus2.isShown() && mFocus2 != mBinding.control.action.opening && mFocus2 != mBinding.control.action.ending) return mFocus2;
+        if (mBinding.control.action.playPause.isShown()) return mBinding.control.action.playPause;
         if (mBinding.control.action.chapter.isShown()) return mBinding.control.action.chapter;
         if (mBinding.control.action.prev.isShown()) return mBinding.control.action.prev;
         return mBinding.control.action.more;
@@ -1601,10 +1625,82 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         if (isFullscreen() && KeyUtil.isMenuKey(event)) onToggle();
         if (isVisible(mBinding.control.getRoot())) setR1Callback();
         if (isVisible(mBinding.control.getRoot())) mFocus2 = getCurrentFocus();
+        if (isVisible(mBinding.control.getRoot()) && onControlKey(event)) return true;
         if (isFullscreen() && isGone(mBinding.control.getRoot()) && mKeyDown.hasEvent(event) && service() != null) return mKeyDown.onKeyDown(event);
         if (KeyUtil.isMediaFastForward(event)) return onSeekForward();
         if (KeyUtil.isMediaRewind(event)) return onSeekBack();
         return super.dispatchKeyEvent(event);
+    }
+
+    /**
+     * 控制栏焦点闭环：左右到行尾不丢焦点，上下不把焦点交给不可聚焦的进度条。
+     * CustomUpDownView（倍速/字幕/片头片尾）自己要吃上下键调值，这里直接放行。
+     */
+    private boolean onControlKey(KeyEvent event) {
+        if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
+        View focus = getCurrentFocus();
+        if (focus == null) return false;
+        boolean inExtra = isInExtra(focus);
+        boolean inMain = isInside(mBinding.control.action.main, focus);
+        if (!inExtra && !inMain) return false;
+        switch (event.getKeyCode()) {
+            case KeyEvent.KEYCODE_DPAD_LEFT:
+            case KeyEvent.KEYCODE_DPAD_RIGHT: {
+                ViewGroup row = inExtra ? mBinding.control.action.extra : mBinding.control.action.main;
+                View target = findFocusable(row, focus, event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT);
+                if (target != null) target.requestFocus();
+                return true;
+            }
+            case KeyEvent.KEYCODE_DPAD_UP:
+                if (focus instanceof CustomUpDownView) return false;
+                if (!inExtra && focus == mBinding.control.action.more) {
+                    if (!isVisible(mBinding.control.action.extra)) setExtra(true);
+                    focusFirst(mBinding.control.action.extra);
+                }
+                return true;
+            case KeyEvent.KEYCODE_DPAD_DOWN:
+                if (focus instanceof CustomUpDownView) return false;
+                if (inExtra) mBinding.control.action.more.requestFocus();
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private View findFocusable(ViewGroup row, View current, boolean forward) {
+        View previous = null;
+        for (int i = 0; i < row.getChildCount(); i++) {
+            View child = row.getChildAt(i);
+            if (!child.isShown() || !child.isFocusable()) continue;
+            if (child == current) {
+                if (!forward) return previous;
+                for (int j = i + 1; j < row.getChildCount(); j++) {
+                    View next = row.getChildAt(j);
+                    if (next.isShown() && next.isFocusable()) return next;
+                }
+                return null;
+            }
+            previous = child;
+        }
+        return null;
+    }
+
+    private void focusFirst(ViewGroup row) {
+        for (int i = 0; i < row.getChildCount(); i++) {
+            View child = row.getChildAt(i);
+            if (child.isShown() && child.isFocusable()) {
+                child.requestFocus();
+                return;
+            }
+        }
+    }
+
+    private static boolean isInside(View ancestor, View view) {
+        while (view != null) {
+            if (view == ancestor) return true;
+            view = view.getParent() instanceof View ? (View) view.getParent() : null;
+        }
+        return false;
     }
 
     @Override
@@ -1637,29 +1733,22 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     @Override
     public void onKeyUp() {
-        long position = player().getPosition();
-        long duration = player().getDuration();
-        if (player().canSetOpening(position, duration)) {
-            showControl(mBinding.control.action.opening);
-        } else if (player().canSetEnding(position, duration)) {
-            showControl(mBinding.control.action.ending);
-        } else {
-            showControl(getFocus2());
-        }
+        showControl(mBinding.control.action.playPause);
     }
 
     @Override
     public void onKeyDown() {
-        showControl(getFocus2());
+        showControl(mBinding.control.action.playPause);
     }
 
     @Override
     public void onKeyCenter() {
-        // OK 键只做播放/暂停切换；控制栏由方向键呼出。
-        if (player().isPlaying()) onPaused();
-        else if (player().isEmpty()) onRefresh();
-        else onPlay();
-        hideControl();
+        // OK 键行为可配：默认播放/暂停；选「呼出菜单」时第一次按 OK 弹控制栏，再按才作用到焦点按钮。
+        if (PlayerSetting.isOkMenu()) showControl(mBinding.control.action.playPause);
+        else {
+            onPlayPause();
+            hideControl();
+        }
     }
 
     @Override

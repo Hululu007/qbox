@@ -89,6 +89,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         mBinding.dohText.setText(getDohList()[getDohIndex()]);
         mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
         mBinding.sizeText.setText((size = ResUtil.getStringArray(R.array.select_size))[PlayerSetting.getSize()]);
+        mBinding.okActionText.setText(PlayerSetting.isOkMenu() ? R.string.setting_ok_menu : R.string.setting_ok_pause);
     }
 
     private void setCacheText() {
@@ -110,6 +111,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         mBinding.cache.setOnClickListener(this::onCache);
         mBinding.backup.setOnClickListener(this::onBackup);
         mBinding.player.setOnClickListener(this::onPlayer);
+        mBinding.okAction.setOnClickListener(this::setOkAction);
         mBinding.danmaku.setOnClickListener(this::onDanmaku);
         mBinding.restore.setOnClickListener(this::onRestore);
         mBinding.version.setOnClickListener(this::onVersion);
@@ -262,6 +264,12 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         mBinding.sizeText.setText(size[index]);
         PlayerSetting.putSize(index);
         RefreshEvent.size();
+    }
+
+    /** 全屏 OK 键：播放/暂停，或先呼出控制栏。 */
+    private void setOkAction(View view) {
+        PlayerSetting.putOkMenu(!PlayerSetting.isOkMenu());
+        mBinding.okActionText.setText(PlayerSetting.isOkMenu() ? R.string.setting_ok_menu : R.string.setting_ok_pause);
     }
 
     private void setDoh(View view) {

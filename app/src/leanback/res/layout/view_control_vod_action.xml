@@ -41,12 +41,6 @@
             android:text="@string/play_reset" />
 
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/replay"
-            style="@style/Control"
-            android:layout_marginEnd="6dp"
-            android:text="@string/play_replay" />
-
-        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/edition"
             style="@style/Control"
             android:layout_marginEnd="6dp"
@@ -69,7 +63,8 @@
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
-    <!-- 常用行：选集/上下集/倍速/音轨/字幕/视轨/片头片尾/循环/详情 全部一屏可见，不滚动。 -->
+    <!-- 常用行：播放/暂停、上下集、倍速/音轨/字幕/视轨、片头片尾、循环、选集、重播、详情、更多。
+         选集放后段，重播提到常用行（= 从头播放）；低频开关仍收在「更多」二级行。 -->
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/main"
         android:layout_width="match_parent"
@@ -78,73 +73,85 @@
         android:orientation="horizontal">
 
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/chapter"
+            android:id="@+id/playPause"
             style="@style/Control"
-            android:layout_marginEnd="6dp"
-            android:text="@string/play_chapter" />
+            android:layout_marginEnd="4dp"
+            android:text="@string/pause" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/prev"
             style="@style/Control"
-            android:layout_marginEnd="6dp"
+            android:layout_marginEnd="4dp"
             android:text="@string/play_prev" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/next"
             style="@style/Control"
-            android:layout_marginEnd="6dp"
+            android:layout_marginEnd="4dp"
             android:text="@string/play_next" />
 
         <com.fongmi.android.tv.ui.custom.CustomUpDownView
             android:id="@+id/speed"
             style="@style/Control"
-            android:layout_marginEnd="6dp"
+            android:layout_marginEnd="4dp"
             android:fontFeatureSettings="tnum"
             android:text="@string/play_speed" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/audio"
             style="@style/Control"
-            android:layout_marginEnd="6dp"
+            android:layout_marginEnd="4dp"
             android:tag="1"
             android:text="@string/play_track_audio" />
 
         <com.fongmi.android.tv.ui.custom.CustomUpDownView
             android:id="@+id/text"
             style="@style/Control"
-            android:layout_marginEnd="6dp"
+            android:layout_marginEnd="4dp"
             android:tag="3"
             android:text="@string/play_track_text" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/video"
             style="@style/Control"
-            android:layout_marginEnd="6dp"
+            android:layout_marginEnd="4dp"
             android:tag="2"
             android:text="@string/play_track_video" />
 
         <com.fongmi.android.tv.ui.custom.CustomUpDownView
             android:id="@+id/opening"
             style="@style/Control"
-            android:layout_marginEnd="6dp"
+            android:layout_marginEnd="4dp"
             android:text="@string/play_op" />
 
         <com.fongmi.android.tv.ui.custom.CustomUpDownView
             android:id="@+id/ending"
             style="@style/Control"
-            android:layout_marginEnd="6dp"
+            android:layout_marginEnd="4dp"
             android:text="@string/play_ed" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/repeat"
             style="@style/Control"
-            android:layout_marginEnd="6dp"
+            android:layout_marginEnd="4dp"
             android:text="@string/play_repeat" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/chapter"
+            style="@style/Control"
+            android:layout_marginEnd="4dp"
+            android:text="@string/play_chapter" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/replay"
+            style="@style/Control"
+            android:layout_marginEnd="4dp"
+            android:text="@string/play_replay" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/statsButton"
             style="@style/Control"
-            android:layout_marginEnd="6dp"
+            android:layout_marginEnd="4dp"
             android:text="@string/play_stats" />
 
         <com.google.android.material.textview.MaterialTextView

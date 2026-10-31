@@ -219,7 +219,12 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
                 return true;
             }
             if (keyCode == KeyEvent.KEYCODE_DPAD_UP && isInside(mBinding.typeRecycler, focus)) {
-                return focusTopBar(true);
+                mBinding.back.requestFocus();
+                return true;
+            }
+            if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT && isInside(mBinding.back, focus)) {
+                if (mBinding.filter.isFocusable()) mBinding.filter.requestFocus();
+                return true;
             }
             if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && isInside(mBinding.typeRecycler, focus)) {
                 return focusGrid();
@@ -229,23 +234,15 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
                 return true;
             }
             if (keyCode == KeyEvent.KEYCODE_DPAD_UP && isInside(mBinding.pager, focus) && isPagerAtTop()) {
-                return focusTopBar(false);
+                return focusTopBar();
             }
         }
         return super.dispatchKeyEvent(event);
     }
 
-    /** 分类条向上：先筛选、没有筛选再回返回键。 */
-    private boolean focusTopBar(boolean fromTabs) {
-        if (fromTabs && !mBinding.filter.isFocusable()) {
-            mBinding.back.requestFocus();
-            return true;
-        }
-        if (!fromTabs) {
-            mBinding.typeRecycler.requestFocus();
-            return true;
-        }
-        mBinding.filter.requestFocus();
+    /** 内容区在最上面按上：回到分类条（分类条再按上才到返回键，返回键按右才是筛选）。 */
+    private boolean focusTopBar() {
+        mBinding.typeRecycler.requestFocus();
         return true;
     }
 
