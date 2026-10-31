@@ -263,7 +263,7 @@
         android:id="@+id/typeRecycler"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
+        android:layout_marginTop="6dp"
         android:clipChildren="false"
         android:clipToPadding="false"
         android:paddingStart="32dp"
@@ -273,7 +273,8 @@
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
         <com.fongmi.android.tv.ui.custom.ProgressLayout
             android:id="@+id/progressLayout"
@@ -287,19 +288,21 @@
                 android:clipChildren="false"
                 android:clipToPadding="true"
                 android:paddingStart="32dp"
-                android:paddingTop="28dp"
+                android:paddingTop="22dp"
                 android:paddingEnd="32dp"
-                android:paddingBottom="32dp"
+                android:paddingBottom="8dp"
                 app:focusOutEnd="true"
                 app:focusOutFront="true" />
 
         </com.fongmi.android.tv.ui.custom.ProgressLayout>
 
         <View
+            android:id="@+id/topFade"
             android:layout_width="match_parent"
-            android:layout_height="40dp"
+            android:layout_height="48dp"
             android:background="@drawable/shape_content_fade"
-            android:importantForAccessibility="no" />
+            android:importantForAccessibility="no"
+            android:visibility="gone" />
 
     </FrameLayout>
 </androidx.appcompat.widget.LinearLayoutCompat>

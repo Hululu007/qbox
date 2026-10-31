@@ -95,6 +95,12 @@ public class FolderFragment extends BaseFragment {
         return child != null && child.requestFocus();
     }
 
+    /** 从子分类页回顶层，用于把「上」键交还给顶栏。 */
+    public boolean isAtTop() {
+        TypeFragment child = getChild();
+        return child == null || child.isAtTop();
+    }
+
     public void goBack() {
         getChildFragmentManager().popBackStack();
     }

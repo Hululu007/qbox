@@ -10,7 +10,7 @@ import androidx.leanback.widget.Presenter;
 import com.bumptech.glide.Glide;
 import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.bean.History;
-import com.fongmi.android.tv.databinding.AdapterVodBinding;
+import com.fongmi.android.tv.databinding.AdapterHistoryBinding;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 
@@ -38,7 +38,7 @@ public class HistoryPresenter extends Presenter {
         int space = ResUtil.dp2px(64) + ResUtil.dp2px(16 * (Product.getColumn() - 1));
         int base = ResUtil.getScreenWidth() - space;
         width = base / Product.getColumn();
-        height = (int) (width / 0.75f);
+        height = (int) (width * 9f / 16f);
     }
 
     public boolean isDelete() {
@@ -60,7 +60,7 @@ public class HistoryPresenter extends Presenter {
     @NonNull
     @Override
     public Presenter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent) {
-        ViewHolder holder = new ViewHolder(AdapterVodBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
+        ViewHolder holder = new ViewHolder(AdapterHistoryBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
         holder.binding.getRoot().getLayoutParams().width = width;
         holder.binding.image.getLayoutParams().height = height;
         return holder;
@@ -100,9 +100,9 @@ public class HistoryPresenter extends Presenter {
 
     public static class ViewHolder extends Presenter.ViewHolder {
 
-        private final AdapterVodBinding binding;
+        private final AdapterHistoryBinding binding;
 
-        public ViewHolder(@NonNull AdapterVodBinding binding) {
+        public ViewHolder(@NonNull AdapterHistoryBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
         }

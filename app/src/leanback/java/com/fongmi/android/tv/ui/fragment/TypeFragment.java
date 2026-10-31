@@ -120,6 +120,12 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     protected void initEvent() {
         mBinding.swipeLayout.setOnRefreshListener(this);
         mBinding.recycler.addOnScrollListener(mScroller);
+        mBinding.recycler.addOnScrollListener(new androidx.recyclerview.widget.RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull androidx.recyclerview.widget.RecyclerView recyclerView, int dx, int dy) {
+                mBinding.topFade.setVisibility(recyclerView.canScrollVertically(-1) ? android.view.View.VISIBLE : android.view.View.GONE);
+            }
+        });
     }
 
     @SuppressLint("RestrictedApi")
@@ -238,6 +244,15 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     public boolean requestFocus() {
         if (mBinding == null) return false;
         return mBinding.recycler.requestFocus();
+    }
+
+    /** 内容区是否已经滚到第一行：决定「上」是回顶栏，还是继续在网格里换行。 */
+    public boolean isAtTop() {
+        if (mBinding == null) return true;
+        androidx.recyclerview.widget.RecyclerView recycler = mBinding.recycler;
+        if (recycler.getChildCount() == 0) return true;
+        android.view.View first = recycler.getChildAt(0);
+        return first != null && recycler.getChildAdapterPosition(first) <= 0;
     }
 
     private void checkFilter() {

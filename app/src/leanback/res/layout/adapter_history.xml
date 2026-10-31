@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:paddingBottom="10dp">
+
+    <!-- 继续观看：16:9 剧照，和「更新推荐」的海报区分开，一行能完整放下。 -->
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/image"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:background="@color/qbox_surface"
+        android:duplicateParentState="true"
+        android:foreground="@drawable/selector_vod"
+        app:shapeAppearanceOverlay="@style/Vod.Card" />
+
+    <ProgressBar
+        android:id="@+id/progress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_alignStart="@+id/image"
+        android:layout_alignEnd="@+id/image"
+        android:layout_alignBottom="@+id/image"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="8dp"
+        android:max="1000"
+        android:progressBackgroundTint="#40FFFFFF"
+        android:progressTint="@color/qbox_accent"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/image"
+        android:layout_alignTop="@+id/image"
+        android:layout_alignEnd="@+id/image"
+        android:layout_alignBottom="@+id/remark"
+        android:background="@color/black_50"
+        android:scaleType="center"
+        android:src="@drawable/ic_vod_delete"
+        android:visibility="gone"
+        app:shapeAppearanceOverlay="@style/Vod.Card"
+        tools:visibility="visible" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/site"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/image"
+        android:layout_alignTop="@+id/image"
+        android:layout_margin="8dp"
+        android:background="@drawable/shape_vod_site"
+        android:paddingStart="7dp"
+        android:paddingTop="2dp"
+        android:paddingEnd="7dp"
+        android:paddingBottom="2dp"
+        android:singleLine="true"
+        android:textColor="@color/white"
+        android:textSize="11sp"
+        android:visibility="gone"
+        tools:text="站点"
+        tools:visibility="visible" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/image"
+        android:layout_alignStart="@+id/image"
+        android:layout_alignEnd="@+id/image"
+        android:layout_marginTop="8dp"
+        android:ellipsize="end"
+        android:fontFamily="sans-serif-medium"
+        android:singleLine="true"
+        android:textColor="#E7E7EE"
+        android:textSize="15sp"
+        tools:text="片名" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/remark"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/name"
+        android:layout_alignStart="@+id/name"
+        android:layout_alignEnd="@+id/name"
+        android:layout_marginTop="2dp"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:textColor="@color/qbox_text_mute"
+        android:textSize="12sp"
+        tools:text="看到 12 分钟" />
+
+</RelativeLayout>

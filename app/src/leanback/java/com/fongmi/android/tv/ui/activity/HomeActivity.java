@@ -180,6 +180,12 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                 if (mPresenter.isDelete()) setHistoryDelete(false);
             }
         });
+        mBinding.recycler.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                mBinding.topFade.setVisibility(recyclerView.canScrollVertically(-1) ? View.VISIBLE : View.GONE);
+            }
+        });
     }
 
     /** 顶栏图标入口：聚焦时在图标下方显示文字说明，点击进页面，按下方向键回到内容区。 */
@@ -249,7 +255,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         selector.addPresenter(ListRow.class, new CustomRowPresenter(16, FocusHighlight.ZOOM_FACTOR_NONE, HorizontalGridView.FOCUS_SCROLL_ALIGNED), HistoryPresenter.class);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
         mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(24));
-        mBinding.typeRecycler.setHorizontalSpacing(ResUtil.dp2px(20));
+        mBinding.typeRecycler.setHorizontalSpacing(ResUtil.dp2px(12));
         mBinding.typeRecycler.setRowHeight(android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
         mBinding.typeRecycler.setAdapter(new ItemBridgeAdapter(mTypeAdapter = new ArrayObjectAdapter(new FuncPresenter(this))));
     }
@@ -390,8 +396,14 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     /** 源没有推荐位（网盘/配置类源）时不显示空的「更新推荐」标题。 */
     private void setRecommendHeader(boolean show) {
         int index = mAdapter.indexOf(R.string.home_recommend);
-        if (show && index < 0) mAdapter.add(0, R.string.home_recommend);
+        if (show && index < 0) mAdapter.add(getRecommendInsertIndex(), R.string.home_recommend);
         else if (!show && index >= 0) mAdapter.removeItems(index, 1);
+    }
+
+    /** 「更新推荐」要排在「继续观看」之后，不能因为晚到而插到历史行上面。 */
+    private int getRecommendInsertIndex() {
+        int history = mAdapter.indexOf(R.string.home_history);
+        return history < 0 ? 0 : history + 2;
     }
 
     /** 分类行：「首页」+ 当前源自己的点播分类。每次内容刷新（含换源）都按源重建，不套模板。 */
@@ -432,10 +444,10 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void getHistory(boolean renew) {
+        if (mAdapter == null) return;
         List<History> items = com.fongmi.android.tv.db.AppDatabase.get().getHistoryDao().findRecent();
         if (renew) mHistoryAdapter = new ArrayObjectAdapter(mPresenter = new HistoryPresenter(this));
         mHistoryAdapter.setItems(items, new BaseDiffCallback<History>());
-        int recommendIndex = getRecommendIndex();
         if (items.isEmpty()) {
             if (historyShown) {
                 int index = mAdapter.indexOf(R.string.home_history);
@@ -456,19 +468,19 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void clearHistory() {
-        mAdapter.removeItems(getHistoryIndex(), 1);
         History.clear(VodConfig.getCid());
         mPresenter.setDelete(false);
         mHistoryAdapter.clear();
-    }
-
-    private int getHistoryIndex() {
-        return mAdapter.indexOf(R.string.home_history) + 1;
+        int index = mAdapter.indexOf(R.string.home_history);
+        if (index >= 0) mAdapter.removeItems(index, 2);
+        historyShown = false;
     }
 
     private int getRecommendIndex() {
         int index = mAdapter.indexOf(R.string.home_recommend);
-        return index < 0 ? 0 : index + 1;
+        if (index >= 0) return index + 1;
+        int history = mAdapter.indexOf(R.string.home_history);
+        return history < 0 ? 0 : history + 2;
     }
 
     private void setLogo() {
@@ -595,7 +607,9 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     public void onItemDelete(History item) {
         mHistoryAdapter.remove(item.delete());
         if (mHistoryAdapter.size() > 0) return;
-        mAdapter.removeItems(getHistoryIndex(), 1);
+        int index = mAdapter.indexOf(R.string.home_history);
+        if (index >= 0) mAdapter.removeItems(index, 2);
+        historyShown = false;
         mPresenter.setDelete(false);
     }
 
@@ -649,6 +663,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     protected void onResume() {
         super.onResume();
         mClock.start();
+        // 继续观看必须每次回到首页都重新读库，否则冷启动后只剩「更新推荐」。
+        getHistory();
         App.post(mBackdropTask, 700);
     }
 

@@ -16,6 +16,7 @@ public class TypeAdapter extends RecyclerView.Adapter<TypeAdapter.ViewHolder> {
 
     private final OnClickListener mListener;
     private final List<Class> mItems;
+    private int mSelected = -1;
 
     public TypeAdapter(OnClickListener listener) {
         mListener = listener;
@@ -26,6 +27,15 @@ public class TypeAdapter extends RecyclerView.Adapter<TypeAdapter.ViewHolder> {
         mItems.clear();
         mItems.addAll(items);
         notifyDataSetChanged();
+    }
+
+    /** 当前页标记：和焦点分离，移动焦点不再顺手切页。 */
+    public void setPosition(int position) {
+        if (mSelected == position) return;
+        int old = mSelected;
+        mSelected = position;
+        if (old >= 0 && old < mItems.size()) notifyItemChanged(old);
+        if (position >= 0 && position < mItems.size()) notifyItemChanged(position);
     }
 
     public Class get(int position) {
@@ -50,9 +60,13 @@ public class TypeAdapter extends RecyclerView.Adapter<TypeAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Class item = mItems.get(position);
+        holder.binding.getRoot().setSelected(position == mSelected);
         holder.binding.text.setText(item.getTypeName());
-        holder.binding.text.setListener(() -> mListener.onRefresh(item));
         holder.binding.getRoot().setOnClickListener(v -> mListener.onItemClick(item));
+        holder.binding.getRoot().setOnLongClickListener(v -> {
+            mListener.onRefresh(item);
+            return true;
+        });
     }
 
     public interface OnClickListener {

@@ -40,7 +40,6 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
 
     private ActivityVodBinding mBinding;
     private TypeAdapter mAdapter;
-    private View mOldView;
 
     public static void start(Activity activity, Result result) {
         start(activity, VodConfig.get().getHome().getKey(), result, -1);
@@ -90,10 +89,10 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
         setPager();
         bindFilter();
         int index = getIntent().getIntExtra("index", -1);
-        if (index >= 0 && index < mAdapter.getItemCount()) {
-            mBinding.typeRecycler.setSelectedPosition(index);
-            mBinding.pager.setCurrentItem(index);
-        }
+        if (index < 0 || index >= mAdapter.getItemCount()) index = 0;
+        mBinding.typeRecycler.setSelectedPosition(index);
+        mBinding.pager.setCurrentItem(index);
+        mAdapter.setPosition(index);
         updateFilterState();
     }
 
@@ -102,32 +101,9 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
         mBinding.filter.setOnClickListener(v -> {
             if (mBinding.filter.isEnabled()) updateFilter();
         });
-        mBinding.filter.setOnKeyListener((v, keyCode, event) -> {
-            if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-                mBinding.typeRecycler.requestFocus();
-                return true;
-            }
-            return false;
-        });
         mBinding.filter.setNextFocusLeftId(R.id.back);
+        mBinding.filter.setNextFocusUpId(R.id.back);
         mBinding.back.setNextFocusRightId(R.id.filter);
-        mBinding.typeRecycler.setOnKeyListener((v, keyCode, event) -> {
-            if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
-            if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-                if (mBinding.filter.isFocusable()) mBinding.filter.requestFocus();
-                else mBinding.back.requestFocus();
-                return true;
-            }
-            if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) return focusGrid();
-            return false;
-        });
-        mBinding.back.setOnKeyListener((v, keyCode, event) -> {
-            if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-                mBinding.typeRecycler.requestFocus();
-                return true;
-            }
-            return false;
-        });
     }
 
     /** 没有筛选项时按钮置灰且不进焦点，文案变「无筛选」，用户一眼能看出这个源没有筛选。 */
@@ -148,21 +124,15 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
             @Override
             public void onPageSelected(int position) {
                 mBinding.typeRecycler.setSelectedPosition(position);
-                mBinding.typeRecycler.requestFocus();
+                mAdapter.setPosition(position);
                 updateFilterState();
-            }
-        });
-        mBinding.typeRecycler.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
-            @Override
-            public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
-                onChildSelected(child);
             }
         });
     }
 
     private void setRecyclerView() {
         mBinding.typeRecycler.requestFocus();
-        mBinding.typeRecycler.setHorizontalSpacing(ResUtil.dp2px(20));
+        mBinding.typeRecycler.setHorizontalSpacing(ResUtil.dp2px(12));
         mBinding.typeRecycler.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
         mBinding.typeRecycler.setAdapter(mAdapter = new TypeAdapter(this));
         App.post(() -> mBinding.typeRecycler.requestFocus(), 200);
@@ -187,20 +157,6 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
         mBinding.pager.setAdapter(new PageAdapter(getSupportFragmentManager()));
     }
 
-    private void onChildSelected(@Nullable RecyclerView.ViewHolder child) {
-        if (mOldView != null) mOldView.setSelected(false);
-        if ((mOldView = child != null ? child.itemView : null) == null) return;
-        mOldView.setSelected(true);
-        App.post(mRunnable, 100);
-    }
-
-    private final Runnable mRunnable = new Runnable() {
-        @Override
-        public void run() {
-            mBinding.pager.setCurrentItem(mBinding.typeRecycler.getSelectedPosition());
-        }
-    };
-
     private boolean isFilterVisible() {
         return Optional.ofNullable(getType()).map(Class::getFilter).orElse(false);
     }
@@ -210,10 +166,12 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
     }
 
     private void updateFilter(Class item) {
-        item.setFilter(!item.getFilter());
-        getFragment().toggleFilter(item.getFilter());
+        boolean open = !item.getFilter();
+        item.setFilter(open);
+        getFragment().toggleFilter(open);
         mAdapter.notifyItemRangeChanged(mAdapter.indexOf(item), 1);
         updateFilterState();
+        if (open) App.post(this::focusGrid, 90);
     }
 
     public void closeFilter() {
@@ -228,7 +186,11 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
     @Override
     public void onItemClick(Class item) {
         int index = mAdapter.indexOf(item);
-        // 分类只管切页；筛选统一走顶栏「筛选」，不再重复一个隐藏入口。
+        if (index == mBinding.pager.getCurrentItem()) {
+            // 再点一次当前分类 = 展开/收起筛选；与首页「点一次进分类」保持一致的点击语义。
+            if (!Cache.get(item).isEmpty()) updateFilter(item);
+            return;
+        }
         mBinding.pager.setCurrentItem(index);
         updateFilterState();
     }
@@ -240,19 +202,67 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if (KeyUtil.isMenuKey(event)) updateFilter();
+        if (KeyUtil.isMenuKey(event)) {
+            if (event.getAction() == KeyEvent.ACTION_DOWN) updateFilter();
+            return true;
+        }
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
-            // 分类条与内容区之间的上下键在 Activity 层处理，避免焦点落到 tab 内部的子 View 后事件被吃掉。
-            if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP && mBinding.typeRecycler.hasFocus()) {
-                if (mBinding.filter.isFocusable()) mBinding.filter.requestFocus();
-                else mBinding.back.requestFocus();
+            // 上下键统一在 Activity 层路由，避免 tab 内部的 CustomTypeView 把事件吃掉。
+            View focus = getCurrentFocus();
+            int keyCode = event.getKeyCode();
+            if (keyCode == KeyEvent.KEYCODE_DPAD_UP && isInside(mBinding.filter, focus)) {
+                mBinding.back.requestFocus();
                 return true;
             }
-            if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN && mBinding.typeRecycler.hasFocus()) {
+            if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && isInside(mBinding.filter, focus)) {
+                mBinding.typeRecycler.requestFocus();
+                return true;
+            }
+            if (keyCode == KeyEvent.KEYCODE_DPAD_UP && isInside(mBinding.typeRecycler, focus)) {
+                return focusTopBar(true);
+            }
+            if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && isInside(mBinding.typeRecycler, focus)) {
                 return focusGrid();
+            }
+            if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && isInside(mBinding.back, focus)) {
+                mBinding.typeRecycler.requestFocus();
+                return true;
+            }
+            if (keyCode == KeyEvent.KEYCODE_DPAD_UP && isInside(mBinding.pager, focus) && isPagerAtTop()) {
+                return focusTopBar(false);
             }
         }
         return super.dispatchKeyEvent(event);
+    }
+
+    /** 分类条向上：先筛选、没有筛选再回返回键。 */
+    private boolean focusTopBar(boolean fromTabs) {
+        if (fromTabs && !mBinding.filter.isFocusable()) {
+            mBinding.back.requestFocus();
+            return true;
+        }
+        if (!fromTabs) {
+            mBinding.typeRecycler.requestFocus();
+            return true;
+        }
+        mBinding.filter.requestFocus();
+        return true;
+    }
+
+    private boolean isPagerAtTop() {
+        try {
+            return getFragment().isAtTop();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private static boolean isInside(View ancestor, View view) {
+        while (view != null) {
+            if (view == ancestor) return true;
+            view = view.getParent() instanceof View ? (View) view.getParent() : null;
+        }
+        return false;
     }
 
     @Override

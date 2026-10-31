@@ -1,10 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
 
-    <!-- 内容区顶部渐隐：前 20dp 完全不透明，把滚动到一半的卡片标题挡住，随后快速淡出，不压到第一排卡片。 -->
+    <!-- 滚动时的顶部压暗：上半段完全盖住上一排被裁掉的半截文字，下半段自然过渡。 -->
     <gradient
         android:angle="270"
         android:centerColor="#FF0A0B10"
+        android:centerY="0.5"
         android:endColor="#000A0B10"
         android:startColor="#FF0A0B10"
         android:type="linear" />

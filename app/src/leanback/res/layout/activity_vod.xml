@@ -54,14 +54,14 @@
             android:drawablePadding="6dp"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:letterSpacing="0.04"
-            android:paddingStart="16dp"
-            android:paddingTop="7dp"
-            android:paddingEnd="18dp"
-            android:paddingBottom="7dp"
+            android:letterSpacing="0.02"
+            android:paddingStart="13dp"
+            android:paddingTop="5dp"
+            android:paddingEnd="14dp"
+            android:paddingBottom="5dp"
             android:text="@string/filter"
             android:textColor="@color/hero_tab_text"
-            android:textSize="15sp"
+            android:textSize="13sp"
             app:drawableStartCompat="@drawable/ic_filter"
             app:drawableTint="@color/hero_tab_text"
             tools:visibility="visible" />
@@ -94,6 +94,7 @@
     <com.fongmi.android.tv.ui.custom.CustomViewPager
         android:id="@+id/pager"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>
