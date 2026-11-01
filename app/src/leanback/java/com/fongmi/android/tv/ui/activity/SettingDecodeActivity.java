@@ -31,6 +31,7 @@ public class SettingDecodeActivity extends BaseActivity {
 
     @Override
     protected void initView(Bundle savedInstanceState) {
+        mBinding.back.setOnClickListener(v -> finish());
         (PlayerSetting.isExo() ? mBinding.tunnel : mBinding.audioPassThrough).requestFocus();
         setVisible();
         refresh();

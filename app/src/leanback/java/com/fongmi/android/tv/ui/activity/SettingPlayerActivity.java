@@ -38,6 +38,7 @@ public class SettingPlayerActivity extends BaseActivity implements UaListener, B
 
     @Override
     protected void initView(Bundle savedInstanceState) {
+        mBinding.back.setOnClickListener(v -> finish());
         setVisible();
         setPlaybackModeText();
         mBinding.engine.requestFocus();
@@ -80,6 +81,7 @@ public class SettingPlayerActivity extends BaseActivity implements UaListener, B
         int index = (PlayerSetting.getEngine() + 1) % engine.length;
         PlayerSetting.putEngine(index);
         setPlaybackModeText();
+        mBinding.back.setOnClickListener(v -> finish());
         setVisible();
     }
 

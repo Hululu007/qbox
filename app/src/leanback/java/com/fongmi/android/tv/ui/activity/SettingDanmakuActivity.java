@@ -35,6 +35,7 @@ public class SettingDanmakuActivity extends BaseActivity implements DanmakuListe
 
     @Override
     protected void initView(Bundle savedInstanceState) {
+        mBinding.back.setOnClickListener(v -> finish());
         mBinding.danmakuLoad.requestFocus();
         mBinding.danmakuApiText.setText(getApiStatus());
         mBinding.danmakuAutoText.setText(Setting.getSwitch(DanmakuSetting.isAuto()));

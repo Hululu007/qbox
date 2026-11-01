@@ -441,4 +441,10 @@
     <string name="setting_group_play">播放</string>
     <string name="setting_group_system">系統</string>
     <string name="setting_group_maintain">維護</string>
+    <string name="search_mic">語音搜尋</string>
+    <string name="setting_decode_title">解碼設定</string>
+    <string name="setting_preload_title">預載入</string>
+    <string name="action_home">設為首頁</string>
+    <string name="action_history">播放記錄</string>
+    <string name="action_refresh">重新整理</string>
 </resources>

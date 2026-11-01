@@ -31,6 +31,7 @@ public class SettingPreloadActivity extends BaseActivity {
 
     @Override
     protected void initView(Bundle savedInstanceState) {
+        mBinding.back.setOnClickListener(v -> finish());
         mBinding.preload.requestFocus();
         refresh();
     }

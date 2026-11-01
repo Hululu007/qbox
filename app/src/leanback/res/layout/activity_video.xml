@@ -211,7 +211,7 @@
         android:ellipsize="end"
         android:lineSpacingExtra="5dp"
         android:maxLines="5"
-        android:textColor="#B9B9C4"
+        android:textColor="@color/qbox_text_dim"
         android:textSize="14sp"
         android:visibility="gone"
         tools:text="范闲自澹州归来，卷入庙堂纷争……" />
@@ -244,7 +244,7 @@
             android:paddingBottom="12dp"
             android:singleLine="true"
             android:text="@string/play"
-            android:textColor="#0B0B0F"
+            android:textColor="@color/qbox_focus_text"
             android:textSize="16sp"
             android:textStyle="bold" />
 

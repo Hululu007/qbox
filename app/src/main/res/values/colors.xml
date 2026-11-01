@@ -9,7 +9,8 @@
     <color name="qbox_line">#2B2B33</color>
     <color name="qbox_text">#FFFFFF</color>
     <color name="qbox_text_dim">#A6A6B0</color>
-    <color name="qbox_text_mute">#70707A</color>
+    <!-- 4.04:1 → 5.9:1：卡片备注/分组标题/搜索框 hint 在纯黑画布上必须过 WCAG AA。 -->
+    <color name="qbox_text_mute">#8C8C98</color>
     <color name="qbox_accent">#5B8CFF</color>
     <color name="qbox_accent_soft">#1E2B4D</color>
     <color name="qbox_focus_text">#0B0B0F</color>

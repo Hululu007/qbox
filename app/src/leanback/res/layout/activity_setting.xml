@@ -103,6 +103,7 @@
 
                     <androidx.appcompat.widget.AppCompatImageView
                         android:id="@+id/vodHome"
+                        android:contentDescription="@string/action_home"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
@@ -115,6 +116,7 @@
 
                     <androidx.appcompat.widget.AppCompatImageView
                         android:id="@+id/vodHistory"
+                        android:contentDescription="@string/action_history"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="4dp"
@@ -142,6 +144,7 @@
 
                     <androidx.appcompat.widget.AppCompatImageView
                         android:id="@+id/liveHome"
+                        android:contentDescription="@string/action_home"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
@@ -154,6 +157,7 @@
 
                     <androidx.appcompat.widget.AppCompatImageView
                         android:id="@+id/liveHistory"
+                        android:contentDescription="@string/action_history"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="4dp"
@@ -181,6 +185,7 @@
 
                     <androidx.appcompat.widget.AppCompatImageView
                         android:id="@+id/wallDefault"
+                        android:contentDescription="@string/action_home"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
@@ -193,6 +198,7 @@
 
                     <androidx.appcompat.widget.AppCompatImageView
                         android:id="@+id/wallRefresh"
+                        android:contentDescription="@string/action_refresh"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="4dp"

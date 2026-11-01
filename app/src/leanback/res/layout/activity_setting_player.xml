@@ -1,11 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_app"
-    android:fillViewport="true"
-    tools:ignore="NestedWeights">
+    android:orientation="vertical">
+
+    <!-- 二级设置页也要有可见的返回和标题，别让用户只能摸遥控器的返回键。 -->
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="32dp"
+        android:paddingTop="@dimen/qbox_header_pad_top"
+        android:paddingEnd="32dp"
+        android:paddingBottom="2dp">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/back"
+            android:layout_width="@dimen/qbox_header_content"
+            android:layout_height="@dimen/qbox_header_content"
+            android:background="@drawable/selector_action_icon"
+            android:clickable="true"
+            android:contentDescription="@string/back"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:padding="12dp"
+            android:src="@drawable/ic_back"
+            app:tint="@color/text" />
+
+        <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="18dp"
+            android:layout_weight="1"
+            android:letterSpacing="0.01"
+            android:singleLine="true"
+            android:text="@string/setting_player"
+            android:textColor="@color/qbox_text"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
@@ -24,19 +70,21 @@
             android:orientation="horizontal">
 
             <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_engine"
-                android:textColor="@color/white"
+                android:textColor="@color/text"
                 android:textSize="18sp" />
 
             <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
                 android:id="@+id/engineText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="end"
-                android:textColor="@color/white"
+                android:textColor="@color/text"
                 android:textSize="18sp"
                 tools:text="EXO" />
 
@@ -53,11 +101,12 @@
             android:orientation="horizontal">
 
             <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_decode_setting"
-                android:textColor="@color/white"
+                android:textColor="@color/text"
                 android:textSize="18sp" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
@@ -73,19 +122,21 @@
             android:orientation="horizontal">
 
             <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_adblock"
-                android:textColor="@color/white"
+                android:textColor="@color/text"
                 android:textSize="18sp" />
 
             <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
                 android:id="@+id/adblockText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="end"
-                android:textColor="@color/white"
+                android:textColor="@color/text"
                 android:textSize="18sp"
                 tools:text="關" />
 
@@ -102,11 +153,12 @@
             android:orientation="horizontal">
 
             <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_mpv_conf"
-                android:textColor="@color/white"
+                android:textColor="@color/text"
                 android:textSize="18sp" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
@@ -122,19 +174,21 @@
             android:orientation="horizontal">
 
             <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_mpv_gpu_next"
-                android:textColor="@color/white"
+                android:textColor="@color/text"
                 android:textSize="18sp" />
 
             <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
                 android:id="@+id/mpvGpuNextText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="end"
-                android:textColor="@color/white"
+                android:textColor="@color/text"
                 android:textSize="18sp"
                 tools:text="Off" />
 
@@ -151,19 +205,21 @@
             android:orientation="horizontal">
 
             <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_mpv_vulkan"
-                android:textColor="@color/white"
+                android:textColor="@color/text"
                 android:textSize="18sp" />
 
             <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
                 android:id="@+id/mpvVulkanText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="end"
-                android:textColor="@color/white"
+                android:textColor="@color/text"
                 android:textSize="18sp"
                 tools:text="Off" />
 
@@ -180,19 +236,21 @@
             android:orientation="horizontal">
 
             <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_render"
-                android:textColor="@color/white"
+                android:textColor="@color/text"
                 android:textSize="18sp" />
 
             <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
                 android:id="@+id/renderText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="end"
-                android:textColor="@color/white"
+                android:textColor="@color/text"
                 android:textSize="18sp"
                 tools:text="Surface" />
 
@@ -209,19 +267,21 @@
             android:orientation="horizontal">
 
             <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_scale"
-                android:textColor="@color/white"
+                android:textColor="@color/text"
                 android:textSize="18sp" />
 
             <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
                 android:id="@+id/scaleText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="end"
-                android:textColor="@color/white"
+                android:textColor="@color/text"
                 android:textSize="18sp"
                 tools:text="16:9" />
 
@@ -238,19 +298,21 @@
             android:orientation="horizontal">
 
             <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_background"
-                android:textColor="@color/white"
+                android:textColor="@color/text"
                 android:textSize="18sp" />
 
             <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
                 android:id="@+id/backgroundText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="end"
-                android:textColor="@color/white"
+                android:textColor="@color/text"
                 android:textSize="18sp"
                 tools:text="關" />
 
@@ -267,29 +329,32 @@
             android:orientation="horizontal">
 
             <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_buffer"
-                android:textColor="@color/white"
+                android:textColor="@color/text"
                 android:textSize="18sp" />
 
             <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
                 android:id="@+id/bufferText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="end"
-                android:textColor="@color/white"
+                android:textColor="@color/text"
                 android:textSize="18sp"
                 tools:text="1" />
 
             <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
                 android:text="@string/times"
-                android:textColor="@color/white"
+                android:textColor="@color/text"
                 android:textSize="18sp" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
@@ -305,11 +370,12 @@
             android:orientation="horizontal">
 
             <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_preload_setting"
-                android:textColor="@color/white"
+                android:textColor="@color/text"
                 android:textSize="18sp" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
@@ -325,13 +391,15 @@
             android:orientation="horizontal">
 
             <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_ua"
-                android:textColor="@color/white"
+                android:textColor="@color/text"
                 android:textSize="18sp" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.appcompat.widget.LinearLayoutCompat>
 </androidx.core.widget.NestedScrollView>
+</androidx.appcompat.widget.LinearLayoutCompat>
