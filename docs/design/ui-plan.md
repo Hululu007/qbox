@@ -9,6 +9,8 @@
 `v194-box-settings`（1.9.4，设置页分区），
 `v195-box-home` / `v195-box-vod-filter` / `v195-box-player` / `v195-box-settings`（1.9.5，720p 机顶盒），
 `v196-box-home` / `v196-box-vod`（1.9.6，整屏氛围底图 + 历史进度条），
+`v197-box-home` / `v197-box-vod` / `v197-box-detail` / `v197-box-seek` / `v197-box-settings`
+（1.9.7，Infuse 式模糊海报底图 + 统一头部框架 + 快进浮层），
 `v192-home` / `v192-home-scrolled` / `v192-vod` / `v192-filter` / `v192-detail` / `v192-osd` /
 `v192-search` / `v192-search-keyboard`（1.9.2，1080p 投影），
 1.9.1 存档 `v191-home` / `v191-vod` / `v191-filter` / `v191-detail` / `v191-osd`，
@@ -36,6 +38,34 @@
   对话框回到和页面同一套近黑面板。
 - 720p 机顶盒（1280×720 @160dpi）实测：5 列 3:4 海报、一屏 1.5 行，
   分类条 7 个分类、筛选药丸、聚合搜索结果页均正常。
+
+### 1.9.7 增补（Infuse 式底图 / 统一框架 / 播放黑边）
+
+- **统一头部框架**：`dimens.xml` 新增 `qbox_header_pad_top`(22dp) / `qbox_header_content`(46dp) /
+  `qbox_tabs_gap`(6dp) / `qbox_tabs_height`(42dp) / `qbox_content_top`(140dp)。
+  首页、点播页、设置页、收藏、搜索全部用同一套数值，标题左边统一落在 96dp，
+  从首页点进分类时上方整块框架不再「缩一下 / 上移一点」。
+- **第一排不再被 tab 盖住**：`CustomVerticalGridView.setClipTop()` 在 124dp 处裁绘制，
+  滚上去的卡片在分类条下沿被裁掉，既不会穿到 tab 下面（重影），也不会出现第一排上半截
+  被压暗；因为只裁绘制、不动布局，焦点放大和 padding 都保持原样。
+- **Infuse 式模糊海报底图**：首页/点播/详情统一用 40px 缩略图整屏 `centerCrop` 放大（等免费高斯模糊），
+  底图 alpha 0.62 + `shape_backdrop_scrim` 改成 22%→35%→85% 的三段压暗，顶部只叠 40% 的
+  `shape_top_scrim`。模糊海报的颜色真正透出来，顶栏文字仍然清晰。
+- **详情页文字可读性**：亮色剧照上标题/导演/演员会糊，新增 `shape_detail_scrim` 横向渐变
+  （左侧透明、右侧压到接近实底），左边留住海报色彩、右边保证 4.5:1 以上的对比。
+- **播放黑边必须是黑的**：`enterFullscreen()` 由 `setBackground(null)` 改成
+  `setBackgroundColor(BLACK)`。非 16:9 片源的上下/左右黑边是纯黑，不再透出氛围底图或页面渐变；
+  片源比例仍由 `resize_mode=fit` 保持，不拉伸。
+- **快进不再盲操作**：左右快进/快退时底部浮出「▶▶ 目标时间 / 总时长 + 进度条」
+  （`view_widget_vod` 的 `seek_hint`），16dp 上浮 + 淡入 160ms，停手 1.6s 自动收起，
+  与暂停/播放时的控制条互斥。
+- **最近观看进度条去蓝**：改成白色 `progress_history`（35% 白圆角轨道 + 纯白填充），
+  卡片底部加 56dp 压暗层，亮色剧照上也看得清；剧集列表进度条同步换掉主题蓝。
+- **首页动作胶囊展开动画修复**：`GONE` 的 View 不会重新测量，`getMeasuredWidth()` 会保留
+  上次展开后的宽度，导致 `from == to`、第二次展开没有动画。改为每次从 0 开始；
+  收回仍然即时，不再挤动整排图标。
+- **设置页两列**：内容源/播放在左，系统/维护在右，单条设置不再是 1200dp 的空长条；
+  行高 5dp + 行距 6dp，720p 一屏放得下全部设置。
 
 ### 1.9.6 增补（滚动回顶 / 全屏 / 氛围背景）
 
