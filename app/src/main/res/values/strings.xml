@@ -447,4 +447,8 @@
         <item>Select subtitle track</item>
     </string-array>
 
+    <string name="setting_group_source">Content source</string>
+    <string name="setting_group_play">Playback</string>
+    <string name="setting_group_system">System</string>
+    <string name="setting_group_maintain">Maintenance</string>
 </resources>

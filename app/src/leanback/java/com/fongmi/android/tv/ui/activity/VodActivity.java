@@ -163,7 +163,7 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
         }
         if (TextUtils.isEmpty(url) || url.equals(mBackdropUrl)) return;
         mBackdropUrl = url;
-        Glide.with(this).load(ImgUtil.getUrl(url)).override(24, 24).centerCrop()
+        Glide.with(this).load(ImgUtil.getUrl(url)).override(40, 40).centerCrop()
                 .transition(DrawableTransitionOptions.withCrossFade(500))
                 .into(mBinding.backdrop);
     }

@@ -14,6 +14,9 @@
     <color name="qbox_accent_soft">#1E2B4D</color>
     <color name="qbox_focus_text">#0B0B0F</color>
 
+    <!-- 顶栏实底（1.9.7 起改由 shape_top_scrim 承担，保留 token 给后续实底栏用）。 -->
+    <color name="qbox_header_scrim">#F0090A0D</color>
+
     <color name="transparent">#00000000</color>
     <color name="black">#000000</color>
     <color name="black_05">#0D000000</color>

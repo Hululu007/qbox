@@ -7,6 +7,7 @@
     android:background="@drawable/bg_app"
     android:orientation="vertical">
 
+    <!-- 与首页/点播页同一套头部尺寸：22dp 内边距 + 46dp 内容，标题左边对齐到 96dp。 -->
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -14,14 +15,14 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="32dp"
-        android:paddingTop="16dp"
+        android:paddingTop="@dimen/qbox_header_pad_top"
         android:paddingEnd="32dp"
         android:paddingBottom="2dp">
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/back"
-            android:layout_width="46dp"
-            android:layout_height="46dp"
+            android:layout_width="@dimen/qbox_header_content"
+            android:layout_height="@dimen/qbox_header_content"
             android:background="@drawable/selector_action_icon"
             android:clickable="true"
             android:contentDescription="@string/back"
@@ -29,26 +30,26 @@
             android:focusableInTouchMode="true"
             android:padding="12dp"
             android:src="@drawable/ic_back"
-            app:tint="@color/text" />
+            app:tint="#6E6E78" />
 
         <com.google.android.material.textview.MaterialTextView
-        android:duplicateParentState="true"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="14dp"
+            android:layout_marginStart="18dp"
             android:layout_weight="1"
-            android:letterSpacing="0.04"
+            android:duplicateParentState="true"
+            android:letterSpacing="0.01"
             android:singleLine="true"
             android:text="@string/home_setting"
             android:textColor="@color/qbox_text"
-            android:textSize="19sp"
+            android:textSize="20sp"
             android:textStyle="bold" />
 
         <com.google.android.material.textview.MaterialTextView
-        android:duplicateParentState="true"
             android:id="@+id/clock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:duplicateParentState="true"
             android:fontFeatureSettings="tnum"
             android:letterSpacing="0.02"
             android:textColor="@color/qbox_text_dim"
@@ -57,574 +58,310 @@
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
-<androidx.core.widget.NestedScrollView
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fillViewport="true"
-    tools:ignore="NestedWeights">
-
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="24dp">
+        android:fillViewport="true"
+        android:scrollbars="none">
 
-        <com.google.android.material.textview.MaterialTextView
-            style="@style/SettingHeader"
-            android:text="内容源" />
-
+        <!-- 两列布局：一列放内容源/播放，一列放系统/维护。
+             单条设置不再是一条 1200dp 的空长条，扫读时也少一半纵向滚动。 -->
         <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:baselineAligned="false"
+            android:orientation="horizontal"
+            android:paddingStart="32dp"
+            android:paddingTop="18dp"
+            android:paddingEnd="32dp"
+            android:paddingBottom="24dp">
 
             <androidx.appcompat.widget.LinearLayoutCompat
-                android:id="@+id/vod"
-            android:paddingStart="20dp"
-            android:paddingTop="9dp"
-            android:paddingEnd="20dp"
-            android:paddingBottom="9dp"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
+                android:layout_marginEnd="20dp"
                 android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
+                android:orientation="vertical">
 
                 <com.google.android.material.textview.MaterialTextView
-                android:duplicateParentState="true"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:layout_weight="0.3"
-                    android:text="@string/setting_vod"
-                    android:textColor="@color/text"
-                    android:textSize="16sp" />
+                    style="@style/SettingHeader"
+                    android:layout_marginTop="0dp"
+                    android:text="@string/setting_group_source" />
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/vod"
+                    style="@style/SettingRow">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        style="@style/SettingLabel"
+                        android:text="@string/setting_vod" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/vodUrl"
+                        style="@style/SettingValue"
+                        tools:text="https://" />
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/vodHome"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:background="@drawable/selector_item"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_setting_home"
+                        app:tint="#6E6E78" />
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/vodHistory"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/selector_item"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_setting_history"
+                        app:tint="#6E6E78" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/live"
+                    style="@style/SettingRow">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        style="@style/SettingLabel"
+                        android:text="@string/setting_live" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/liveUrl"
+                        style="@style/SettingValue"
+                        tools:text="https://" />
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/liveHome"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:background="@drawable/selector_item"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_setting_home"
+                        app:tint="#6E6E78" />
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/liveHistory"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/selector_item"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_setting_history"
+                        app:tint="#6E6E78" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/wall"
+                    style="@style/SettingRow">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        style="@style/SettingLabel"
+                        android:text="@string/setting_wall" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/wallUrl"
+                        style="@style/SettingValue"
+                        tools:text="https://" />
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/wallDefault"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:background="@drawable/selector_item"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_setting_home"
+                        app:tint="#6E6E78" />
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/wallRefresh"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/selector_item"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_setting_refresh"
+                        app:tint="#6E6E78" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
 
                 <com.google.android.material.textview.MaterialTextView
-                android:duplicateParentState="true"
-                    android:id="@+id/vodUrl"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.7"
-                    android:ellipsize="middle"
-                    android:gravity="end"
-                    android:singleLine="true"
-                    android:textColor="@color/text"
-                    android:textSize="16sp"
-                    tools:ignore="NestedWeights"
-                    tools:text="https://" />
+                    style="@style/SettingHeader"
+                    android:text="@string/setting_group_play" />
 
-            </androidx.appcompat.widget.LinearLayoutCompat>
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/player"
+                    style="@style/SettingRow">
 
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/vodHome"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:padding="8dp"
-                android:src="@drawable/ic_setting_home"
-                app:tint="@color/text" />
+                    <com.google.android.material.textview.MaterialTextView
+                        style="@style/SettingLabel"
+                        android:text="@string/setting_player" />
 
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/vodHistory"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:padding="8dp"
-                android:src="@drawable/ic_setting_history"
-                app:tint="@color/text" />
 
-        </androidx.appcompat.widget.LinearLayoutCompat>
 
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+                </androidx.appcompat.widget.LinearLayoutCompat>
 
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:id="@+id/live"
-            android:paddingStart="20dp"
-            android:paddingTop="9dp"
-            android:paddingEnd="20dp"
-            android:paddingBottom="9dp"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/okAction"
+                    style="@style/SettingRow">
 
-                <com.google.android.material.textview.MaterialTextView
-                android:duplicateParentState="true"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:layout_weight="0.3"
-                    android:text="@string/setting_live"
-                    android:textColor="@color/text"
-                    android:textSize="16sp" />
+                    <com.google.android.material.textview.MaterialTextView
+                        style="@style/SettingLabel"
+                        android:text="@string/setting_ok_action" />
 
-                <com.google.android.material.textview.MaterialTextView
-                android:duplicateParentState="true"
-                    android:id="@+id/liveUrl"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.7"
-                    android:ellipsize="middle"
-                    android:gravity="end"
-                    android:singleLine="true"
-                    android:textColor="@color/text"
-                    android:textSize="16sp"
-                    tools:ignore="NestedWeights"
-                    tools:text="https://" />
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/okActionText"
+                        style="@style/SettingValue" />
 
-            </androidx.appcompat.widget.LinearLayoutCompat>
+                </androidx.appcompat.widget.LinearLayoutCompat>
 
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/liveHome"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:padding="8dp"
-                android:src="@drawable/ic_setting_home"
-                app:tint="@color/text" />
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/danmaku"
+                    style="@style/SettingRow"
+                    android:visibility="gone">
 
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/liveHistory"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:padding="8dp"
-                android:src="@drawable/ic_setting_history"
-                app:tint="@color/text" />
+                    <com.google.android.material.textview.MaterialTextView
+                        style="@style/SettingLabel"
+                        android:text="@string/setting_danmaku" />
 
-        </androidx.appcompat.widget.LinearLayoutCompat>
 
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
 
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:id="@+id/wall"
-            android:paddingStart="20dp"
-            android:paddingTop="9dp"
-            android:paddingEnd="20dp"
-            android:paddingBottom="9dp"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
-
-                <com.google.android.material.textview.MaterialTextView
-                android:duplicateParentState="true"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:layout_weight="0.3"
-                    android:text="@string/setting_wall"
-                    android:textColor="@color/text"
-                    android:textSize="16sp" />
-
-                <com.google.android.material.textview.MaterialTextView
-                android:duplicateParentState="true"
-                    android:id="@+id/wallUrl"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.7"
-                    android:ellipsize="middle"
-                    android:gravity="end"
-                    android:singleLine="true"
-                    android:textColor="@color/text"
-                    android:textSize="16sp"
-                    tools:ignore="NestedWeights"
-                    tools:text="https://" />
-
-            </androidx.appcompat.widget.LinearLayoutCompat>
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/wallDefault"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:padding="8dp"
-                android:src="@drawable/ic_setting_home"
-                app:tint="@color/text" />
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/wallRefresh"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:padding="8dp"
-                android:src="@drawable/ic_setting_refresh"
-                app:tint="@color/text" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <com.google.android.material.textview.MaterialTextView
-            style="@style/SettingHeader"
-            android:text="播放" />
-
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:id="@+id/player"
-            android:paddingStart="20dp"
-            android:paddingTop="9dp"
-            android:paddingEnd="20dp"
-            android:paddingBottom="9dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/selector_item"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:orientation="horizontal">
-
-            <com.google.android.material.textview.MaterialTextView
-            android:duplicateParentState="true"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/setting_player"
-                android:textColor="@color/text"
-                android:textSize="16sp" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:id="@+id/okAction"
-            android:paddingStart="20dp"
-            android:paddingTop="9dp"
-            android:paddingEnd="20dp"
-            android:paddingBottom="9dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/selector_item"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:orientation="horizontal">
-
-            <com.google.android.material.textview.MaterialTextView
-                android:duplicateParentState="true"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/setting_ok_action"
-                android:textColor="@color/text"
-                android:textSize="16sp" />
-
-            <com.google.android.material.textview.MaterialTextView
-                android:duplicateParentState="true"
-                android:id="@+id/okActionText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="end"
-                android:textColor="@color/text"
-                android:textSize="16sp"
-                tools:text="暂停 / 播放" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:id="@+id/danmaku"
-            android:paddingStart="20dp"
-            android:paddingTop="9dp"
-            android:paddingEnd="20dp"
-            android:paddingBottom="9dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/selector_item"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:orientation="horizontal">
-
-            <com.google.android.material.textview.MaterialTextView
-            android:duplicateParentState="true"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/setting_danmaku"
-                android:textColor="@color/text"
-                android:textSize="16sp" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <com.google.android.material.textview.MaterialTextView
-            style="@style/SettingHeader"
-            android:text="系统" />
-
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:id="@+id/incognito"
-            android:paddingStart="20dp"
-            android:paddingTop="9dp"
-            android:paddingEnd="20dp"
-            android:paddingBottom="9dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/selector_item"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:orientation="horizontal">
-
-            <com.google.android.material.textview.MaterialTextView
-            android:duplicateParentState="true"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/setting_incognito"
-                android:textColor="@color/text"
-                android:textSize="16sp" />
-
-            <com.google.android.material.textview.MaterialTextView
-            android:duplicateParentState="true"
-                android:id="@+id/incognitoText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="end"
-                android:textColor="@color/text"
-                android:textSize="16sp"
-                tools:text="Off" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:id="@+id/doh"
-            android:paddingStart="20dp"
-            android:paddingTop="9dp"
-            android:paddingEnd="20dp"
-            android:paddingBottom="9dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/selector_item"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:orientation="horizontal">
-
-            <com.google.android.material.textview.MaterialTextView
-            android:duplicateParentState="true"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/setting_doh"
-                android:textColor="@color/text"
-                android:textSize="16sp" />
-
-            <com.google.android.material.textview.MaterialTextView
-            android:duplicateParentState="true"
-                android:id="@+id/dohText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="end"
-                android:textColor="@color/text"
-                android:textSize="16sp"
-                tools:text="Google" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:id="@+id/size"
-            android:paddingStart="20dp"
-            android:paddingTop="9dp"
-            android:paddingEnd="20dp"
-            android:paddingBottom="9dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/selector_item"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:nextFocusDown="@id/backup"
-            android:orientation="horizontal">
-
-            <com.google.android.material.textview.MaterialTextView
-            android:duplicateParentState="true"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/setting_size"
-                android:textColor="@color/text"
-                android:textSize="16sp" />
-
-            <com.google.android.material.textview.MaterialTextView
-            android:duplicateParentState="true"
-                android:id="@+id/sizeText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="end"
-                android:textColor="@color/text"
-                android:textSize="16sp"
-                tools:text="Medium" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <com.google.android.material.textview.MaterialTextView
-            style="@style/SettingHeader"
-            android:text="维护" />
-
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:orientation="horizontal">
-
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:id="@+id/backup"
-            android:paddingStart="20dp"
-            android:paddingTop="9dp"
-            android:paddingEnd="20dp"
-            android:paddingBottom="9dp"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
-
-                <com.google.android.material.textview.MaterialTextView
-                android:duplicateParentState="true"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/setting_backup"
-                    android:textColor="@color/text"
-                    android:textSize="16sp" />
+                </androidx.appcompat.widget.LinearLayoutCompat>
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
             <androidx.appcompat.widget.LinearLayoutCompat
-                android:id="@+id/restore"
-            android:paddingStart="20dp"
-            android:paddingTop="9dp"
-            android:paddingEnd="20dp"
-            android:paddingBottom="9dp"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
+                android:orientation="vertical">
 
                 <com.google.android.material.textview.MaterialTextView
-                android:duplicateParentState="true"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/setting_restore"
-                    android:textColor="@color/text"
-                    android:textSize="16sp" />
+                    style="@style/SettingHeader"
+                    android:layout_marginTop="0dp"
+                    android:text="@string/setting_group_system" />
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/incognito"
+                    style="@style/SettingRow">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        style="@style/SettingLabel"
+                        android:text="@string/setting_incognito" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/incognitoText"
+                        style="@style/SettingValue" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/doh"
+                    style="@style/SettingRow">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        style="@style/SettingLabel"
+                        android:text="@string/setting_doh" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/dohText"
+                        style="@style/SettingValue" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/size"
+                    style="@style/SettingRow">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        style="@style/SettingLabel"
+                        android:text="@string/setting_size" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/sizeText"
+                        style="@style/SettingValue" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <com.google.android.material.textview.MaterialTextView
+                    style="@style/SettingHeader"
+                    android:text="@string/setting_group_maintain" />
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/cache"
+                    style="@style/SettingRow">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        style="@style/SettingLabel"
+                        android:text="@string/setting_cache" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/cacheText"
+                        style="@style/SettingValue" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/backup"
+                    style="@style/SettingRow">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        style="@style/SettingLabel"
+                        android:text="@string/setting_backup" />
+
+
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/restore"
+                    style="@style/SettingRow">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        style="@style/SettingLabel"
+                        android:text="@string/setting_restore" />
+
+
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/version"
+                    style="@style/SettingRow">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        style="@style/SettingLabel"
+                        android:text="@string/setting_version" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/versionText"
+                        style="@style/SettingValue" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
 
             </androidx.appcompat.widget.LinearLayoutCompat>
+
         </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:orientation="horizontal">
-
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:id="@+id/cache"
-            android:paddingStart="20dp"
-            android:paddingTop="9dp"
-            android:paddingEnd="20dp"
-            android:paddingBottom="9dp"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
-
-                <com.google.android.material.textview.MaterialTextView
-                android:duplicateParentState="true"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:text="@string/setting_cache"
-                    android:textColor="@color/text"
-                    android:textSize="16sp" />
-
-                <com.google.android.material.textview.MaterialTextView
-                android:duplicateParentState="true"
-                    android:id="@+id/cacheText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="end"
-                    android:textColor="@color/text"
-                    android:textSize="16sp"
-                    tools:text="1.0 MB" />
-
-            </androidx.appcompat.widget.LinearLayoutCompat>
-
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:id="@+id/version"
-            android:paddingStart="20dp"
-            android:paddingTop="9dp"
-            android:paddingEnd="20dp"
-            android:paddingBottom="9dp"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
-
-                <com.google.android.material.textview.MaterialTextView
-                android:duplicateParentState="true"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:text="@string/setting_version"
-                    android:textColor="@color/text"
-                    android:textSize="16sp" />
-
-                <com.google.android.material.textview.MaterialTextView
-                android:duplicateParentState="true"
-                    android:id="@+id/versionText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="end"
-                    android:textColor="@color/text"
-                    android:textSize="16sp"
-                    tools:text="1.2.1" />
-
-            </androidx.appcompat.widget.LinearLayoutCompat>
-        </androidx.appcompat.widget.LinearLayoutCompat>
-    </androidx.appcompat.widget.LinearLayoutCompat>
-</androidx.core.widget.NestedScrollView>
+    </androidx.core.widget.NestedScrollView>
 
 </androidx.appcompat.widget.LinearLayoutCompat>

@@ -6,12 +6,12 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_app">
 
-    <!-- 当前聚焦海报的低分辨率氛围底图：整屏铺满，滚动和切页时不再出现黑底切线。 -->
+    <!-- 氛围底图：跟随当前聚焦海报，整屏铺满。 -->
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/backdrop"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:alpha="0.5"
+        android:alpha="0.62"
         android:importantForAccessibility="no"
         android:scaleType="centerCrop" />
 
@@ -20,15 +20,22 @@
         android:layout_height="match_parent"
         android:background="@drawable/shape_backdrop_scrim" />
 
-    <!-- 顶栏只是轻微压暗的海报上层，不再是一条实心色带。 -->
+    <!-- 内容层：pager 从屏幕最顶开始，分类页里的列表再让出 paddingTop。
+         和首页完全同一套尺寸，点进来时上方模块不会缩进/上移。 -->
+    <com.fongmi.android.tv.ui.custom.CustomViewPager
+        android:id="@+id/pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- 顶栏压暗：40% → 0，和首页同一套尺寸，模糊海报底图从顶栏后面透出来。 -->
     <View
         android:layout_width="match_parent"
-        android:layout_height="140dp"
-        android:background="@drawable/shape_top_fade" />
+        android:layout_height="@dimen/qbox_header_mask"
+        android:background="@drawable/shape_top_scrim" />
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical">
 
         <androidx.appcompat.widget.LinearLayoutCompat
@@ -38,14 +45,15 @@
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingStart="32dp"
-            android:paddingTop="16dp"
+            android:paddingTop="@dimen/qbox_header_pad_top"
             android:paddingEnd="32dp"
             android:paddingBottom="2dp">
 
+            <!-- 46dp 点击区，标题左边与首页源名对齐到 96dp。 -->
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/back"
-                android:layout_width="46dp"
-                android:layout_height="46dp"
+                android:layout_width="@dimen/qbox_header_content"
+                android:layout_height="@dimen/qbox_header_content"
                 android:background="@drawable/selector_action_icon"
                 android:clickable="true"
                 android:contentDescription="@string/back"
@@ -59,15 +67,15 @@
                 android:id="@+id/name"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="14dp"
+                android:layout_marginStart="18dp"
                 android:layout_weight="1"
                 android:ellipsize="end"
-                android:letterSpacing="0.04"
+                android:letterSpacing="0.01"
                 android:singleLine="true"
                 android:textColor="@color/qbox_text"
-                android:textSize="19sp"
+                android:textSize="20sp"
                 android:textStyle="bold"
-                tools:text="豆豆" />
+                tools:text="电影" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/filter"
@@ -103,11 +111,10 @@
 
         </androidx.appcompat.widget.LinearLayoutCompat>
 
-        <!-- 分类条：高度固定，类型还没加载完时也不让内容跳位。 -->
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="42dp"
-            android:layout_marginTop="6dp">
+            android:layout_height="@dimen/qbox_tabs_height"
+            android:layout_marginTop="@dimen/qbox_tabs_gap">
 
             <androidx.leanback.widget.HorizontalGridView
                 android:id="@+id/typeRecycler"
@@ -121,12 +128,6 @@
                 app:focusOutFront="false" />
 
         </FrameLayout>
-
-        <com.fongmi.android.tv.ui.custom.CustomViewPager
-            android:id="@+id/pager"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 

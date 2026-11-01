@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- 详情页右侧文字区压暗：左边留出海报的模糊色彩，右边压到接近实底，
+         标题/导演/演员在亮色剧照上也能读清。 -->
+    <gradient
+        android:angle="0"
+        android:centerColor="#B3090A0D"
+        android:centerX="0.55"
+        android:endColor="#E6090A0D"
+        android:startColor="#00090A0D"
+        android:type="linear" />
+
+</shape>

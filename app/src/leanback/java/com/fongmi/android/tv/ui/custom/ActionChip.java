@@ -20,10 +20,14 @@ import androidx.core.content.ContextCompat;
 import com.fongmi.android.tv.R;
 
 /**
- * 首页动作按钮：静止态是一个 46dp 的图标圆药丸，聚焦时横向展开成「图标 + 文字」。
- * 文字写在药丸内部，不再占用图标下方一行，工具栏更紧凑，动态也更有质感。
+ * 首页动作按钮：静止时是一颗 46dp 的图标圆药丸，聚焦时横向生长出「图标 + 文字」。
+ * 文字写在药丸内部，不占用图标下方一行，所以整排图标不会跳动。
+ *
+ * 展开有动画（180ms），收回必须瞬间归零：否则上一颗边收边挤，会把整排图标推来推去。
  */
 public class ActionChip extends LinearLayoutCompat {
+
+    private static final int EXPAND_DURATION = 180;
 
     private final ImageView icon;
     private final TextView label;
@@ -90,19 +94,22 @@ public class ActionChip extends LinearLayoutCompat {
     private void expand() {
         if (expanded) return;
         expanded = true;
+        // GONE 的 View 不会被重新测量，getMeasuredWidth() 会保留上一次的值（正好是展开后的宽度），
+        // 从这里起动画会得到 from == to，看起来就是「没有动画」。所以每次都从 0 开始。
         if (expandedWidth <= 0) expandedWidth = measureLabel() + dp(8);
+        setLabelWidth(0);
         label.setVisibility(View.VISIBLE);
-        animateWidth(label.getMeasuredWidth(), expandedWidth);
+        animate(expandedWidth);
     }
 
     private void collapse() {
         if (!expanded) return;
         expanded = false;
-        // 收回不做动画：只让展开有生长感，避免切换按钮时整排图标跟着抖。
-        if (animator != null) animator.cancel();
-        ViewGroup.LayoutParams params = label.getLayoutParams();
-        params.width = 0;
-        label.setLayoutParams(params);
+        if (animator != null) {
+            animator.cancel();
+            animator = null;
+        }
+        setLabelWidth(0);
         label.setVisibility(View.GONE);
     }
 
@@ -112,20 +119,19 @@ public class ActionChip extends LinearLayoutCompat {
         return (int) Math.ceil(label.getPaint().measureText(text, 0, text.length())) + dp(2);
     }
 
-    private void animateWidth(int from, int to) {
-        if (animator != null) animator.cancel();
-        animator = ValueAnimator.ofInt(from, to);
-        animator.setDuration(180);
+    private void setLabelWidth(int width) {
+        ViewGroup.LayoutParams params = label.getLayoutParams();
+        if (params.width == width) return;
+        params.width = width;
+        label.setLayoutParams(params);
+    }
+
+    private void animate(int to) {
+        animator = ValueAnimator.ofInt(0, to);
+        animator.setDuration(EXPAND_DURATION);
         animator.setInterpolator(new DecelerateInterpolator());
-        animator.addUpdateListener(animation -> {
-            ViewGroup.LayoutParams params = label.getLayoutParams();
-            params.width = (int) animation.getAnimatedValue();
-            label.setLayoutParams(params);
-        });
+        animator.addUpdateListener(animation -> setLabelWidth((int) animation.getAnimatedValue()));
         animator.start();
-        if (to == 0) postDelayed(() -> {
-            if (!expanded) label.setVisibility(View.GONE);
-        }, 190);
     }
 
     private int dp(int value) {

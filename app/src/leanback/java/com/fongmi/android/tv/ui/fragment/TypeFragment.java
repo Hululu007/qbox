@@ -132,6 +132,7 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         selector.addPresenter(ListRow.class, new CustomRowPresenter(8, FocusHighlight.ZOOM_FACTOR_NONE, HorizontalGridView.FOCUS_SCROLL_ALIGNED), FilterPresenter.class);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
         mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(16));
+        mBinding.recycler.setClipTop(getResources().getDimensionPixelSize(R.dimen.qbox_header_clip));
     }
 
     private void setViewModel() {

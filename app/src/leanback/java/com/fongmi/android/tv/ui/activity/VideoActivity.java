@@ -3,6 +3,7 @@ package com.fongmi.android.tv.ui.activity;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -11,6 +12,7 @@ import android.text.style.ClickableSpan;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -135,6 +137,11 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private History mHistory;
     private boolean fullscreen;
     private boolean useParse;
+    private boolean seeking;
+    private long seekBase;
+
+    /** 快进浮层：停手 1.6s 后自动淡出。 */
+    private final Runnable mHideSeekHint = this::hideSeekHint;
 
     public static void push(FragmentActivity activity, String text) {
         Uri uri = UrlUtil.uri(text);
@@ -924,8 +931,9 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mFocus1 = getCurrentFocus();
         mBinding.video.requestFocus();
         mBinding.video.setForeground(null);
-        // 真全屏：去掉详情态的 12dp 圆角背景与裁剪，否则四角会露出底色。
-        mBinding.video.setBackground(null);
+        // 真全屏：黑底 + 去掉详情态的 12dp 圆角与裁剪。
+        // 黑底很关键：非 16:9 片源的上下/左右黑边必须是纯黑，不能透出氛围底图。
+        mBinding.video.setBackgroundColor(Color.BLACK);
         mBinding.video.setClipToOutline(false);
         mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
         mBinding.flag.setSelectedPosition(mFlagAdapter.getPosition());
@@ -1158,6 +1166,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     private void showControl(View view) {
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
+        hideSeekHint();
         setExtra(view != null && isInExtra(view));
         updatePlayPause();
         if (view == null || !view.isShown()) view = getFocus2();
@@ -1377,7 +1386,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private void setBackdrop(String url) {
         try {
             if (TextUtils.isEmpty(url)) return;
-            Glide.with(this).load(ImgUtil.getUrl(url)).override(24, 24).centerCrop()
+            Glide.with(this).load(ImgUtil.getUrl(url)).override(40, 40).centerCrop()
                     .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(700))
                     .into(mBinding.backdrop);
         } catch (Throwable ignored) {
@@ -1718,6 +1727,47 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.widget.position.setText(player().getPositionTime(time));
         mBinding.widget.action.setImageResource(time > 0 ? R.drawable.ic_widget_forward : R.drawable.ic_widget_rewind);
         hideProgress();
+        showSeekHint(time);
+    }
+
+    /** 左右快进时从下方浮出的进度条 + 目标时间，避免盲操作。 */
+    private void showSeekHint(long offset) {
+        if (mBinding == null || player() == null) return;
+        if (!seeking) {
+            seeking = true;
+            seekBase = player().getPosition();
+        }
+        long duration = Math.max(0, player().getDuration());
+        long target = Math.max(0, seekBase + offset);
+        if (duration > 0) target = Math.min(duration, target);
+        View hint = mBinding.widget.seekHint;
+        boolean wasHidden = hint.getVisibility() != View.VISIBLE;
+        mBinding.widget.seekIcon.setImageResource(offset >= 0 ? R.drawable.ic_widget_forward : R.drawable.ic_widget_rewind);
+        mBinding.widget.seekTarget.setText(Util.timeMs(target));
+        mBinding.widget.seekDuration.setText(Util.timeMs(duration));
+        mBinding.widget.seekBar.setVisibility(duration > 0 ? View.VISIBLE : View.GONE);
+        if (duration > 0) mBinding.widget.seekBar.setProgress((int) Math.min(1000, target * 1000 / duration));
+        hint.setVisibility(View.VISIBLE);
+        if (wasHidden) {
+            hint.setAlpha(0f);
+            hint.setTranslationY(ResUtil.dp2px(24));
+            hint.animate().alpha(1f).translationY(0f).setDuration(160)
+                    .setInterpolator(new DecelerateInterpolator()).start();
+        }
+        App.removeCallbacks(mHideSeekHint);
+        App.post(mHideSeekHint, 1600);
+    }
+
+    private void hideSeekHint() {
+        App.removeCallbacks(mHideSeekHint);
+        seeking = false;
+        if (mBinding == null) return;
+        View hint = mBinding.widget.seekHint;
+        if (hint.getVisibility() != View.VISIBLE) return;
+        hint.animate().alpha(0f).translationY(ResUtil.dp2px(18)).setDuration(150)
+                .withEndAction(() -> {
+                    if (!seeking) hint.setVisibility(View.GONE);
+                }).start();
     }
 
     @Override
@@ -1783,6 +1833,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     @Override
     protected void onStop() {
         super.onStop();
+        hideSeekHint();
         saveHistory(false);
         if (PlayerSetting.isBackgroundOff()) mClock.stop();
     }

@@ -437,4 +437,8 @@
         <item>选择字幕</item>
     </string-array>
 
+    <string name="setting_group_source">内容源</string>
+    <string name="setting_group_play">播放</string>
+    <string name="setting_group_system">系统</string>
+    <string name="setting_group_maintain">维护</string>
 </resources>

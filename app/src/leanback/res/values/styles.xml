@@ -26,7 +26,7 @@
     <style name="SettingHeader">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginTop">18dp</item>
+        <item name="android:layout_marginTop">14dp</item>
         <item name="android:layout_marginBottom">4dp</item>
         <item name="android:letterSpacing">0.08</item>
         <item name="android:textColor">@color/qbox_text_mute</item>
@@ -56,6 +56,45 @@
         <item name="android:focusableInTouchMode">true</item>
         <item name="android:clickable">true</item>
         <item name="android:gravity">center</item>
+    </style>
+
+    <!-- 设置页统一行样式：两列布局下每条不再是一条超长空条。 -->
+    <style name="SettingRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">6dp</item>
+        <item name="android:background">@drawable/selector_item</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:focusableInTouchMode">true</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingTop">5dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:paddingBottom">5dp</item>
+    </style>
+
+    <style name="SettingLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:duplicateParentState">true</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textColor">@color/text</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="SettingValue">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">16dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:duplicateParentState">true</item>
+        <item name="android:ellipsize">middle</item>
+        <item name="android:gravity">end</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textColor">@color/text</item>
+        <item name="android:textSize">16sp</item>
     </style>
 
     <style name="Theme.Crash" parent="Theme.Base">

@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.custom;
 
 import android.content.Context;
+import android.graphics.Canvas;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.View;
@@ -25,6 +26,7 @@ public class CustomVerticalGridView extends VerticalGridView {
     private boolean pressDown;
     private boolean pressUp;
     private boolean moveTop;
+    private int clipTop;
 
     public CustomVerticalGridView(@NonNull Context context) {
         this(context, null);
@@ -57,6 +59,27 @@ public class CustomVerticalGridView extends VerticalGridView {
 
     public void setMoveTop(boolean moveTop) {
         this.moveTop = moveTop;
+    }
+
+    /**
+     * 顶部绘制裁切线（px）：列表向上滚动时，卡片画到这里就被裁掉，
+     * 不会穿到顶栏/分类条下面形成重影或「被 tab 盖住」。
+     * 只裁绘制、不改布局，所以焦点放大和 padding 都照常。
+     */
+    public void setClipTop(int clipTop) {
+        this.clipTop = clipTop;
+    }
+
+    @Override
+    protected void dispatchDraw(@NonNull Canvas canvas) {
+        if (clipTop <= 0) {
+            super.dispatchDraw(canvas);
+            return;
+        }
+        int save = canvas.save();
+        canvas.clipRect(0, clipTop, getWidth(), getHeight());
+        super.dispatchDraw(canvas);
+        canvas.restoreToCount(save);
     }
 
     public void hideHeader() {

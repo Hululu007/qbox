@@ -256,6 +256,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         selector.addPresenter(ListRow.class, new CustomRowPresenter(16, FocusHighlight.ZOOM_FACTOR_NONE, HorizontalGridView.FOCUS_SCROLL_ALIGNED), HistoryPresenter.class);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
         mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(24));
+        mBinding.recycler.setClipTop(getResources().getDimensionPixelSize(R.dimen.qbox_header_clip));
         mBinding.typeRecycler.setHorizontalSpacing(ResUtil.dp2px(12));
         mBinding.typeRecycler.setRowHeight(android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
         mBinding.typeRecycler.setAdapter(new ItemBridgeAdapter(mTypeAdapter = new ArrayObjectAdapter(new FuncPresenter(this))));
@@ -369,7 +370,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             }
             if (TextUtils.isEmpty(url) || url.equals(mBackdropUrl)) return;
             mBackdropUrl = url;
-            Glide.with(this).load(ImgUtil.getUrl(url)).override(24, 24).centerCrop()
+            Glide.with(this).load(ImgUtil.getUrl(url)).override(40, 40).centerCrop()
                     .transition(DrawableTransitionOptions.withCrossFade(600))
                     .into(mBinding.backdrop);
             mBinding.backdrop.setVisibility(View.VISIBLE);

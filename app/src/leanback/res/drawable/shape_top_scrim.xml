@@ -2,11 +2,12 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
 
-    <!-- 顶栏悬浮在海报上：只做很轻的压暗渐变，底部完全透明，没有硬切线。 -->
+    <!-- 顶栏压暗：只压 40% → 0，够顶栏文字读清，又不会把 Infuse 式模糊海报底图糊成一整块黑。
+         内容已被裁在 124dp，这里不需要实底。 -->
     <gradient
         android:angle="270"
         android:endColor="#00090A0D"
-        android:startColor="#59090A0D"
+        android:startColor="#8C090A0D"
         android:type="linear" />
 
 </shape>

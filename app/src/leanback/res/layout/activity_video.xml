@@ -7,19 +7,25 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_app">
 
-    <!-- 详情页氛围底图：当前影片海报放大虚化，给页面一层柔和的色彩。 -->
+    <!-- 详情页氛围底图：整屏铺满的模糊海报，和浏览页同一套语言。 -->
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/backdrop"
         android:layout_width="match_parent"
-        android:layout_height="460dp"
-        android:alpha="0.34"
+        android:layout_height="match_parent"
+        android:alpha="0.62"
         android:importantForAccessibility="no"
-        android:scaleType="fitXY" />
+        android:scaleType="centerCrop" />
 
     <View
         android:layout_width="match_parent"
-        android:layout_height="470dp"
+        android:layout_height="match_parent"
         android:background="@drawable/shape_backdrop_scrim" />
+
+    <!-- 右侧信息区再压一层横向渐变，文字不压在亮色剧照上。 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/shape_detail_scrim" />
 
     <FrameLayout
         android:id="@+id/video"
