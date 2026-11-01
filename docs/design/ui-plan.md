@@ -11,6 +11,8 @@
 `v196-box-home` / `v196-box-vod`（1.9.6，整屏氛围底图 + 历史进度条），
 `v197-box-home` / `v197-box-vod` / `v197-box-detail` / `v197-box-seek` / `v197-box-settings`
 （1.9.7，Infuse 式模糊海报底图 + 统一头部框架 + 快进浮层），
+`v198-box-home` / `v198-box-vod` / `v198-box-detail` / `v198-box-seek`
+（1.9.8，快进复用控制条 + 进度条焦点 + 直角小窗），
 `v192-home` / `v192-home-scrolled` / `v192-vod` / `v192-filter` / `v192-detail` / `v192-osd` /
 `v192-search` / `v192-search-keyboard`（1.9.2，1080p 投影），
 1.9.1 存档 `v191-home` / `v191-vod` / `v191-filter` / `v191-detail` / `v191-osd`，
@@ -38,6 +40,24 @@
   对话框回到和页面同一套近黑面板。
 - 720p 机顶盒（1280×720 @160dpi）实测：5 列 3:4 海报、一屏 1.5 行，
   分类条 7 个分类、筛选药丸、聚合搜索结果页均正常。
+
+### 1.9.8 增补（快进复用控制条 / 进度条焦点 / 搜索页间距）
+
+- **左右快进复用控制条**：删掉 1.9.7 的独立浮层，左右快进时直接把底部控制条「借」出来显示
+  （进度条 + 当前/总时长都在原位），焦点仍留在画面上，连续按左右可以一直快进；
+  停手 1.8s 控制条自动收起。快进改为逐次 `seekTo`（`seekBase + 累计偏移`），进度条实时跟着走。
+- **菜单按「上」进进度条**：控制条里按上不再卡在动作行，直接聚焦进度条（白色描边焦点框，
+  `selector_seek_focus`），左右 ±10s、下键回动作行、OK 暂停/播放。
+  焦点放在外层 `seek_box` 而不是 `PlayerSeekView` 本身，并在 buffering/ready 时回钉一次焦点，
+  避免播放器状态变化把焦点甩回画面层。
+- **搜索/聚合页 tab 与海报间距过大（修）**：`CollectFragment` 复用 `fragment_type.xml`，
+  之前继承了点播页 144dp 的头部偏移，实际它的 pager 已经在头部下面 → 改 12dp
+  （`qbox_content_top_inset`），也不再套用 120dp 的裁切线。
+- **首页/点播首排焦点框被裁（修）**：内容起点 140→144dp，绘制裁切线 124→120dp（贴分类条下沿），
+  给卡片聚焦放大（约 13dp）留出余量，首排白框完整显示。
+- **详情页小窗直角**：`shape_video_bg` / `shape_video_focused` / `shape_video_normal` 去掉 12dp 圆角，
+  `activity_video.xml` 去掉 `clipToOutline`。加载过程中不会再出现「圆角框 + 方形画面」的黑角缺口，
+  全屏仍由 `setBackgroundColor(BLACK)` 保持纯黑黑边。
 
 ### 1.9.7 增补（Infuse 式底图 / 统一框架 / 播放黑边）
 
