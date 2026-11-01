@@ -12,7 +12,6 @@ import android.text.style.ClickableSpan;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -137,11 +136,20 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private History mHistory;
     private boolean fullscreen;
     private boolean useParse;
-    private boolean seeking;
-    private long seekBase;
+    /** 快进复用的控制条：一次 10s，停手 1.8s 自动收起。 */
+    private static final long SEEK_STEP_MS = 10000;
 
-    /** 快进浮层：停手 1.6s 后自动淡出。 */
-    private final Runnable mHideSeekHint = this::hideSeekHint;
+    private boolean seeking;
+    private boolean seekFocus;
+    private long seekBase;
+    private final Runnable mHideControl = this::hideControl;
+
+    /** 播放器 buffering/ready 时会把焦点甩回画面层，这里按需把焦点钉回进度条。 */
+    private final Runnable mRestoreSeekFocus = () -> {
+        if (!seekFocus || mBinding == null) return;
+        if (!isVisible(mBinding.control.getRoot())) return;
+        if (!mBinding.control.seekBox.hasFocus()) mBinding.control.seekBox.requestFocus();
+    };
 
     public static void push(FragmentActivity activity, String text) {
         Uri uri = UrlUtil.uri(text);
@@ -934,7 +942,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         // 真全屏：黑底 + 去掉详情态的 12dp 圆角与裁剪。
         // 黑底很关键：非 16:9 片源的上下/左右黑边必须是纯黑，不能透出氛围底图。
         mBinding.video.setBackgroundColor(Color.BLACK);
-        mBinding.video.setClipToOutline(false);
         mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
         mBinding.flag.setSelectedPosition(mFlagAdapter.getPosition());
         mKeyDown.setFull(true);
@@ -946,7 +953,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.video.setForeground(ResUtil.getDrawable(R.drawable.selector_video));
         mBinding.video.setLayoutParams(mFrameParams);
         mBinding.video.setBackground(mVideoBg);
-        mBinding.video.setClipToOutline(true);
         getFocus1().requestFocus();
         mKeyDown.setFull(false);
         setFullscreen(false);
@@ -1165,8 +1171,10 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void showControl(View view) {
+        seeking = false;
+        seekFocus = false;
+        App.removeCallbacks(mHideControl);
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
-        hideSeekHint();
         setExtra(view != null && isInExtra(view));
         updatePlayPause();
         if (view == null || !view.isShown()) view = getFocus2();
@@ -1177,6 +1185,9 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void hideControl() {
+        seeking = false;
+        seekFocus = false;
+        App.removeCallbacks(mHideControl);
         mBinding.control.getRoot().setVisibility(View.GONE);
         setExtra(false);
         setSubtitleLift(false);
@@ -1493,10 +1504,12 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         updatePlayPause();
         switch (state) {
             case Player.STATE_BUFFERING:
+                if (seekFocus) App.post(mRestoreSeekFocus, 150);
                 showProgress();
                 mClock.setCallback(null);
                 break;
             case Player.STATE_READY:
+                if (seekFocus) App.post(mRestoreSeekFocus, 150);
                 hideProgress();
                 player().reset();
                 mClock.setCallback(this);
@@ -1639,23 +1652,33 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (isFullscreen() && KeyUtil.isMenuKey(event)) onToggle();
-        if (isVisible(mBinding.control.getRoot())) setR1Callback();
-        if (isVisible(mBinding.control.getRoot())) mFocus2 = getCurrentFocus();
-        if (isVisible(mBinding.control.getRoot()) && onControlKey(event)) return true;
-        if (isFullscreen() && isGone(mBinding.control.getRoot()) && mKeyDown.hasEvent(event) && service() != null) return mKeyDown.onKeyDown(event);
+        View focus = getCurrentFocus();
+        boolean panelFocused = isVisible(mBinding.control.getRoot()) && isInside(mBinding.control.getRoot(), focus);
+        if (isVisible(mBinding.control.getRoot())) {
+            setR1Callback();
+            mFocus2 = focus;
+        }
+        // 画面侧的操作（快进/上下/OK）只在控制条没拿到焦点时生效：
+        // 快进时控制条是「借」出来显示进度的，焦点仍在画面上，所以连续按左右可以一直快进。
+        if (isFullscreen() && !panelFocused && mKeyDown.hasEvent(event) && service() != null) {
+            if (isGone(mBinding.control.getRoot()) && (KeyUtil.isLeftKey(event) || KeyUtil.isRightKey(event))) enterSeekMode();
+            return mKeyDown.onKeyDown(event);
+        }
+        if (panelFocused && onControlKey(event)) return true;
         if (KeyUtil.isMediaFastForward(event)) return onSeekForward();
         if (KeyUtil.isMediaRewind(event)) return onSeekBack();
         return super.dispatchKeyEvent(event);
     }
 
     /**
-     * 控制栏焦点闭环：左右到行尾不丢焦点，上下不把焦点交给不可聚焦的进度条。
+     * 控制栏焦点闭环：左右到行尾不丢焦点；上键进入进度条，下键回到动作行。
      * CustomUpDownView（倍速/字幕/片头片尾）自己要吃上下键调值，这里直接放行。
      */
     private boolean onControlKey(KeyEvent event) {
         if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
         View focus = getCurrentFocus();
         if (focus == null) return false;
+        if (isInside(mBinding.control.seekBox, focus)) return onSeekBarKey(event.getKeyCode());
         boolean inExtra = isInExtra(focus);
         boolean inMain = isInside(mBinding.control.action.main, focus);
         if (!inExtra && !inMain) return false;
@@ -1672,7 +1695,11 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
                 if (!inExtra && focus == mBinding.control.action.more) {
                     if (!isVisible(mBinding.control.action.extra)) setExtra(true);
                     focusFirst(mBinding.control.action.extra);
+                    return true;
                 }
+                // 其余动作键按「上」直接进进度条，可以逐秒拖拽，不再只能在动作行里横着滚。
+                seekFocus = true;
+                mBinding.control.seekBox.requestFocus();
                 return true;
             case KeyEvent.KEYCODE_DPAD_DOWN:
                 if (focus instanceof CustomUpDownView) return false;
@@ -1681,6 +1708,40 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
             default:
                 return false;
         }
+    }
+
+    /** 进度条聚焦后的按键：左右 ±10s（立即 seek，进度条跟着走），下键回动作行。 */
+    private boolean onSeekBarKey(int keyCode) {
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_DPAD_LEFT:
+                seekBy(-SEEK_STEP_MS);
+                return true;
+            case KeyEvent.KEYCODE_DPAD_RIGHT:
+                seekBy(SEEK_STEP_MS);
+                return true;
+            case KeyEvent.KEYCODE_DPAD_DOWN:
+                seekFocus = false;
+                mBinding.control.action.playPause.requestFocus();
+                return true;
+            case KeyEvent.KEYCODE_DPAD_CENTER:
+            case KeyEvent.KEYCODE_ENTER:
+                onPlayPause();
+                return true;
+            default:
+                return true;
+        }
+    }
+
+    private void seekBy(long delta) {
+        if (service() == null) return;
+        long duration = Math.max(0, player().getDuration());
+        long target = Math.max(0, player().getPosition() + delta);
+        if (duration > 0) target = Math.min(duration, target);
+        controller().seekTo(target);
+        // seek 会让播放器进入 buffering，个别机型会把焦点甩回画面层，这里把焦点钉回进度条。
+        if (!mBinding.control.seekBox.hasFocus()) mBinding.control.seekBox.requestFocus();
+        App.post(mRestoreSeekFocus, 350);
+        setR1Callback();
     }
 
     private View findFocusable(ViewGroup row, View current, boolean forward) {
@@ -1721,59 +1782,38 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     @Override
     public void onSeeking(long time) {
-        // QBox: 快进/快退的反馈走底部控制条与进度条，不再弹出中央圆形图标。
-        mBinding.widget.center.setVisibility(View.GONE);
-        mBinding.widget.duration.setText(player().getDurationTime());
-        mBinding.widget.position.setText(player().getPositionTime(time));
-        mBinding.widget.action.setImageResource(time > 0 ? R.drawable.ic_widget_forward : R.drawable.ic_widget_rewind);
-        hideProgress();
-        showSeekHint(time);
-    }
-
-    /** 左右快进时从下方浮出的进度条 + 目标时间，避免盲操作。 */
-    private void showSeekHint(long offset) {
-        if (mBinding == null || player() == null) return;
+        // QBox 1.9.8: 快进直接复用底部控制条（进度条 + 时间），不再另做浮层。
         if (!seeking) {
             seeking = true;
             seekBase = player().getPosition();
         }
         long duration = Math.max(0, player().getDuration());
-        long target = Math.max(0, seekBase + offset);
+        long target = Math.max(0, seekBase + time);
         if (duration > 0) target = Math.min(duration, target);
-        View hint = mBinding.widget.seekHint;
-        boolean wasHidden = hint.getVisibility() != View.VISIBLE;
-        mBinding.widget.seekIcon.setImageResource(offset >= 0 ? R.drawable.ic_widget_forward : R.drawable.ic_widget_rewind);
-        mBinding.widget.seekTarget.setText(Util.timeMs(target));
-        mBinding.widget.seekDuration.setText(Util.timeMs(duration));
-        mBinding.widget.seekBar.setVisibility(duration > 0 ? View.VISIBLE : View.GONE);
-        if (duration > 0) mBinding.widget.seekBar.setProgress((int) Math.min(1000, target * 1000 / duration));
-        hint.setVisibility(View.VISIBLE);
-        if (wasHidden) {
-            hint.setAlpha(0f);
-            hint.setTranslationY(ResUtil.dp2px(24));
-            hint.animate().alpha(1f).translationY(0f).setDuration(160)
-                    .setInterpolator(new DecelerateInterpolator()).start();
-        }
-        App.removeCallbacks(mHideSeekHint);
-        App.post(mHideSeekHint, 1600);
+        controller().seekTo(target);
+        mBinding.widget.center.setVisibility(View.GONE);
+        hideProgress();
     }
 
-    private void hideSeekHint() {
-        App.removeCallbacks(mHideSeekHint);
-        seeking = false;
-        if (mBinding == null) return;
-        View hint = mBinding.widget.seekHint;
-        if (hint.getVisibility() != View.VISIBLE) return;
-        hint.animate().alpha(0f).translationY(ResUtil.dp2px(18)).setDuration(150)
-                .withEndAction(() -> {
-                    if (!seeking) hint.setVisibility(View.GONE);
-                }).start();
+    /** 左右快进时把控制条「借」出来显示进度，但不抢焦点，方向键继续走快进。 */
+    private void enterSeekMode() {
+        if (isVisible(mBinding.control.getRoot())) return;
+        seeking = true;
+        seekBase = player().getPosition();
+        App.removeCallbacks(mHideControl);
+        App.removeCallbacks(mR1);
+        mBinding.control.getRoot().setVisibility(View.VISIBLE);
+        mBinding.control.action.extra.setVisibility(View.GONE);
+        updatePlayPause();
+        setSubtitleLift(true);
     }
 
     @Override
     public void onSeekEnd(long time) {
-        if (seekTo(time)) hideCenter();
+        seeking = false;
         mKeyDown.reset();
+        App.removeCallbacks(mHideControl);
+        App.post(mHideControl, 1800);
     }
 
     @Override
@@ -1833,7 +1873,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     @Override
     protected void onStop() {
         super.onStop();
-        hideSeekHint();
+        seeking = false;
+        App.removeCallbacks(mHideControl);
         saveHistory(false);
         if (PlayerSetting.isBackgroundOff()) mClock.stop();
     }
@@ -1860,6 +1901,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         DanmakuApi.cancel();
         RefreshEvent.keep();
         App.removeCallbacks(mR1, mR2, mR3, mR4, mR5);
+        App.removeCallbacks(mHideControl);
         super.onDestroy();
     }
 }

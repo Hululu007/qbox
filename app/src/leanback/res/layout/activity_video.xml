@@ -33,7 +33,6 @@
         android:layout_height="225dp"
         android:layout_margin="28dp"
         android:background="@drawable/shape_video_bg"
-        android:clipToOutline="true"
         android:defaultFocusHighlightEnabled="false"
         android:focusable="true"
         android:focusableInTouchMode="true"

@@ -79,6 +79,13 @@ public class CollectFragment extends BaseFragment implements CustomScroller.Call
         mBinding.recycler.addOnScrollListener(mScroller = new CustomScroller(this));
         mBinding.recycler.setHeader(getActivity(), R.id.result, R.id.recycler);
         mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(16));
+        // 聚合搜索页的 pager 已经在头部（标题 + 站点 tab）下面，不需要再让 144dp，
+        // 否则 tab 和海报之间会空出一大块。
+        int side = ResUtil.dp2px(32);
+        mBinding.recycler.setPadding(side,
+                getResources().getDimensionPixelSize(R.dimen.qbox_content_top_inset),
+                side,
+                getResources().getDimensionPixelSize(R.dimen.qbox_content_bottom));
     }
 
     private void setViewModel() {

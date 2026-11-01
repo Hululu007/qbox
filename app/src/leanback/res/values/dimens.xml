@@ -3,17 +3,20 @@
 
     <!-- QBox 统一头部框架：首页 / 点播页 / 设置页必须完全一致，切页时上方模块不能位移。
          顶栏 22dp 内边距 + 46dp 内容 = 70dp，分类条 6dp 间距 + 42dp = 118dp。
-         内容区从 140dp 开始：留 22dp，扣掉卡片聚焦放大（约 11dp）后仍不会碰到分类条。 -->
+         内容区从 144dp 开始：留 26dp，扣掉卡片聚焦放大（约 13dp）后焦点框仍不会被裁。 -->
     <dimen name="qbox_header_pad_top">22dp</dimen>
     <dimen name="qbox_header_content">46dp</dimen>
     <dimen name="qbox_tabs_gap">6dp</dimen>
     <dimen name="qbox_tabs_height">42dp</dimen>
-    <dimen name="qbox_content_top">140dp</dimen>
+    <dimen name="qbox_content_top">144dp</dimen>
 
-    <!-- 列表绘制裁切线（分类条下方 6dp）：滚上去的卡片在这里被裁掉，
-         不再从分类条底下穿出来，也就不会出现「第一排被 tab 盖住」或重影。
-         裁切线贴在分类条下沿，看起来是内容视口的上边界，而不是画面被切一刀。 -->
-    <dimen name="qbox_header_clip">124dp</dimen>
+    <!-- 聚合搜索/多源详情页：pager 已经在头部下面，只需要一点点呼吸位。 -->
+    <dimen name="qbox_content_top_inset">12dp</dimen>
+    <dimen name="qbox_content_bottom">24dp</dimen>
+
+    <!-- 列表绘制裁切线（分类条下沿 2dp）：滚上去的卡片在这里被裁掉，
+         不再从分类条底下穿出来，也就不会出现「第一排被 tab 盖住」或重影。 -->
+    <dimen name="qbox_header_clip">120dp</dimen>
 
     <!-- 顶部压暗渐变高度，只为了让顶栏文字在亮色海报上也读得清。 -->
     <dimen name="qbox_header_mask">124dp</dimen>
