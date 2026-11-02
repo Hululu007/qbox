@@ -8,6 +8,9 @@ STATUS.md
 keystore.properties
 local.properties
 
+# DSH 本地技能（含引擎二进制），每个开发者自己装
+.dsh/
+
 # 构建产物与本地目录
 .gradle/
 build/
