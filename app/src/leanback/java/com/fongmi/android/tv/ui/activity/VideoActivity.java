@@ -1739,20 +1739,23 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     /**
-     * 进度条焦点态也走阶梯加速：轻按 10s；按住后 20s / 30s / 60s / 120s。
-     * repeat 事件间再加 110ms 节流，避免长按瞬间飞出很远。
+     * 进度条焦点态也走阶梯加速：轻按 10s；按住后 20s / 30s / 60s / 120s / 180s / 300s。
+     * repeat 事件间再加 300ms 节流，避免长按瞬间飞出很远。
      */
     private long seekStep(KeyEvent event) {
         int repeat = event.getRepeatCount();
         if (repeat > 0) {
             long now = SystemClock.uptimeMillis();
-            if (now - lastSeekKeyTick < 200) return 0;
+            if (now - lastSeekKeyTick < 300) return 0;
             lastSeekKeyTick = now;
         }
         if (repeat <= 4) return SEEK_STEP_MS;
         if (repeat <= 9) return 20_000;
         if (repeat <= 19) return 30_000;
-        return 60_000;
+        if (repeat <= 44) return 60_000;
+        if (repeat <= 69) return 120_000;
+        if (repeat <= 99) return 180_000;
+        return 300_000;
     }
 
     private void seekBy(long delta) {

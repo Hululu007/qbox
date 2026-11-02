@@ -16,8 +16,8 @@ android {
         applicationId "com.qbox.app"
         minSdk libs.versions.minSdk.get().toInteger()
         targetSdk libs.versions.targetSdk.get().toInteger()
-        versionCode 67
-        versionName "1.9.10"
+        versionCode 68
+        versionName "1.9.11"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString(), "eventBusIndex": "com.fongmi.android.tv.event.EventIndex"]
@@ -80,8 +80,12 @@ android {
             shrinkResources = true
             signingConfig = signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro', 'proguard-rules-media.pro'
+            // 官方包不带任何测试源，首次启动要用户自己导入配置。
+            buildConfigField "String", "QBOX_TEST_CONFIG", '""'
         }
         debug {
+            // 只有 debug 包内置老白测试源，方便真机验收；release 里这个字符串是空的。
+            buildConfigField "String", "QBOX_TEST_CONFIG", '"https://tvbox.laobaitv.net"'
             // QBox: 调试包同样用 release 证书，debug/release 可互相覆盖安装，不再因签名不一致清数据。
             signingConfig = signingConfigs.release
         }

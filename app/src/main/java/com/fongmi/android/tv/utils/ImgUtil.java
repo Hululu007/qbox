@@ -41,7 +41,14 @@ public class ImgUtil {
 
     public static void logo(ImageView view) {
         try {
-            Glide.with(view).load(UrlUtil.convert(VodConfig.get().getConfig().getLogo())).circleCrop().override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL).error(R.drawable.ic_logo).into(view);
+            String logo = VodConfig.get().getConfig().getLogo();
+            // 配置里没写 logo（或加载失败）时用 QBox 自己的 logo；不裁圆，六边形要保持完整。
+            view.setScaleType(FIT_CENTER);
+            if (TextUtils.isEmpty(logo)) {
+                view.setImageResource(R.drawable.ic_logo);
+                return;
+            }
+            Glide.with(view).load(UrlUtil.convert(logo)).override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL).error(R.drawable.ic_logo).into(view);
         } catch (Throwable e) {
             e.printStackTrace();
         }

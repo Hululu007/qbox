@@ -32,7 +32,8 @@ import java.util.stream.Collectors;
 public class VodConfig extends BaseConfig {
 
     private static final String TAG = VodConfig.class.getSimpleName();
-    private static final String DEFAULT_CONFIG = "https://tvbox.laobaitv.net";
+    // 只有 debug 包会拿到测试源；release 里这是空串，官方包默认不带任何源。
+    private static final String DEFAULT_CONFIG = com.fongmi.android.tv.BuildConfig.QBOX_TEST_CONFIG;
 
     private Site home;
     private String wall;
@@ -74,8 +75,10 @@ public class VodConfig extends BaseConfig {
 
     public VodConfig init() {
         Config config = Config.vod();
-        // QBox：首次启动自动载入默认配置（老白 TVBOX），用户可在设置里更换
-        if (config.isEmpty()) config = Config.find(DEFAULT_CONFIG, "老白TVBOX", 0).save();
+        // QBox：只有 debug 包首次启动自动载入测试源；官方 release 保持空壳，由用户导入配置。
+        if (config.isEmpty() && com.fongmi.android.tv.BuildConfig.DEBUG && !DEFAULT_CONFIG.isEmpty()) {
+            config = Config.find(DEFAULT_CONFIG, "老白TVBOX", 0).save();
+        }
         return config(config);
     }
 
@@ -122,7 +125,7 @@ public class VodConfig extends BaseConfig {
             json = Decoder.getJson(UrlUtil.convert(config.getUrl()), TAG);
         } catch (Throwable e) {
             // QBox：默认源拉取失败时回退到内置快照，保证首次启动仍能出站点
-            if (!DEFAULT_CONFIG.equals(config.getUrl())) throw e;
+            if (!com.fongmi.android.tv.BuildConfig.DEBUG || DEFAULT_CONFIG.isEmpty() || !DEFAULT_CONFIG.equals(config.getUrl())) throw e;
             json = readDefaultConfig();
         }
         checkJson(config, Json.parse(json).getAsJsonObject());

@@ -2,6 +2,7 @@
 
     <!-- App -->
     <string name="app_name">QBox</string>
+    <string name="add_source">Add source</string>
 
     <!-- Common -->
     <string name="back">Back</string>

@@ -83,14 +83,14 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
 
     /**
      * QBox 1.9.10：快进改成阶梯加速。
-     * 单次按键 10s（精确）；按住后步长 10s → 20s → 30s → 60s → 120s 逐档放大，
-     * 避免以前「按住 = 每 50ms 跳 10s」那种一松手就飞过头的体感。
+     * 单次按键 10s（精确）；按住后步长 10s → 20s → 30s → 60s → 120s → 180s → 300s
+     * 逐档放大，避免以前「按住 = 每 50ms 跳 10s」那种一松手就飞过头的体感。
      */
     private void seek(KeyEvent event, boolean forward) {
         int repeat = event.getRepeatCount();
         long now = SystemClock.uptimeMillis();
         // 长按的 repeat 事件来得很密：先 200ms 一步，别让第一次长按就飞过头。
-        if (repeat > 0 && now - lastSeekTick < 200) return;
+        if (repeat > 0 && now - lastSeekTick < 300) return;
         lastSeekTick = now;
         long step = stepFor(repeat);
         holdTime += forward ? step : -step;
@@ -101,7 +101,10 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
         if (repeat <= 4) return Constant.INTERVAL_SEEK;
         if (repeat <= 9) return 20_000;
         if (repeat <= 19) return 30_000;
-        return 60_000;
+        if (repeat <= 44) return 60_000;
+        if (repeat <= 69) return 120_000;
+        if (repeat <= 99) return 180_000;
+        return 300_000;
     }
 
     public void reset() {

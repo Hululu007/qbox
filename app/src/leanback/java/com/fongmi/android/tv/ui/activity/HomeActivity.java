@@ -153,7 +153,11 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     protected void initEvent() {
-        mBinding.source.setOnClickListener(v -> showDialog());
+        mBinding.source.setOnClickListener(v -> {
+            // 官方包首次启动没有源：直接进设置页导入配置，不要弹空的站点列表。
+            if (TextUtils.isEmpty(VodConfig.getUrl())) SettingActivity.start(this);
+            else showDialog();
+        });
         mBinding.source.setOnLongClickListener(v -> {
             showDiag();
             return true;
@@ -295,13 +299,27 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void setTitle() {
+        // 官方包首次启动没有源时，左上角直接告诉用户下一步做什么。
+        if (TextUtils.isEmpty(VodConfig.getUrl())) {
+            mBinding.source.setText(R.string.add_source);
+            return;
+        }
         List<String> items = Arrays.asList(getHome().getName(), getConfig().getName(), getString(R.string.app_name));
         Optional<String> optional = items.stream().filter(s -> !TextUtils.isEmpty(s)).findFirst();
         optional.ifPresent(s -> mBinding.source.setText(s));
     }
 
     private void initConfig() {
-        VodConfig.get().init().load(getCallback());
+        // 先让 debug 包应用内置测试源；官方 release 的 init() 不会写入任何源。
+        VodConfig vod = VodConfig.get().init();
+        if (TextUtils.isEmpty(vod.getConfig().getUrl())) {
+            // 官方包默认不带源：保持空壳，不弹加载错误；点左上角「添加配置源」进设置页导入。
+            setRecommendHeader(false);
+            showContent();
+            App.post(() -> mBinding.source.requestFocus(), 400);
+            return;
+        }
+        vod.load(getCallback());
         LiveConfig.get().init().load();
         WallConfig.get().init();
     }
