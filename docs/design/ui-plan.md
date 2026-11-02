@@ -17,6 +17,7 @@
 `v1910-box-vod-firstrow` / `v1910-box-vod-scroll` / `v1910-box-search-mic`
 （1.9.10，第一排焦点环 / 滚动裁切 / 语音搜索入口），
 `v1911-box-home` / `v1911-box-empty`（1.9.11，新 logo / 官方包无源首启），
+`v1912-box-update` / `v1912-box-home`（1.9.12，应用内更新弹窗 / 桌面磁贴白底），
 `v192-home` / `v192-home-scrolled` / `v192-vod` / `v192-filter` / `v192-detail` / `v192-osd` /
 `v192-search` / `v192-search-keyboard`（1.9.2，1080p 投影），
 1.9.1 存档 `v191-home` / `v191-vod` / `v191-filter` / `v191-detail` / `v191-osd`，
@@ -44,6 +45,23 @@
   对话框回到和页面同一套近黑面板。
 - 720p 机顶盒（1280×720 @160dpi）实测：5 列 3:4 海报、一屏 1.5 行，
   分类条 7 个分类、筛选药丸、聚合搜索结果页均正常。
+
+### 1.9.12 增补（应用内更新 / README 开源化）
+
+- **应用内更新（新）**：检查 `https://github.com/zqs1qiwan/qbox/releases/latest`，
+  用 Release tag 与本地 `VERSION_NAME` 比较；有新版时弹窗展示 Release 说明（去掉 Markdown 标记），
+  按 ABI 下载对应 `QBox-<版本>-<abi>.apk`。GitHub API 失败时退回 `releases/latest` 的 302 地址取 tag，
+  避免 API 限流导致检查不到。
+- **安装走 PackageInstaller 会话**：部分电视盒子的系统安装器 Activity 会直接报「应用未安装」
+  （实测本机连 `file://` 本地 APK 都装不上），改为 `PackageInstaller.Session` 提交安装，
+  `UpdateReceiver` 处理用户确认与结果；会话接口异常时才退回系统安装器。
+- **更新弹窗焦点（修）**：说明文字的 `NestedScrollView` 会抢焦点，遥控器按不到「更新 / 取消」；
+  改为说明区不可聚焦，弹窗默认聚焦「更新」。
+- **桌面磁贴（修）**：leanback banner 从「深底 + 图标 + QBox 字标」改成和图标一致的
+  「白底 + 纯 logo」，自适应图标前景 PNG 也自带不透明白底（部分电视桌面不认
+  `<background>` 颜色，会拿默认蓝底兜底）；磁贴下方的应用名由桌面自己渲染，图标里不再重复写字。
+- **README 面向普通用户重写**：功能介绍、下载/安装、配置源、遥控器操作、自动更新、常见问题、
+  隐私与 GPL-3.0 许可；补根目录 `LICENSE`。不再写构建链路与内部实现细节。
 
 ### 1.9.11 增补（品牌 logo / 阶梯快进扩展 / 官方包不带源）
 

@@ -1,4 +1,4 @@
-# QBox branding generator (2026-11)
+﻿# QBox branding generator (2026-11)
 # 用法: powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\make-logo.ps1
 # 输入: branding\qbox-logo.png（透明底、正方形）
 # 输出: 应用内 logo / 桌面图标 / leanback banner / Play 商店图，全部由同一张原图缩放。
@@ -77,25 +77,15 @@ function New-Banner([int]$w, [int]$h) {
     $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
     $g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
     $g.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
-    $g.TextRenderingHint = [System.Drawing.Text.TextRenderingHint]::AntiAliasGridFit
-    $g.Clear([System.Drawing.Color]::FromArgb(0x0B, 0x0B, 0x0F))
-    # 图标占高度的 72%，垂直居中，左边距 = 高度的 10%
-    $glyph = [int]($h * 0.72)
+    # 电视桌面按 banner 显示磁贴：保持和图标一致的「白底 + 纯 logo」，不要文字。
+    $g.Clear([System.Drawing.Color]::White)
+    $glyph = [int]($h * 0.76)
     $ratio = [Math]::Min($glyph / $crop.Width, $glyph / $crop.Height)
     $lw = [int][Math]::Round($crop.Width * $ratio)
     $lh = [int][Math]::Round($crop.Height * $ratio)
-    $lx = [int]($h * 0.10)
+    $lx = [int](($w - $lw) / 2)
     $ly = [int](($h - $lh) / 2)
     $g.DrawImage($src, [System.Drawing.Rectangle]::new($lx, $ly, $lw, $lh), $crop, [System.Drawing.GraphicsUnit]::Pixel)
-    # QBox 字标（单行）
-    $font = [System.Drawing.Font]::new('Segoe UI', [single]($h * 0.26), [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Pixel)
-    $brush = [System.Drawing.SolidBrush]::new([System.Drawing.Color]::White)
-    $textX = $lx + $lw + [int]($h * 0.08)
-    $fmt = [System.Drawing.StringFormat]::new()
-    $fmt.LineAlignment = [System.Drawing.StringAlignment]::Center
-    $fmt.FormatFlags = [System.Drawing.StringFormatFlags]::NoWrap
-    $g.DrawString('QBox', $font, $brush, [System.Drawing.RectangleF]::new($textX, 0, $w - $textX - 8, $h), $fmt)
-    $fmt.Dispose(); $brush.Dispose(); $font.Dispose()
     $g.Dispose()
     return $bmp
 }
@@ -124,8 +114,10 @@ function Save-Jpg($bmp, $path) {
 Write-Host 'QBox branding:'
 # 应用内左上角 logo：透明底，比原来 192 大一档，保证 4K 不糊
 Save-Png (New-Canvas 256 94 $null) (Join-Path $res 'main\res\drawable-nodpi\ic_logo.png')
-# 自适应图标前景：512，glyph 控制在 62%（自适应安全区 66%）
-Save-Png (New-Canvas 512 62 ([System.Drawing.Color]::Transparent)) (Join-Path $res 'main\res\drawable-nodpi\ic_launcher_foreground.png')
+# 自适应图标前景：白色不透明底 + 62% glyph。
+# 有些电视桌面不认 adaptive-icon 的 <background> 颜色，会拿默认蓝色底兜底，
+# 前景自带白底后不管桌面怎么渲染都是干净的白磁贴。
+Save-Png (New-Canvas 512 62 $white) (Join-Path $res 'main\res\drawable-nodpi\ic_launcher_foreground.png')
 # 传统图标：白底，glyph 84%
 $iconSizes = [ordered]@{ 'mdpi' = 48; 'hdpi' = 72; 'xhdpi' = 96; 'xxhdpi' = 144; 'xxxhdpi' = 192 }
 foreach ($k in $iconSizes.Keys) {

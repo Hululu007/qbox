@@ -1,115 +1,110 @@
 # QBox
 
-Android TV 的 TVBox 壳。当前产品线基于 **FongMi/TV 5.6.1** 源码定制（自有品牌、自有签名、默认配置、兼容层），
-目标是与 OK影视（FongMi 系）同等的可用性，再叠加自有 UI/功能。
+**为 Android TV 和电视盒子打造的清爽影视播放器。** 无广告、无捆绑、不强制登录，导入你自己的内容源即可使用。
 
-## 两条线
+> A clean, ad-free video player for Android TV & TV boxes. Bring your own TVBox-compatible source.
 
-| 线 | 说明 | 位置 |
-|---|---|---|
-| **产品壳（主线）** | FongMi/TV 5.6.1 定制，applicationId `com.qbox.app` | 源码仓 [zqs1qiwan/qbox-tv](https://github.com/zqs1qiwan/qbox-tv)，本地构建目录 `fongmi-561/`（gitignore） |
-| 自研 M1 壳 | 纯 Kotlin 三屏原型（配置/jar/ExoPlayer），已被主线取代，保留作参考 | 本仓库 `app/` |
+<p align="center">
+  <img src="docs/screenshots/ui-cinema/v1911-box-home.jpg" width="49%" alt="QBox 首页">
+  <img src="docs/screenshots/ui-cinema/v198-box-detail.jpg" width="49%" alt="QBox 详情页">
+</p>
+
+## 为什么用 QBox
+
+- **干净**：没有开屏广告、没有弹窗、没有后台统计，也不需要注册账号。
+- **好用**：遥控器优先设计，焦点清楚、层级简单，老人小孩也能上手。
+- **自由**：内容源完全由你决定，随时更换，数据只保存在本机。
+- **一直在更新**：内置检查更新，发现新版本一键下载安装。
+
+## 功能
+
+- 电影、剧集、综艺、动漫、短剧，海报墙浏览 + 分类筛选
+- 聚合搜索：一次搜索，同时查多个内容源
+- 直播：支持 m3u / txt 直播源，分组选台
+- 播放记录、收藏、断点续播
+- 多音轨、字幕、倍速、片头片尾、循环播放
+- 播放详情：分辨率、码率、帧率、解码方式一目了然
+- 左右快进阶梯加速：轻按 10 秒，按住可加速到 5 分钟一步
+- 适配 720p / 1080p / 4K 电视，支持 32 位与 64 位设备
 
 ## 下载
 
-- https://github.com/zqs1qiwan/qbox-tv/releases/tag/v1.4.0
-  - `QBox-1.4.0-arm64-v8a.apk`（44.6 MB，主流电视）
-  - `QBox-1.4.0-armeabi-v7a.apk`（38.6 MB，老电视）
-- `minSdk 24`（Android 7+），v2 签名，证书 SHA-256 `f7c4b32c...f63c62a`。
+前往 **[GitHub Releases](https://github.com/zqs1qiwan/qbox/releases/latest)** 下载最新版本：
 
-## 产品特性（v1.4.0）
+| 安装包 | 适用设备 |
+|---|---|
+| `QBox-*-arm64-v8a.apk` | 大多数 2019 年后的电视 / 盒子 |
+| `QBox-*-armeabi-v7a.apk` | 较老的 32 位电视 / 盒子 |
 
-- 自更新已关闭（原指向 FongMi 官方 Release，会误装官方包），改为提示到 GitHub Release 手动下载
-- 首页 hero：配置名 + 站点/直播数 + [首页][直播][设置] 三 tab（1.4.0）
-- 自检：长按「首页」tab弹出「QBox 自检」（版本 / 配置名 / 地址 / 站点数 / 直播数 / jar 缓存 / spider），电视端排障用；验收步骤见 [docs/acceptance.md](docs/acceptance.md)
-- UI 精修：焦点环 3dp、卡片 12dp 圆角、首页标题栏 32dp 边距 + 56dp logo + 28sp 标题、主色 QBox 蓝、窗口底色 #0B0B0F / surface #18181E、行间距 24dp / 网格 20dp / 海报标题 18sp
-- 默认配置拉取失败时回退到内置快照 `assets/qbox_default.json`（49 站点），断网/源跳转变更也能出站点
+- 支持 Android 7.0 及以上
+- 两个包使用相同签名，可以直接覆盖安装，数据不会丢失
 
-- TVBox 配置协议全量：sites / lives / parses / rules / hosts / flags / wallpaper / logo
-- 4 种爬虫运行时：jar（csp_，内置 DexClassLoader）、QuickJS（js）、Python（已裁掉，见下）、HTTP API 站
-- 解析：WebView 嗅探 / JSON API / jar Json / Mix / 超级解析
-- 直播：m3u/txt 订阅、EPG、分组选台
-- 播放：ExoPlayer + MPV 双引擎（media3 fork 由本项目自编）、多轨/字幕/倍速/续播
-- 数据：Room（历史/收藏/配置/站点设置）
-- 默认配置：`https://tvbox.laobaitv.net`（老白 TVBOX；实测 49 站点、6 路直播）
-- 首次启动自动载入默认配置；设置页可随时更换
+## 安装
 
-## 开发
+1. 下载与你设备架构匹配的 APK
+2. 用 U 盘、电视文件管理器或手机传输工具安装（首次安装需允许「未知来源」）
+3. 打开 QBox，点击左上角 **添加配置源**
+4. 粘贴你的配置地址，确定，回到首页即可开始使用
 
-```powershell
-.\scripts\build-media-aars.cmd       # 新克隆必跑一次：编 media3 fork 的 18 个 aar 到 app/libs
-.\scripts\build.cmd                  # release，arm64 + v7a
-.\scripts\build.cmd -Variant Debug   # 快速编译验证
-.\scripts\test.cmd                   # Robolectric：配置 + 直播
-```
+## 配置源
 
-脚本会自动把 JDK/SDK/Gradle/TMP 指到 `.toolchain/`，不用手工设环境变量；
-模块职责、配置→爬虫→播放的数据流、以及"改哪里"的对照表见 [docs/architecture.md](docs/architecture.md)。
+QBox **不内置、不提供任何影视内容或配置源**，需要你自己准备 TVBox 格式的配置。
 
-## 构建（Windows 已验证）
+- 支持网络地址、本地文件等常见配置格式
+- 设置页可以分别管理点播、直播、壁纸配置
+- 配置里带有 `logo` 时，左上角显示配置的 logo；没有则显示 QBox 自己的 logo
+- 首次打开是空白首页，点「添加配置源」即可导入，之后可在设置里随时更换
 
-工具链全部在 `.toolchain/`（gitignore，约 8 GB）：
+## 遥控器操作
 
-```
-JDK 21 (Temurin 21.0.12.1)
-Android SDK 36/37 + build-tools 36/37 + platform-tools
-NDK 29.0.14206865 + CMake 3.22.1
-Gradle 9.7.1（TV 5.6.1 构建）/ 9.1.0（media fork 构建）
-```
+| 场景 | 按键 |
+|---|---|
+| 首页 | 方向键选片，OK 进入；长按配置名可查看当前状态 |
+| 播放 | OK 暂停 / 播放（可在设置里改为呼出菜单） |
+| 播放 | 左右快进 / 快退；按住逐渐加速，最大 5 分钟一步 |
+| 播放 | 上呼出进度条，左右微调，下返回 |
+| 全局 | 返回键退出当前页面 |
 
-1. **媒体层**（一次性）：`media/` 是 FongMi/media 的 `release-1.11.0-fongmi` 分支，
-   构建 18 个 Java 模块的 `lib-*-release.aar`，拷进 `fongmi-561/app/libs/`。
-2. **应用**：
+## 自动更新
 
-```powershell
-$env:JAVA_HOME="<repo>\.toolchain\jdk-extract\jdk-21.0.12.1+1"
-$env:ANDROID_HOME="<repo>\.toolchain\android-sdk"
-$env:ANDROID_USER_HOME="<repo>\.toolchain\android-user-home"
-$env:GRADLE_USER_HOME="<repo>\.toolchain\gradle-home"
-$env:TMP="$env:TEMP"<repo>\.toolchain\tmp"   # 必须指到工作区内
-cd fongmi-561
-.\gradlew.bat :app:assembleLeanbackArm64_v8aRelease :app:assembleLeanbackArmeabi_v7aRelease
-```
+QBox 会检查 GitHub 最新版本：
 
-产物：`fongmi-561/app/build/outputs/apk/leanback*/release/*.apk`。
-签名密钥：`app/qbox-release.jks` + `keystore.properties`（本仓库，已入库）。
+- 启动时自动检查（有新版才弹窗）
+- 设置 → 版本，可随时手动检查
+- 弹窗里点「更新」即可下载并安装，无需手动找安装包
+- 如果网络无法访问 GitHub，可以到 Releases 页面手动下载
 
-## 已验证
+## 常见问题
 
-- **配置链路（壳内真实代码，可复现）**：Robolectric 测试 `ConfigPipelineTest` 直接调用
-  `com.fongmi.android.tv.api.Decoder.getJson("https://tvbox.laobaitv.net")`，输出
-  `QBOX_TEST_OK sites=49 spider=https://...jpg;md5;b55978c4...`。
-  运行：`.\gradlew.bat :app:testLeanbackArm64_v8aDebugUnitTest --tests "com.qbox.ConfigPipelineTest"`
-- 默认配置链路：302 → `www.xn--sss604efuw.cc/tv`，JPEG 伪装 + `**` 后接 base64 JSON；
-  解码后 49 站点（46 `csp_` + 3 HTTP）、6 路直播。
-- spider 包：`.../e05f...jpg` 实为 zip（`classes.dex`），MD5 与配置声明一致
-  （`b55978c4fe6d12e2fea9075f17c8a67a`），dex 内 76 个 `com.github.catvod.spider.*Guard` 类。
-- APK：`com.qbox.app` / label `QBox` / v1.0.3 / v2 签名通过 / arm64 44.6MB + armv7 38.6MB；
-  图标、leanback banner、首页 logo 已换成 QBox 自有设计（深色圆角 + 环形播放标记）。
-- 兜底：`QBOX_FALLBACK_OK sites=49`，内置 `qbox_default.json` 与线上配置同构，默认源不可达时仍能进首页。
-- **直播链路（同样走壳内代码）**：`LiveParseTest` 用 `LiveParser.start()` 拉默认配置里的直播源，
-  5 个源全部解析成功（综合直播 141 / Kimentanm 120 / 虎牙 1035 / 斗鱼 935 / YY 轮播 444，共 2675 频道），
-  并探到真实流：`http://173.208.212.130:8181/720p/cctv1.m3u8 -> 206 application/vnd.apple.mpegurl`。
-  运行：`.\gradlew.bat :app:testLeanbackArm64_v8aDebugUnitTest --tests "com.qbox.*"`。
+**安装时提示「应用未安装」？**
+确认安装包架构与设备匹配；删除旧版残留或清理存储空间后重试。仍不行可用 U 盘重新拷贝安装。
 
-## 已知限制
+**能播放但很卡？**
+在播放页按「更多」切换硬解 / 软解，或返回详情页换一条线路、换一个内容源。
 
-- **Python 爬虫已裁掉**（Chaquopy 需要宿主 Python 3.10 才能构建），py 类型站点会回退空实现。
-- FFmpeg 解码器未编（`lib-decoder-ffmpeg` 需要 NDK 原生编译），`解码模式=FFMPEG` 不可用；MPV 引擎可用。
-- 界面主体仍是 FongMi 原版 leanback 布局，只做了品牌层（图标/banner/logo/名称），首页 hero/tab 结构未重做。
-- 未在真机/模拟器上做端到端播放验证：本机模拟器（WHPX 与纯 TCG 都试过）在沙箱内启动即退出——
-  qemu 需要 Windows 命名管道，而沙箱禁止命名管道；真机验收需用户电视。
-- **老白 spider jar 是加固包**：dex 里只有 `*Guard` 薄壳类，全部继承 `BaseSpiderGuard`，
-  通过 `DexNative` + `assets/ftyguard_v7|v8.so` 在运行时解出真实实现。所以拿 dex 转 JVM 类也只能跑到
-  `init()` 就 NPE（delegate 为空），播放链路无法脱离 Android 运行时验证。
+**只有声音没有画面？**
+切换解码方式或视轨；部分片源与设备解码器不兼容，换源通常可以解决。
 
-## 仓库结构
+**语音搜索用不了？**
+部分电视盒子没有内置语音识别服务，可以用遥控器直接输入；QBox 会给出提示。
 
-```
-app/                自研 M1 壳（Kotlin，历史）
-docs/agent-notes/   研究笔记、构建手册、拆解方法
-.toolchain/         本机工具链（gitignore）
-fongmi-561/         产品源码 worktree（gitignore，推送到 qbox-tv）
-media/              media3 fork 源码（gitignore，用于编 aar）
-dist/               构建产物（gitignore）
-```
+**检查更新失败？**
+说明当前网络无法访问 GitHub。到 [Releases](https://github.com/zqs1qiwan/qbox/releases/latest) 手动下载即可。
+
+## 隐私
+
+- 不收集个人信息，不接入统计或广告 SDK
+- 不需要账号，不会上传你的播放记录
+- 配置、历史、收藏均保存在本机，卸载即清除
+
+## 反馈
+
+遇到问题或有建议，欢迎提交 [Issue](https://github.com/zqs1qiwan/qbox/issues)。
+
+## 致谢与许可
+
+QBox 基于 [FongMi/TV](https://github.com/FongMi/TV) 二次开发，遵循 **GPL-3.0** 许可证。
+播放能力来自 AndroidX Media3 / ExoPlayer 与 MPV。
+
+本项目仅用于学习与个人使用。QBox 本身不提供任何影视资源，所有内容均来自用户自行导入的配置源。
+请遵守你所在地区的法律法规，支持正版内容。
