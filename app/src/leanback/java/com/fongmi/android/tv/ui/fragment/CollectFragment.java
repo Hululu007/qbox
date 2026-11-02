@@ -78,6 +78,9 @@ public class CollectFragment extends BaseFragment implements CustomScroller.Call
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
         mBinding.recycler.addOnScrollListener(mScroller = new CustomScroller(this));
         mBinding.recycler.setHeader(getActivity(), R.id.result, R.id.recycler);
+        // 搜索结果页保持标题 + 站点 tab 常驻，不随下移收起：
+        // 收起后 pager 会向上顶到工具栏，第一排海报的焦点框上沿会被裁掉。
+        mBinding.recycler.setHideHeaderEnabled(false);
         mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(16));
         // 聚合搜索页的 pager 已经在头部（标题 + 站点 tab）下面，不需要再让 144dp，
         // 否则 tab 和海报之间会空出一大块。

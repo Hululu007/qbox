@@ -26,6 +26,7 @@ public class CustomVerticalGridView extends VerticalGridView {
     private boolean pressDown;
     private boolean pressUp;
     private boolean moveTop;
+    private boolean hideHeaderEnabled = true;
     private int clipTop;
 
     public CustomVerticalGridView(@NonNull Context context) {
@@ -47,10 +48,18 @@ public class CustomVerticalGridView extends VerticalGridView {
         setOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
             @Override
             public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable ViewHolder child, int position, int subposition) {
-                if (pressDown && position == 1) hideHeader();
-                if (pressUp && position == 0) showHeader();
+                if (hideHeaderEnabled && pressDown && position == 1) hideHeader();
+                if (hideHeaderEnabled && pressUp && position == 0) showHeader();
             }
         });
+    }
+
+    /**
+     * 聚合搜索页不要收顶部标题/站点 tab：收了以后 pager 往上顶，
+     * 第一排海报会贴到工具栏下面，焦点框上沿被裁掉。
+     */
+    public void setHideHeaderEnabled(boolean enabled) {
+        this.hideHeaderEnabled = enabled;
     }
 
     public void setHeader(FragmentActivity activity, int... layoutIds) {
