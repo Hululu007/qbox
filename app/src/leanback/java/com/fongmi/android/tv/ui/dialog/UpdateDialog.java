@@ -56,6 +56,8 @@ public class UpdateDialog extends BaseAlertDialog {
     protected void initView() {
         binding.version.setText(title);
         binding.desc.setText(desc);
+        // 遥控器：默认聚焦「更新」，避免焦点落在说明文字上按不到按钮。
+        binding.getRoot().post(() -> binding.confirm.requestFocus());
     }
 
     @Override

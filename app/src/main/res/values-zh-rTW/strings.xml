@@ -3,6 +3,11 @@
     <!-- App -->
     <string name="app_name">QBox</string>
     <string name="add_source">新增來源</string>
+    <string name="update_latest">已是最新版本</string>
+    <string name="update_failed">檢查更新失敗，請稍後再試</string>
+    <string name="update_found">發現新版本，是否下載並安裝？</string>
+    <string name="update_install_success">安裝完成，QBox 將重新啟動</string>
+    <string name="update_install_failed">安裝失敗，請到 GitHub Release 手動下載新版本</string>
 
     <!-- Common -->
     <string name="back">返回</string>

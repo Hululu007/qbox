@@ -3,6 +3,11 @@
     <!-- App -->
     <string name="app_name">QBox</string>
     <string name="add_source">Add source</string>
+    <string name="update_latest">You\'re up to date</string>
+    <string name="update_failed">Failed to check for updates. Try again later.</string>
+    <string name="update_found">A new version is available. Download and install?</string>
+    <string name="update_install_success">Installed. QBox will restart.</string>
+    <string name="update_install_failed">Installation failed. Please download the new version from GitHub Releases.</string>
 
     <!-- Common -->
     <string name="back">Back</string>
