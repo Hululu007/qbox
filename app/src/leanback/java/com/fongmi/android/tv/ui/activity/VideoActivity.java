@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.text.TextUtils;
 import android.text.style.ClickableSpan;
 import android.view.KeyEvent;
@@ -142,6 +143,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private boolean seeking;
     private boolean seekFocus;
     private long seekBase;
+    private long lastSeekKeyTick;
     private final Runnable mHideControl = this::hideControl;
 
     /** 播放器 buffering/ready 时会把焦点甩回画面层，这里按需把焦点钉回进度条。 */
@@ -1678,7 +1680,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
         View focus = getCurrentFocus();
         if (focus == null) return false;
-        if (isInside(mBinding.control.seekBox, focus)) return onSeekBarKey(event.getKeyCode());
+        if (isInside(mBinding.control.seekBox, focus)) return onSeekBarKey(event);
         boolean inExtra = isInExtra(focus);
         boolean inMain = isInside(mBinding.control.action.main, focus);
         if (!inExtra && !inMain) return false;
@@ -1711,14 +1713,18 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     /** 进度条聚焦后的按键：左右 ±10s（立即 seek，进度条跟着走），下键回动作行。 */
-    private boolean onSeekBarKey(int keyCode) {
-        switch (keyCode) {
-            case KeyEvent.KEYCODE_DPAD_LEFT:
-                seekBy(-SEEK_STEP_MS);
+    private boolean onSeekBarKey(KeyEvent event) {
+        switch (event.getKeyCode()) {
+            case KeyEvent.KEYCODE_DPAD_LEFT: {
+                long step = seekStep(event);
+                if (step > 0) seekBy(-step);
                 return true;
-            case KeyEvent.KEYCODE_DPAD_RIGHT:
-                seekBy(SEEK_STEP_MS);
+            }
+            case KeyEvent.KEYCODE_DPAD_RIGHT: {
+                long step = seekStep(event);
+                if (step > 0) seekBy(step);
                 return true;
+            }
             case KeyEvent.KEYCODE_DPAD_DOWN:
                 seekFocus = false;
                 mBinding.control.action.playPause.requestFocus();
@@ -1730,6 +1736,23 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
             default:
                 return true;
         }
+    }
+
+    /**
+     * 进度条焦点态也走阶梯加速：轻按 10s；按住后 20s / 30s / 60s / 120s。
+     * repeat 事件间再加 110ms 节流，避免长按瞬间飞出很远。
+     */
+    private long seekStep(KeyEvent event) {
+        int repeat = event.getRepeatCount();
+        if (repeat > 0) {
+            long now = SystemClock.uptimeMillis();
+            if (now - lastSeekKeyTick < 200) return 0;
+            lastSeekKeyTick = now;
+        }
+        if (repeat <= 4) return SEEK_STEP_MS;
+        if (repeat <= 9) return 20_000;
+        if (repeat <= 19) return 30_000;
+        return 60_000;
     }
 
     private void seekBy(long delta) {

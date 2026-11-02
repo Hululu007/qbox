@@ -442,6 +442,7 @@
     <string name="setting_group_system">系统</string>
     <string name="setting_group_maintain">维护</string>
     <string name="search_mic">语音搜索</string>
+    <string name="search_mic_unavailable">当前设备没有语音识别服务，请用遥控器输入</string>
     <string name="setting_decode_title">解码设置</string>
     <string name="setting_preload_title">预加载</string>
     <string name="action_home">设为首页</string>

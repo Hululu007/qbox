@@ -442,6 +442,7 @@
     <string name="setting_group_system">系統</string>
     <string name="setting_group_maintain">維護</string>
     <string name="search_mic">語音搜尋</string>
+    <string name="search_mic_unavailable">目前裝置沒有語音辨識服務，請用遙控器輸入</string>
     <string name="setting_decode_title">解碼設定</string>
     <string name="setting_preload_title">預載入</string>
     <string name="action_home">設為首頁</string>

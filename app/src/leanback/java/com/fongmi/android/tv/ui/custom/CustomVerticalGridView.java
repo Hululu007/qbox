@@ -72,7 +72,7 @@ public class CustomVerticalGridView extends VerticalGridView {
 
     @Override
     protected void dispatchDraw(@NonNull Canvas canvas) {
-        if (clipTop <= 0) {
+        if (clipTop < 0) {
             super.dispatchDraw(canvas);
             return;
         }

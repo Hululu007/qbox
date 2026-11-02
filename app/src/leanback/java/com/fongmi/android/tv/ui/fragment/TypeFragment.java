@@ -132,6 +132,8 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         selector.addPresenter(ListRow.class, new CustomRowPresenter(8, FocusHighlight.ZOOM_FACTOR_NONE, HorizontalGridView.FOCUS_SCROLL_ALIGNED), FilterPresenter.class);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
         mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(16));
+        // 裁切线必须比第一排聚焦放大的焦点环更靠上：盒子 density=2.0，
+        // 120dp 时环顶边正好落在 240px 被切掉；114dp（228px）留 6px 余量。
         mBinding.recycler.setClipTop(getResources().getDimensionPixelSize(R.dimen.qbox_header_clip));
     }
 

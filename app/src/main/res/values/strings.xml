@@ -452,6 +452,7 @@
     <string name="setting_group_system">System</string>
     <string name="setting_group_maintain">Maintenance</string>
     <string name="search_mic">Voice search</string>
+    <string name="search_mic_unavailable">Voice search is not available on this device. Use the remote keyboard.</string>
     <string name="setting_decode_title">Decode</string>
     <string name="setting_preload_title">Preload</string>
     <string name="action_home">Set as home</string>

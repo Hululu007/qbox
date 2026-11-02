@@ -19,6 +19,7 @@ import androidx.fragment.app.FragmentActivity;
 
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.utils.KeyUtil;
+import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.github.bassaer.library.MDColor;
@@ -33,6 +34,7 @@ public class CustomMic extends AppCompatImageView {
     private FragmentActivity mActivity;
     private boolean mAvailable;
     private boolean mListen;
+    private boolean mUnavailable;
 
     public CustomMic(@NonNull Context context) {
         super(context);
@@ -67,7 +69,12 @@ public class CustomMic extends AppCompatImageView {
     private void initSpeech() {
         if (isAvailable()) initRecognizer();
         else if (hasResolveActivity()) initLauncher();
-        else setVisibility(GONE);
+        else {
+            // 设备没有语音识别服务时不再隐藏入口（用户会以为不支持），
+            // 保留灰色图标，点击时明确提示不可用。
+            mUnavailable = true;
+            setColorFilter(0x66FFFFFF, android.graphics.PorterDuff.Mode.SRC_IN);
+        }
     }
 
     private boolean hasResolveActivity() {
@@ -90,7 +97,8 @@ public class CustomMic extends AppCompatImageView {
     public void start() {
         if (mActivity == null) return;
         if (isAvailable()) startRecognizer();
-        else launchIntent();
+        else if (mLauncher != null) launchIntent();
+        else if (mUnavailable) Notify.show(R.string.search_mic_unavailable);
     }
 
     private void startRecognizer() {
