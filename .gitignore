@@ -3,9 +3,16 @@
 .gradle
 .github
 .settings
+.DS_Store
+*.iml
 *build
 *.jks
 *.properties
 lib-*.aar
 /Release
 /docs
+captures/
+.cxx/
+.kotlin/
+*.log
+tmp-*

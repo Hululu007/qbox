@@ -11,8 +11,9 @@
     <dimen name="qbox_tabs_height">42dp</dimen>
     <dimen name="qbox_content_top">144dp</dimen>
 
-    <!-- 聚合搜索/多源详情页：pager 已经在头部下面，只需要一点点呼吸位。 -->
-    <dimen name="qbox_content_top_inset">12dp</dimen>
+    <!-- 聚合搜索/多源详情页：pager 已经在头部下面。
+         卡片不放大（ZOOM_FACTOR_NONE），16dp 足够让第一排焦点环和白边完整露出来。 -->
+    <dimen name="qbox_content_top_inset">16dp</dimen>
     <dimen name="qbox_content_bottom">24dp</dimen>
 
     <!-- 列表绘制裁切线：120dp 会把第一排聚焦放大的焦点环顶边切掉（density=2.0 实测），
