@@ -7,7 +7,7 @@
 
 - 基于 FongMi/TV **5.6.1**，`applicationId com.qbox.app`，label `QBox`
 - 发布分支 `ui-cinema`，`main` 同步
-- 当前版本在 `app/build.gradle`（写这份笔记时是 1.9.14 / 72）
+- 当前版本在 `app/build.gradle`（写这份笔记时是 1.9.15 / 73）
 - 媒体层不在 Maven：`app/libs/*.aar` 由 FongMi/media `release-1.11.0-fongmi` 自编
 - Python 爬虫已移除：`chaquo/` 模块已删，`com.fongmi.chaquo.Loader` 是空实现
 - release 不内置任何内容源：`QBOX_TEST_CONFIG` 仅在 debug 有值，`qbox_default.json` 只在 `src/debug/assets`
