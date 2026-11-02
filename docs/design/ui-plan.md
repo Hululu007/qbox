@@ -16,6 +16,7 @@
 `v199-box-home` / `v199-box-setting-player`（1.9.9，对比度/二级设置页头部/聚焦反色），
 `v1910-box-vod-firstrow` / `v1910-box-vod-scroll` / `v1910-box-search-mic`
 （1.9.10，第一排焦点环 / 滚动裁切 / 语音搜索入口），
+`v1911-box-home` / `v1911-box-empty`（1.9.11，新 logo / 官方包无源首启），
 `v192-home` / `v192-home-scrolled` / `v192-vod` / `v192-filter` / `v192-detail` / `v192-osd` /
 `v192-search` / `v192-search-keyboard`（1.9.2，1080p 投影），
 1.9.1 存档 `v191-home` / `v191-vod` / `v191-filter` / `v191-detail` / `v191-osd`，
@@ -43,6 +44,24 @@
   对话框回到和页面同一套近黑面板。
 - 720p 机顶盒（1280×720 @160dpi）实测：5 列 3:4 海报、一屏 1.5 行，
   分类条 7 个分类、筛选药丸、聚合搜索结果页均正常。
+
+### 1.9.11 增补（品牌 logo / 阶梯快进扩展 / 官方包不带源）
+
+- **新品牌 logo（换）**：源图 `branding/qbox-logo.png`（蓝六边形 Q + 红播放三角 + 右下尾巴），
+  用 `scripts/make-logo.ps1` 一次生成应用内左上角 `ic_logo`、自适应图标前景、
+  mdpi～xxxhdpi 传统图标 / 圆形图标、Play 商店 512 图、leanback 640×360 banner。
+  图标背景改白（`qbox_icon_bg`），banner 走 `@drawable/ic_banner`（去掉原来的自适应 banner，
+  否则 TV 桌面会把方形图标塞进 16:9 位置）。
+- **左上角 logo 回退规则（明确）**：配置 JSON 顶层写了 `logo` 就显示配置 logo（`FIT_CENTER`，不再裁圆）；
+  没写或加载失败时显示 QBox 自己的 logo。首页左上角与移动端首页共用 `ImgUtil.logo()`。
+- **左右快进继续加档（改）**：单次 10s；按住后 `10 → 20 → 30 → 60 → 120 → 180 → 300s`
+  逐档放大，节流 300ms。真机实测：按住 3 秒约 +7 分 40 秒，5 秒约 +25 分，10 秒后进入 300s/步；
+  进度条焦点态（控制条按「上」）同一套曲线。
+- **官方 release 默认不带源（改，重要）**：`BuildConfig.QBOX_TEST_CONFIG` 只在 debug 里有值
+  （`https://tvbox.laobaitv.net`），release 是空串；`VodConfig.init()` 只在 debug 自动写入测试源，
+  `qbox_default.json` 也从 `main/assets` 移到 `debug/assets`。release APK 内已确认
+  既没有该 URL 字符串、也没有兜底 JSON。首启空壳显示「添加配置源」白色药丸（自动聚焦），
+  OK 直达设置页导入；不再弹加载错误，也不再显示空的「更新推荐」标题。
 
 ### 1.9.10 增补（第一排焦点环 / 阶梯快进 / 语音搜索入口）
 
