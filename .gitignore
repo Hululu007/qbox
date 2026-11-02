@@ -1,0 +1,20 @@
+# 本机/代理笔记，不公开
+AGENTS.md
+STATUS.md
+
+# 签名与本地配置
+*.jks
+*.keystore
+keystore.properties
+local.properties
+
+# 构建产物与本地目录
+.gradle/
+build/
+dist/
+fongmi/
+fongmi-561/
+media/
+.toolchain/
+*.log
+tmp-*
