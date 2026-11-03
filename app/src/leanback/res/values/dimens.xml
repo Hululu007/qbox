@@ -11,6 +11,10 @@
     <dimen name="qbox_tabs_height">42dp</dimen>
     <dimen name="qbox_content_top">144dp</dimen>
 
+    <!-- 顶栏 + 分类条的下沿（22 + 46 + 2 + 6 + 42 = 118dp）。
+         列表绘制的硬下限：再往上画就会盖住分类条。 -->
+    <dimen name="qbox_header_total">118dp</dimen>
+
     <!-- 聚合搜索/多源详情页：pager 已经在头部下面。
          这里保留和分类页一致的聚焦放大（ZOOM_FACTOR_SMALL，约 1.1 倍），
          顶部留 32dp 给放大后多出来的约 11dp + 焦点框呼吸位，

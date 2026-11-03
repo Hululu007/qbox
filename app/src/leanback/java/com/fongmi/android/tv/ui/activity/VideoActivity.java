@@ -1538,6 +1538,12 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         }
     }
 
+    /** 暂停/恢复的意图一变就刷新按钮，不再等 isPlaying 跟着变（缓冲时两者不同步）。 */
+    @Override
+    public void onPlayWhenReadyChanged(boolean playWhenReady, int reason) {
+        if (isOwner()) updatePlayPause();
+    }
+
     @Override
     protected void onSizeChanged(VideoSize size) {
         mBinding.widget.size.setText(player().getSizeText());
@@ -1598,17 +1604,28 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     /** 控制栏里的播放/暂停按钮：和 OK 键走同一套状态判断。 */
     private void onPlayPause() {
         if (service() == null) return;
+        // 播完以后再按，用户想的是「重播」，不是「暂停一个已经停住的画面」。
+        if (isEnded()) {
+            onReplay();
+            updatePlayPause();
+            return;
+        }
         if (player().isPlayWhenReady()) onPaused();
         else if (player().isEmpty()) onRefresh();
         else onPlay();
         updatePlayPause();
     }
 
-    /** 按钮文字跟随播放意图：缓冲中也显示「暂停」，避免按钮在加载时乱跳。 */
+    /**
+     * 按钮文字跟随真实播放意图。
+     * 之前只看 isPlayWhenReady：播完（ENDED）时它仍是 true，按钮会停在「暂停」，
+     * 用户看到的是「已经播完了却写着暂停」。这里把 ENDED 也算成可播放态。
+     */
     private void updatePlayPause() {
         if (service() == null || mBinding == null) return;
         try {
-            mBinding.control.action.playPause.setText(player().isPlayWhenReady() ? R.string.pause : R.string.play);
+            boolean canPlay = isEnded() || !player().isPlayWhenReady();
+            mBinding.control.action.playPause.setText(canPlay ? R.string.play : R.string.pause);
         } catch (Throwable ignored) {
         }
     }
@@ -1660,6 +1677,10 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
             setR1Callback();
             mFocus2 = focus;
         }
+        // 详情页（非全屏）的纵向焦点链在 Activity 层显式路由。
+        // 之前靠 nextFocusDown 指向 HorizontalGridView 的 id，而网格本身不可聚焦，
+        // DOWN 会直接失败：焦点停在「线路」标签上，选集/倒序永远下不去（遥控器像坏了）。
+        if (!isFullscreen() && event.getAction() == KeyEvent.ACTION_DOWN && routeDetailFocus(event)) return true;
         // 画面侧的操作（快进/上下/OK）只在控制条没拿到焦点时生效：
         // 快进时控制条是「借」出来显示进度的，焦点仍在画面上，所以连续按左右可以一直快进。
         if (isFullscreen() && !panelFocused && mKeyDown.hasEvent(event) && service() != null) {
@@ -1670,6 +1691,44 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         if (KeyUtil.isMediaFastForward(event)) return onSeekForward();
         if (KeyUtil.isMediaRewind(event)) return onSeekBack();
         return super.dispatchKeyEvent(event);
+    }
+
+    /** 详情页纵向焦点闭环：播放器/动作行 → 线路 → 选集 → 倒序/线路分页 → 快捷行，反向逐级回退。 */
+    private boolean routeDetailFocus(KeyEvent event) {
+        View focus = getCurrentFocus();
+        if (focus == null) return false;
+        boolean down = event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN;
+        boolean up = event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP;
+        if (!down && !up) return false;
+        if (down) {
+            if (isInside(mBinding.video, focus) || isInside(mBinding.row2, focus))
+                return focusRow(mBinding.flag) || focusRow(mBinding.quality) || focusRow(mBinding.episode) || focusRow(mBinding.array);
+            if (isInside(mBinding.flag, focus) || isInside(mBinding.quality, focus))
+                return focusRow(mBinding.episode) || focusRow(mBinding.array) || focusRow(mBinding.part);
+            if (isInside(mBinding.episode, focus))
+                return focusRow(mBinding.array) || focusRow(mBinding.part) || focusRow(mBinding.quick);
+            if (isInside(mBinding.array, focus))
+                return focusRow(mBinding.part) || focusRow(mBinding.quick);
+            if (isInside(mBinding.part, focus)) return focusRow(mBinding.quick);
+            return false;
+        }
+        if (isInside(mBinding.episode, focus)) return focusRow(mBinding.flag) || focusRow(mBinding.quality) || mBinding.video.requestFocus();
+        if (isInside(mBinding.flag, focus) || isInside(mBinding.quality, focus)) return mBinding.video.requestFocus();
+        if (isInside(mBinding.row2, focus) || isInside(mBinding.video, focus)) return mBinding.video.requestFocus();
+        if (isInside(mBinding.array, focus)) return focusRow(mBinding.episode) || focusRow(mBinding.flag) || mBinding.video.requestFocus();
+        if (isInside(mBinding.part, focus)) return focusRow(mBinding.array) || focusRow(mBinding.episode);
+        if (isInside(mBinding.quick, focus)) return focusRow(mBinding.part) || focusRow(mBinding.array);
+        return false;
+    }
+
+    /** 聚焦到某个横向行里的第一个可聚焦 item（网格容器本身不可聚焦，不能直接 requestFocus）。 */
+    private boolean focusRow(ViewGroup row) {
+        if (row == null || row.getVisibility() != View.VISIBLE) return false;
+        for (int i = 0; i < row.getChildCount(); i++) {
+            View child = row.getChildAt(i);
+            if (child.getVisibility() == View.VISIBLE && child.isFocusable() && child.requestFocus()) return true;
+        }
+        return false;
     }
 
     /**

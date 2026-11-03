@@ -84,6 +84,21 @@ public class ConfigDialog extends BaseAlertDialog {
         binding.positive.setText(edit ? R.string.dialog_edit : R.string.dialog_positive);
         binding.code.setImageBitmap(QRCode.getBitmap(Server.get().getAddress(4), 200, 0));
         binding.info.setText(ResUtil.getString(R.string.push_info, Server.get().getAddress()).replace("\uff0c", "\n"));
+        // 说明文字是静态文案，不可聚焦：之前 focusable=true 却没有焦点态，
+        // 遥控器按上去像"失灵"（没有白框、按 OK 也没反应）。
+        binding.info.setFocusable(false);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        setWidth(0.55f);
+        EventBus.getDefault().register(this);
+        // 弹窗默认没有任何焦点：遥控器第一下按 OK 不会触发「确定」，用户以为卡死。
+        // 进弹窗先把焦点放在主操作「确定」，按上可到地址输入框。
+        binding.getRoot().post(() -> {
+            if (binding != null && isAdded()) binding.positive.requestFocus();
+        });
     }
 
     @Override
@@ -153,13 +168,6 @@ public class ConfigDialog extends BaseAlertDialog {
         binding.name.setText(event.name());
         binding.text.setText(event.text());
         binding.text.setSelection(binding.text.getText().length());
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        setWidth(0.55f);
-        EventBus.getDefault().register(this);
     }
 
     @Override

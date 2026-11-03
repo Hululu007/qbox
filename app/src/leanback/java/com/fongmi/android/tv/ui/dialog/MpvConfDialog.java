@@ -78,6 +78,9 @@ public class MpvConfDialog extends BaseAlertDialog {
         super.onStart();
         setWidth(0.55f);
         EventBus.getDefault().register(this);
+        binding.getRoot().post(() -> {
+            if (binding != null && isAdded()) binding.positive.requestFocus();
+        });
     }
 
     @Override

@@ -49,6 +49,7 @@ public class UaDialog extends BaseAlertDialog {
         binding.text.setSelection(TextUtils.isEmpty(text) ? 0 : text.length());
         binding.code.setImageBitmap(QRCode.getBitmap(Server.get().getAddress(4), 200, 0));
         binding.info.setText(ResUtil.getString(R.string.push_info, Server.get().getAddress()).replace("\uff0c", "\n"));
+        binding.info.setFocusable(false);
     }
 
     @Override
@@ -102,6 +103,9 @@ public class UaDialog extends BaseAlertDialog {
         super.onStart();
         setWidth(0.55f);
         EventBus.getDefault().register(this);
+        binding.getRoot().post(() -> {
+            if (binding != null && isAdded()) binding.positive.requestFocus();
+        });
     }
 
     @Override

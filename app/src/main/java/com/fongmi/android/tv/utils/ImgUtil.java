@@ -1,10 +1,11 @@
 package com.fongmi.android.tv.utils;
 
-import static android.widget.ImageView.ScaleType.CENTER_CROP;
 import static android.widget.ImageView.ScaleType.FIT_CENTER;
+import static android.widget.ImageView.ScaleType.MATRIX;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 import android.view.View;
@@ -14,7 +15,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.RequestBuilder;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.load.model.GlideUrl;
@@ -75,16 +75,61 @@ public class ImgUtil {
     }
 
     public static void load(String text, String url, ImageView view, boolean vod) {
-        view.setScaleType(vod ? CENTER_CROP : FIT_CENTER);
+        view.setScaleType(vod ? MATRIX : FIT_CENTER);
         if (!vod) view.setVisibility(TextUtils.isEmpty(url) ? View.GONE : View.VISIBLE);
-        if (TextUtils.isEmpty(url) || failed.contains(url)) view.setImageDrawable(getTextDrawable(text, vod));
-        else try {
-            RequestBuilder<Drawable> builder = Glide.with(view).load(getUrl(url)).listener(getListener(text, url, view, vod));
-            if (vod) builder.centerCrop().into(view);
-            else builder.fitCenter().into(view);
+        if (TextUtils.isEmpty(url) || failed.contains(url)) {
+            // 占位图/失败兜底用居中适配，不能套顶对齐矩阵（会把文字图标拉爆）。
+            view.setScaleType(FIT_CENTER);
+            view.setImageDrawable(getTextDrawable(text, vod));
+        } else try {
+            // 不要用 centerCrop()：那会把"居中裁剪"直接烤进解码结果，顶对齐矩阵就失效了。
+            // dontTransform() 让 Glide 只按 View 尺寸解码、不做任何几何变换，
+            // 原始宽高比完整保留，铺满与裁剪全部交给后面的顶对齐矩阵（避免二次缩放变糊）。
+            Glide.with(view).load(getUrl(url)).dontTransform().listener(getListener(text, url, view, vod)).into(view);
         } catch (Throwable e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 海报顶对齐裁剪（top-start crop）。
+     *
+     * <p>卡片是 3:4，海报图多数是 2:3，CENTER_CROP 会在上下各裁掉约 5%——
+     * 海报标题文字正好在顶部，被一条水平线切掉半截，焦点放大后尤其扎眼
+     * （用户看起来就是"海报上部分被 tab 切了"）。改成矩阵裁剪：
+     * <ul>
+     *   <li>顶部永远从海报第 0 行开始显示，标题文字完整；</li>
+     *   <li>垂直方向多出的部分全部裁在底部（那里通常是出品方/平台角标，无信息量）；</li>
+     *   <li>水平方向如有多余则左右居中裁（宽版海报/横图）。尺寸不足的方向照常放大铺满。</li>
+     * </ul>
+     */
+    private static void applyTopCrop(ImageView view) {
+        Drawable d = view.getDrawable();
+        if (d == null || view.getWidth() == 0 || view.getHeight() == 0) return;
+        int dw = d.getIntrinsicWidth(), dh = d.getIntrinsicHeight();
+        if (dw <= 0 || dh <= 0) return;
+        float scale = Math.max(view.getWidth() / (float) dw, view.getHeight() / (float) dh);
+        Matrix matrix = new Matrix();
+        matrix.setScale(scale, scale);
+        // 垂直顶对齐；水平居中（结果为负数时表示两侧均匀裁掉）。
+        matrix.postTranslate((view.getWidth() - dw * scale) / 2f, 0);
+        view.setImageMatrix(matrix);
+        view.invalidate();
+    }
+
+    /** 图到位时视图可能还没量完尺寸（首帧/缓存命中），等它有尺寸了再算矩阵，只等一次。 */
+    private static void postTopCrop(ImageView view) {
+        if (view.getWidth() > 0 && view.getHeight() > 0) {
+            applyTopCrop(view);
+            return;
+        }
+        view.getViewTreeObserver().addOnGlobalLayoutListener(new android.view.ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                applyTopCrop(view);
+            }
+        });
     }
 
     public static Object getUrl(String url) {
@@ -132,15 +177,17 @@ public class ImgUtil {
     private static RequestListener<Drawable> getListener(String text, String url, ImageView view, boolean vod) {
         return new RequestListener<>() {
             @Override
-            public boolean onLoadFailed(@Nullable GlideException e, Object model, @NonNull Target<Drawable> target, boolean isFirstResource) {
-                view.setImageDrawable(getTextDrawable(text, vod));
-                failed.add(url);
-                return true;
+            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                if (vod) postTopCrop(view);
+                return false;
             }
 
             @Override
-            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                return false;
+            public boolean onLoadFailed(@Nullable GlideException e, Object model, @NonNull Target<Drawable> target, boolean isFirstResource) {
+                view.setScaleType(FIT_CENTER);
+                view.setImageDrawable(getTextDrawable(text, vod));
+                failed.add(url);
+                return true;
             }
         };
     }

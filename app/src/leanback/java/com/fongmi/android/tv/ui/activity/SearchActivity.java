@@ -45,6 +45,8 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
     private ActivitySearchBinding mBinding;
     private RecordAdapter mRecordAdapter;
     private WordAdapter mWordAdapter;
+    /** 建议词请求序号：只认最后一次请求的结果。 */
+    private int mSuggestSeq;
 
     public static void start(Activity activity) {
         activity.startActivity(new Intent(activity, SearchActivity.class));
@@ -137,28 +139,37 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
     private void getHot() {
         mBinding.word.setText(R.string.search_hot);
         mWordAdapter.setItems(Word.objectFrom(Setting.getHot()).getData());
-        OkHttp.newCall("https://api.web.360kan.com/v1/rank?cat=1", Map.of(HttpHeaders.REFERER, "https://www.360kan.com/rank/general")).enqueue(getCallback(true));
+        OkHttp.newCall("https://api.web.360kan.com/v1/rank?cat=1", Map.of(HttpHeaders.REFERER, "https://www.360kan.com/rank/general")).enqueue(getCallback(true, ++mSuggestSeq));
     }
 
     private void getSuggest(String text) {
         mBinding.word.setText(R.string.search_suggest);
-        OkHttp.newCall("https://suggest.video.iqiyi.com/?if=mobile&key=" + Uri.encode(ZhuToPin.get(text))).enqueue(getCallback(false));
+        int seq = ++mSuggestSeq;
+        OkHttp.newCall("https://suggest.video.iqiyi.com/?if=mobile&key=" + Uri.encode(ZhuToPin.get(text))).enqueue(getCallback(false, seq));
     }
 
-    private Callback getCallback(boolean hot) {
+    private Callback getCallback(boolean hot, int seq) {
         return new Callback() {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 String result = response.body().string();
                 if (TextUtils.isEmpty(result)) return;
-                App.post(() -> setAdapter(result, hot));
+                App.post(() -> setAdapter(result, hot, seq));
             }
         };
     }
 
-    private void setAdapter(String result, boolean save) {
-        if (!save && empty()) return;
-        if (save) Setting.putHot(result);
+    /**
+     * 快速输入时建议词会连发好几次请求，晚到的旧响应不能盖掉新建议。
+     * 热词也一样：用户已经开始打字了，热词回来就丢掉。
+     */
+    private void setAdapter(String result, boolean save, int seq) {
+        if (save) {
+            if (!empty()) return;
+            Setting.putHot(result);
+        } else {
+            if (empty() || seq != mSuggestSeq) return;
+        }
         mWordAdapter.setItems(Word.objectFrom(result).getData());
     }
 
@@ -290,6 +301,7 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
                     return true;
                 }
             }
+            mBinding.keyword.requestFocus();
             return true;
         }
         return false;
@@ -297,15 +309,30 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
 
     private boolean handleRecordKey(KeyEvent event, View item) {
         if (KeyUtil.isRightKey(event)) return isLastInRow(mBinding.recordRecycler, item);
-        if (KeyUtil.isUpKey(event)) return isFirstRow(mBinding.recordRecycler, item);
+        // 历史首行按上回搜索框：之前这里只 return isFirstRow(...)，把按键吃掉却没换焦点，
+        // 用户会以为遥控器坏了（历史区变成焦点陷阱）。
+        if (KeyUtil.isUpKey(event)) {
+            if (isFirstRow(mBinding.recordRecycler, item)) {
+                mBinding.keyword.requestFocus();
+                return true;
+            }
+        }
         if (KeyUtil.isDownKey(event) && isLastRow(mBinding.recordRecycler, item)) return focusFirst(mBinding.wordRecycler);
         return false;
     }
 
     private boolean focusFirst(RecyclerView rv) {
         View child = rv.getChildAt(0);
-        if (child == null) return false;
-        child.requestFocus();
+        if (child != null) {
+            child.requestFocus();
+            return true;
+        }
+        // 列表可能刚 setItems 还没布局：先吃掉这次按键，下一帧再聚焦，
+        // 否则第一下按「下」会被父布局当成"没处理"而丢给别处。
+        rv.post(() -> {
+            View first = rv.getChildAt(0);
+            if (first != null) first.requestFocus();
+        });
         return true;
     }
 

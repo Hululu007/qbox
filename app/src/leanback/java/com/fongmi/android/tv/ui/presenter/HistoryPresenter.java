@@ -72,6 +72,18 @@ public class HistoryPresenter extends Presenter {
         boolean same = item.getVodName().equals(item.getVodRemarks()) || isNumeric(item.getVodRemarks());
         ViewHolder holder = (ViewHolder) viewHolder;
         setClickListener(holder.view, item);
+        // onCreateViewHolder 里设的宽度会在挂到 Leanback 网格时被网格自己的 LayoutParams 覆盖，
+        // 结果历史卡按文字宽度被撑到两倍，相邻两张卡的片名叠在一起（实测「后会友期」压在上一张卡的片名上）。
+        // 最可靠的做法是把每个子 View 的宽度都钉死：root 是 wrap_content，子 View 一旦是 match_parent，
+        // 就会被文字重新撑宽。绑定时统一改成固定 px，root 再窄也溢不出去。
+        if (holder.binding.image.getLayoutParams() != null) {
+            holder.binding.image.getLayoutParams().width = width;
+            holder.binding.image.getLayoutParams().height = height;
+        }
+        if (holder.binding.name.getLayoutParams() != null) holder.binding.name.getLayoutParams().width = width;
+        if (holder.binding.remark.getLayoutParams() != null) holder.binding.remark.getLayoutParams().width = width;
+        if (holder.view.getLayoutParams() != null) holder.view.getLayoutParams().width = width;
+        holder.view.requestLayout();
         holder.binding.name.setText(item.getVodName());
         holder.binding.site.setText(item.getSiteName());
         holder.binding.remark.setText(item.getVodRemarks());

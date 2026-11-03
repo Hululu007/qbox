@@ -14,6 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.core.splashscreen.SplashScreen;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.FocusHighlight;
+import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.HorizontalGridView;
 import androidx.leanback.widget.ItemBridgeAdapter;
 import androidx.leanback.widget.ListRow;
@@ -25,6 +26,7 @@ import androidx.viewbinding.ViewBinding;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.BuildConfig;
 import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Updater;
@@ -91,6 +93,10 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     private ArrayObjectAdapter mAdapter;
     private final List<com.fongmi.android.tv.bean.Class> mTypes = new ArrayList<>();
     private ArrayObjectAdapter mTypeAdapter;
+    /** 「最近观看」行（标题画在行内，见 CustomRowPresenter）。 */
+    private ListRow mHistoryRow;
+    /** 「更新推荐」组第一行（带 HeaderItem 标题）。 */
+    private ListRow mRecommendRow;
     private boolean historyShown;
     private int homeRetry;
     private HistoryPresenter mPresenter;
@@ -99,6 +105,10 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     private Clock mClock;
     private String mBackdropUrl;
     private String mFallbackPic;
+    /** 当前内容区行高（px），用来判断海报尺寸是否真的变了。 */
+    private int mRowHeight = -1;
+    /** 改了海报大小：数据回来后要把列表整个复位，否则会停在旧行高算出来的偏移上。 */
+    private boolean mResizePending;
 
     /** 氛围底图：跟随当前焦点卡片的海报做低分辨率放大，形成柔和的背景光，避免纯黑死板。 */
     private final Runnable mBackdropTask = new Runnable() {
@@ -201,7 +211,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
             if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
                 if (mTypeAdapter != null && mTypeAdapter.size() > 0) mBinding.typeRecycler.requestFocus();
-                else mBinding.recycler.requestFocus();
+                else focusContent();
                 return true;
             }
             return false;
@@ -255,12 +265,11 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         selector.addPresenter(Integer.class, new HeaderPresenter());
         selector.addPresenter(String.class, new ProgressPresenter());
         selector.addPresenter(Vod.class, new VodPresenter(this, Style.list()));
-        selector.addPresenter(ListRow.class, new CustomRowPresenter(16, FocusHighlight.ZOOM_FACTOR_NONE), VodPresenter.class);
-        selector.addPresenter(ListRow.class, new CustomRowPresenter(16, FocusHighlight.ZOOM_FACTOR_NONE), FuncPresenter.class);
-        selector.addPresenter(ListRow.class, new CustomRowPresenter(16, FocusHighlight.ZOOM_FACTOR_NONE, HorizontalGridView.FOCUS_SCROLL_ALIGNED), HistoryPresenter.class);
+        selector.addPresenter(ListRow.class, new CustomRowPresenter(16, FocusHighlight.ZOOM_FACTOR_SMALL), VodPresenter.class);
+        selector.addPresenter(ListRow.class, new CustomRowPresenter(16, FocusHighlight.ZOOM_FACTOR_SMALL), FuncPresenter.class);
+        selector.addPresenter(ListRow.class, new CustomRowPresenter(16, FocusHighlight.ZOOM_FACTOR_SMALL), HistoryPresenter.class);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
-        mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(24));
-        mBinding.recycler.setClipTop(getResources().getDimensionPixelSize(R.dimen.qbox_header_clip));
+        applyRowMetrics(Style.rect());
         mBinding.typeRecycler.setHorizontalSpacing(ResUtil.dp2px(12));
         mBinding.typeRecycler.setRowHeight(android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
         mBinding.typeRecycler.setAdapter(new ItemBridgeAdapter(mTypeAdapter = new ArrayObjectAdapter(new FuncPresenter(this))));
@@ -295,7 +304,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     private void setAdapter() {
         mHistoryAdapter = new ArrayObjectAdapter(mPresenter = new HistoryPresenter(this));
-        mAdapter.add(R.string.home_recommend);
     }
 
     private void setTitle() {
@@ -354,8 +362,29 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         });
     }
 
+    /**
+     * 进内容区统一入口。
+     * 选中位置可能停在「最近观看 / 更新推荐」这类不可聚焦的分组标题上，
+     * 这时 requestFocus 只把焦点交给列表容器，屏幕上看不到任何焦点框（"不知道选中了哪里"）。
+     * 所以进来前先校验：选中行不是内容行，就落到第一行。
+     */
+    private void focusContent() {
+        int size = mAdapter == null ? 0 : mAdapter.size();
+        int selected = mBinding.recycler.getSelectedPosition();
+        boolean valid = selected >= 0 && selected < size && mAdapter.get(selected) instanceof ListRow;
+        if (!valid) {
+            for (int i = 0; i < size; i++) {
+                if (mAdapter.get(i) instanceof ListRow) {
+                    mBinding.recycler.setSelectedPosition(i);
+                    break;
+                }
+            }
+        }
+        mBinding.recycler.requestFocus();
+    }
+
     private void setFocus() {
-        App.post(() -> mBinding.recycler.requestFocus(), 300);
+        App.post(this::focusContent, 300);
     }
 
     private void updateBackdrop() {
@@ -398,10 +427,16 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     private void getVideo() {
         mResult = Result.empty();
+        if (mResizePending) {
+            // 先回到顶部再换数据：不然新行高会套用旧偏移，出现半行和错位。
+            mBinding.recycler.setSelectedPosition(0);
+            mBinding.recycler.scrollToPosition(0);
+        }
         int index = getRecommendIndex();
         boolean gone = mAdapter.indexOf("progress") == -1;
         boolean hasItem = gone && mAdapter.size() > index;
         if (hasItem) mAdapter.removeItems(index, mAdapter.size() - index);
+        mRecommendRow = null;
         if (gone) mAdapter.add("progress");
         mViewModel.homeContent();
     }
@@ -413,21 +448,57 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         setRecommendHeader(!empty);
         if (empty) return;
         Style style = result.getStyle(getHome().getStyle());
-        if (style.isList()) mAdapter.addAll(mAdapter.size(), result.getList());
-        else addGrid(result.getList(), style);
+        if (style.isList()) {
+            // list 风格的推荐是每行一张大卡的 Vod 行，没有 ListRow 载体；
+            // 标题用一行「只带 HeaderItem 的空行」承载，视觉上就是原来的分组标题。
+            if (mRecommendRow == null) {
+                mRecommendRow = new ListRow(new HeaderItem(getString(R.string.home_recommend)), new ArrayObjectAdapter());
+                mAdapter.add(mAdapter.size(), mRecommendRow);
+            }
+            mAdapter.addAll(mAdapter.size(), result.getList());
+        } else addGrid(result.getList(), style);
+        if (mResizePending) resetAfterResize();
+        // 数据是异步回来的：applyContentTop 里那次校正跑得比数据早，首屏第一排会贴着
+        // 内容区起点，放大后顶部被裁掉。数据落位后再校正一次。
+        App.post(() -> mBinding.recycler.requestSnap(), 160);
     }
 
-    /** 源没有推荐位（网盘/配置类源）时不显示空的「更新推荐」标题。 */
+    /** 换完海报尺寸：行高、行距、裁剪线都变了，列表必须从头摆一遍，否则焦点和滚动都停在旧几何上。 */
+    private void resetAfterResize() {
+        mResizePending = false;
+        App.post(() -> {
+            if (mBinding == null) return;
+            int target = 0;
+            for (int i = 0; i < mAdapter.size(); i++) {
+                if (mAdapter.get(i) instanceof ListRow) {
+                    target = i;
+                    break;
+                }
+            }
+            mBinding.recycler.setSelectedPosition(target);
+            mBinding.recycler.scrollToPosition(0);
+            // 只有焦点本来就在内容区（或已经丢了）才抢焦点，用户停在顶栏时不要把他拽下来。
+            View focus = getCurrentFocus();
+            if (focus == null || isInside(mBinding.recycler, focus)) mBinding.recycler.requestFocus();
+        }, 150);
+    }
+
+    private boolean isInside(View parent, View child) {
+        View view = child;
+        while (view != null) {
+            if (view == parent) return true;
+            view = view.getParent() instanceof View ? (View) view.getParent() : null;
+        }
+        return false;
+    }
+
+    /**
+     * 分组标题（HeaderItem）现在直接画在行内部（见 CustomRowPresenter），
+     * 所以「更新推荐」是否显示 = 推荐组第一行是否带 header。
+     * empty 时推荐组根本没有行，引用作废即可。
+     */
     private void setRecommendHeader(boolean show) {
-        int index = mAdapter.indexOf(R.string.home_recommend);
-        if (show && index < 0) mAdapter.add(getRecommendInsertIndex(), R.string.home_recommend);
-        else if (!show && index >= 0) mAdapter.removeItems(index, 1);
-    }
-
-    /** 「更新推荐」要排在「继续观看」之后，不能因为晚到而插到历史行上面。 */
-    private int getRecommendInsertIndex() {
-        int history = mAdapter.indexOf(R.string.home_history);
-        return history < 0 ? 0 : history + 2;
+        if (!show) mRecommendRow = null;
     }
 
     /** 分类行：「首页」+ 当前源自己的点播分类。每次内容刷新（含换源）都按源重建，不套模板。 */
@@ -448,6 +519,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void addGrid(List<Vod> items, Style style) {
+        applyRowMetrics(style);
         List<ListRow> rows = new ArrayList<>();
         VodPresenter presenter = new VodPresenter(this, style);
         for (List<Vod> part : Lists.partition(items, Product.getColumn(style))) {
@@ -455,7 +527,29 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             adapter.addAll(0, part);
             rows.add(new ListRow(adapter));
         }
+        // 推荐组第一行带上「更新推荐」标题（标题画在行内部，见 CustomRowPresenter）。
+        if (!rows.isEmpty() && mRecommendRow == null) {
+            rows.set(0, new ListRow(new HeaderItem(getString(R.string.home_recommend)), rows.get(0).getAdapter()));
+        }
+        if (!rows.isEmpty()) mRecommendRow = rows.get(0);
         mAdapter.addAll(mAdapter.size(), rows);
+    }
+
+    /**
+     * 内容区顶部几何跟着海报尺寸走。
+     * 之前裁切线 / 行距 / padding 都是按 5 列（Large）写死的常量，
+     * 换成 6、7 列或 4 列以后行高变了，上一行就又能从分类条下面露出半截。
+     */
+    private void applyRowMetrics(Style style) {
+        int height;
+        try {
+            height = Product.getSpec(style)[1] + ResUtil.dp2px(52);
+        } catch (Throwable e) {
+            height = ResUtil.dp2px(280);
+        }
+        if (height == mRowHeight) return;
+        mRowHeight = height;
+        mBinding.recycler.applyContentTop(getResources().getDimensionPixelSize(R.dimen.qbox_content_top), getResources().getDimensionPixelSize(R.dimen.qbox_header_total), height, true);
     }
 
     private void setFunc() {
@@ -473,14 +567,15 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         mHistoryAdapter.setItems(items, new BaseDiffCallback<History>());
         if (items.isEmpty()) {
             if (historyShown) {
-                int index = mAdapter.indexOf(R.string.home_history);
-                if (index >= 0) mAdapter.removeItems(index, 2);
+                int index = mHistoryRow == null ? -1 : mAdapter.indexOf(mHistoryRow);
+                if (index >= 0) mAdapter.removeItems(index, 1);
+                mHistoryRow = null;
                 historyShown = false;
             }
         } else if (!historyShown) {
             int base = 0;
-            mAdapter.add(base, R.string.home_history);
-            mAdapter.add(base + 1, new ListRow(mHistoryAdapter));
+            mHistoryRow = new ListRow(new HeaderItem(getString(R.string.home_history)), mHistoryAdapter);
+            mAdapter.add(base, mHistoryRow);
             historyShown = true;
         }
     }
@@ -494,16 +589,16 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         History.clear(VodConfig.getCid());
         mPresenter.setDelete(false);
         mHistoryAdapter.clear();
-        int index = mAdapter.indexOf(R.string.home_history);
-        if (index >= 0) mAdapter.removeItems(index, 2);
+        int index = mHistoryRow == null ? -1 : mAdapter.indexOf(mHistoryRow);
+        if (index >= 0) mAdapter.removeItems(index, 1);
+        mHistoryRow = null;
         historyShown = false;
     }
 
     private int getRecommendIndex() {
-        int index = mAdapter.indexOf(R.string.home_recommend);
-        if (index >= 0) return index + 1;
-        int history = mAdapter.indexOf(R.string.home_history);
-        return history < 0 ? 0 : history + 2;
+        int index = mRecommendRow == null ? -1 : mAdapter.indexOf(mRecommendRow);
+        if (index >= 0) return index;
+        return mHistoryRow != null ? mAdapter.indexOf(mHistoryRow) + 1 : mAdapter.size();
     }
 
     private void setLogo() {
@@ -539,6 +634,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                 getHistory();
                 break;
             case SIZE:
+                mResizePending = true;
                 getVideo();
                 getHistory(true);
                 break;
@@ -630,8 +726,9 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     public void onItemDelete(History item) {
         mHistoryAdapter.remove(item.delete());
         if (mHistoryAdapter.size() > 0) return;
-        int index = mAdapter.indexOf(R.string.home_history);
-        if (index >= 0) mAdapter.removeItems(index, 2);
+        int index = mHistoryRow == null ? -1 : mAdapter.indexOf(mHistoryRow);
+        if (index >= 0) mAdapter.removeItems(index, 1);
+        mHistoryRow = null;
         historyShown = false;
         mPresenter.setDelete(false);
     }
@@ -663,23 +760,40 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         if (KeyUtil.isMenuKey(event)) showDialog();
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             // 顶栏、分类条、内容区三者之间的上下键在 Activity 层统一处理，避免 Leanback 把事件吃掉。
-            if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP && mBinding.recycler.hasFocus()
-                    && mBinding.recycler.getSelectedPosition() <= 0
+            // 焦点在卡片上时 recycler.hasFocus() 是 false（焦点在子 View），必须按归属判断；
+            // 冷启动/数据刷新时 getCurrentFocus() 还会短暂为 null，这时也当成「在内容区」，
+            // 否则第一次按 ↑ 会被列表吃掉、什么也不发生（用户得按第二次）。
+            boolean inContent = isInside(mBinding.recycler, getCurrentFocus()) || focusLostInContent();
+            boolean inTabs = isInside(mBinding.typeRecycler, getCurrentFocus()) || focusLostInTabs();
+            if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP && inContent
+                    && mBinding.recycler.getSelectedPosition() <= 1
                     && mTypeAdapter != null && mTypeAdapter.size() > 0) {
                 mBinding.recycler.setSelectedPosition(0);
                 mBinding.typeRecycler.requestFocus();
                 return true;
             }
-            if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN && mBinding.typeRecycler.hasFocus()) {
-                mBinding.recycler.requestFocus();
+            if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN && inTabs) {
+                focusContent();
                 return true;
             }
-            if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP && mBinding.typeRecycler.hasFocus()) {
+            if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP && inTabs) {
                 mBinding.source.requestFocus();
                 return true;
             }
         }
         return super.dispatchKeyEvent(event);
+    }
+
+    /** 焦点暂时为空（布局中）时，按列表可见性判断它属于哪个区域。只在窗口有焦点时生效，弹窗不会误判。 */
+    private boolean focusLostInContent() {
+        return getCurrentFocus() == null && hasWindowFocus()
+                && mBinding.recycler.getVisibility() == View.VISIBLE
+                && mBinding.typeRecycler.getVisibility() == View.VISIBLE;
+    }
+
+    private boolean focusLostInTabs() {
+        return getCurrentFocus() == null && hasWindowFocus()
+                && mBinding.typeRecycler.getVisibility() == View.VISIBLE;
     }
 
     @Override
@@ -689,6 +803,41 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         // 继续观看必须每次回到首页都重新读库，否则冷启动后只剩「更新推荐」。
         getHistory();
         App.post(mBackdropTask, 700);
+        // 从设置页/详情页返回时，系统可能把焦点回收掉（uiautomator 里一个 focused 节点都没有），
+        // 表现就是「遥控器按什么都没反应」。这里兜底把焦点放回顶栏源名。
+        App.post(this::restoreFocusIfLost, 150);
+        // 焦点守护：数据落位（addVideo/addHistory/reset）会把焦点清掉，
+        // 单次兜底抓不住这种时机。每 500ms 自检一次，只在「窗口有焦点但没有任何
+        // 焦点 view」时把焦点送回内容区，不干扰正常操作。onPause 停止。
+        App.post(mFocusGuard, 500);
+    }
+
+    /** 焦点守护：见 onResume 注释。连续两次都丢了焦点才接管，避免和面板动画抢焦点。 */
+    private int mFocusLostCount;
+
+    private final Runnable mFocusGuard = new Runnable() {
+        @Override
+        public void run() {
+            if (mBinding == null || isFinishing() || isDestroyed()) return;
+            View focus = getCurrentFocus();
+            boolean healthy = focus != null && focus.isAttachedToWindow() && focus.isShown();
+            if (healthy || !hasWindowFocus()) mFocusLostCount = 0;
+            else mFocusLostCount++;
+            if (mFocusLostCount >= 2) {
+                mFocusLostCount = 0;
+                focusContent();
+            }
+            App.post(this, 500);
+        }
+    };
+
+    private void restoreFocusIfLost() {
+        if (mBinding == null || !hasWindowFocus()) return;
+        View focus = getCurrentFocus();
+        boolean healthy = focus != null && focus.isAttachedToWindow() && focus.isShown();
+        if (healthy) return;
+        if (mBinding.source.getVisibility() == View.VISIBLE) mBinding.source.requestFocus();
+        else focusContent();
     }
 
     @Override
@@ -696,6 +845,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         super.onPause();
         mClock.stop();
         App.removeCallbacks(mBackdropTask);
+        App.removeCallbacks(mFocusGuard);
     }
 
     @Override

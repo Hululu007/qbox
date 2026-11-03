@@ -17,6 +17,7 @@ import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.Collect;
 import com.fongmi.android.tv.bean.Result;
+import com.fongmi.android.tv.bean.Style;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.FragmentTypeBinding;
 import com.fongmi.android.tv.model.SiteViewModel;
@@ -89,6 +90,11 @@ public class CollectFragment extends BaseFragment implements CustomScroller.Call
                 getResources().getDimensionPixelSize(R.dimen.qbox_content_top_inset),
                 side,
                 getResources().getDimensionPixelSize(R.dimen.qbox_content_bottom));
+        // 和首页/分类页同一套：行距按行高算、滚动停下贴顶。
+        // 之前这里是纯 Leanback 居中滚动，上一排永远留半截在 tab 下面。
+        mBinding.recycler.applyContentTopKeepPadding(Product.getSpec(Style.rect())[1] + ResUtil.dp2px(52), true);
+        // 与首页/分类页同一套：数据回来后再校正一次。
+        mBinding.recycler.requestSnap();
     }
 
     private void setViewModel() {

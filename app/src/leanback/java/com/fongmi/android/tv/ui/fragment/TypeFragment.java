@@ -3,6 +3,7 @@ package com.fongmi.android.tv.ui.fragment;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -16,6 +17,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
@@ -57,6 +59,12 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     private boolean headerVisible;
     private boolean filterVisible;
     private String mFirstPic;
+    /** 当前行高（px）。海报尺寸变了这个值就变，列表要按新几何重排。 */
+    private int mRowHeight = -1;
+    /** 当前列数。-1 表示还没算过；变了说明用户改了海报尺寸。 */
+    private int mColumn = -1;
+    private int mLastFilterRow;
+    private boolean firstVisible = true;
 
     public static TypeFragment newInstance(String key, String typeId, Style style, HashMap<String, String> extend, boolean folder) {
         Bundle args = new Bundle();
@@ -129,12 +137,25 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         CustomSelector selector = new CustomSelector();
         selector.addPresenter(Vod.class, new VodPresenter(this, Style.list()));
         selector.addPresenter(ListRow.class, new CustomRowPresenter(16), VodPresenter.class);
-        selector.addPresenter(ListRow.class, new CustomRowPresenter(8, FocusHighlight.ZOOM_FACTOR_NONE, HorizontalGridView.FOCUS_SCROLL_ALIGNED), FilterPresenter.class);
+        selector.addPresenter(ListRow.class, new CustomRowPresenter(8, FocusHighlight.ZOOM_FACTOR_NONE), FilterPresenter.class);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
-        mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(16));
-        // 裁切线必须比第一排聚焦放大的焦点环更靠上：盒子 density=2.0，
-        // 120dp 时环顶边正好落在 240px 被切掉；114dp（228px）留 6px 余量。
-        mBinding.recycler.setClipTop(getResources().getDimensionPixelSize(R.dimen.qbox_header_clip));
+        applyRowMetrics(Style.rect());
+    }
+
+    /**
+     * 分类页和首页共用同一套顶部几何：裁剪线钉在内容区顶边、选中行贴顶。
+     * 这样换行以后上一行整行滚出去，第一排永远干净。
+     */
+    private void applyRowMetrics(Style style) {
+        int height;
+        try {
+            height = Product.getSpec(style)[1] + ResUtil.dp2px(52);
+        } catch (Throwable e) {
+            height = ResUtil.dp2px(280);
+        }
+        if (height == mRowHeight) return;
+        mRowHeight = height;
+        mBinding.recycler.applyContentTop(getResources().getDimensionPixelSize(R.dimen.qbox_content_top), getResources().getDimensionPixelSize(R.dimen.qbox_header_total), height, true);
     }
 
     private void setViewModel() {
@@ -156,7 +177,24 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         adapter.notifyArrayItemRangeChanged(0, adapter.size());
         if (item.isSelected()) mExtends.put(key, item.getV());
         else mExtends.remove(key);
+        // 记住是哪一排被点了：刷新会把内容行整个换掉，焦点会被系统回收，
+        // 回来时要还给这一排，而不是跳回第一排或者干脆消失。
+        mLastFilterRow = indexOfFilterKey(key);
         onRefresh();
+    }
+
+    private int indexOfFilterKey(String key) {
+        for (int i = 0; i < mFilters.size(); i++) if (mFilters.get(i).getKey().equals(key)) return i;
+        return 0;
+    }
+
+    /** 刷新后把焦点还给刚才那一排筛选项。 */
+    private void restoreFilterFocus() {
+        if (!filterVisible || mBinding == null) return;
+        if (mBinding.recycler.findFocus() != null) return;
+        int row = Math.max(0, mLastFilterRow);
+        mBinding.recycler.setSelectedPosition(row);
+        mBinding.recycler.requestFocus();
     }
 
     private void getVideo() {
@@ -178,6 +216,8 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         mBinding.swipeLayout.setRefreshing(false);
         mScroller.endLoading(result);
         if (size > 0) addVideo(result);
+        // 点筛选会重建列表，焦点在重建过程中被回收，这里补一次。
+        App.post(this::restoreFilterFocus, 260);
     }
 
     private void addVideo(Result result) {
@@ -187,9 +227,19 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         }
         notifyBackdrop();
         Style style = result.getStyle(getStyle());
+        // 海报尺寸在设置里改过：列数变了，旧的分片行全部失效，必须清空按新列数重排。
+        int column = Product.getColumn(style);
+        if (mColumn != -1 && mColumn != column) {
+            mAdapter.clear();
+            mScroller.reset();
+        }
+        mColumn = column;
+        applyRowMetrics(style);
         if (style.isList()) mAdapter.addAll(mAdapter.size(), result.getList());
         else addGrid(result.getList(), style);
         checkMore();
+        // 同理：首屏数据落位后补一次贴顶校正，避免第一排放大的顶部被裁。
+        App.post(() -> mBinding.recycler.requestSnap(), 160);
     }
 
     /** 当前分类第一张海报：给 VodActivity 的整屏氛围底图兜底。 */
@@ -241,12 +291,62 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     private void showFilter() {
         List<ListRow> rows = new ArrayList<>();
         for (Filter filter : mFilters) rows.add(getRow(filter));
-        mBinding.recycler.postDelayed(() -> mBinding.recycler.scrollToPosition(0), 48);
+        // 先把内容起点压低，再插行：顺序反了会让列表先按 144dp 布局一次再重排，
+        // 焦点在这两次布局之间容易被带到第二排去。
+        mBinding.recycler.setContentTopTemp(getHeaderBottomPx() + ResUtil.dp2px(8));
         mAdapter.addAll(0, rows);
+        // 筛选行不参与滚动贴顶，否则从第二排筛选按一下 ↓，整块筛选会被甩出屏幕。
+        mBinding.recycler.setSnapStartIndex(mFilters.size());
+        // 面板展开期间整体退出「逐行贴顶」：只保证焦点行可见，筛选面板固定在上方。
+        mBinding.recycler.setSnapEnabled(false);
+        mBinding.recycler.setRowsKeepVisible(true);
+        // 展开后焦点直接进第一排第一个筛选项 —— 之前焦点留在原来选中的海报行上，
+        // 用户按上会直接跳到左上角返回键，第一排根本选不到。
+        mBinding.recycler.postDelayed(this::focusFirstFilter, 280);
+    }
+
+    private void focusFirstFilter() {
+        if (mBinding == null || mFilters.isEmpty()) return;
+        mBinding.recycler.scrollToPosition(0);
+        mBinding.recycler.setSelectedPosition(0);
+        if (mBinding.recycler.requestFocus()) return;
+        // setSelectedPosition 有时只是把行选中，不会把焦点落到行内第一颗 chip 上；
+        // 这时直接抓第一行里第一个可聚焦控件，保证「展开就能选第一排」。
+        View first = firstFocusable(mBinding.recycler);
+        if (first != null) first.requestFocus();
+    }
+
+    private View firstFocusable(View view) {
+        if (view == null || view.getVisibility() != View.VISIBLE) return null;
+        if (view.isFocusable() && view.isEnabled()) return view;
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                View found = firstFocusable(group.getChildAt(i));
+                if (found != null) return found;
+            }
+        }
+        return null;
     }
 
     private void hideFilter() {
         mAdapter.removeItems(0, mFilters.size());
+        mBinding.recycler.setSnapStartIndex(0);
+        mBinding.recycler.setSnapEnabled(true);
+        mBinding.recycler.setRowsKeepVisible(false);
+        mRowHeight = -1;
+        applyRowMetrics(getStyle());
+        // 焦点原来在被移除的筛选行上，收起来就悬空了：交还给第一排海报。
+        App.post(() -> {
+            if (mBinding == null) return;
+            if (mBinding.recycler.findFocus() != null) return;
+            mBinding.recycler.setSelectedPosition(0);
+            mBinding.recycler.requestFocus();
+        }, 220);
+    }
+
+    private int getHeaderBottomPx() {
+        return getResources().getDimensionPixelSize(R.dimen.qbox_header_total);
     }
 
     public void toggleFilter(boolean visible) {
@@ -325,6 +425,12 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
-        if (mBinding != null) mBinding.recycler.moveToTop();
+        if (mBinding == null || !isVisibleToUser) return;
+        // 只有第一次进入这个分类才回顶。切到别的 tab 再切回来，用户期望停在原来的位置，
+        // 每次可见都 moveToTop 会让人以为"列表被重置了"。
+        if (firstVisible) {
+            firstVisible = false;
+            mBinding.recycler.moveToTop();
+        }
     }
 }

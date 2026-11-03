@@ -162,8 +162,9 @@ public class CustomMic extends AppCompatImageView {
     @Override
     protected void onFocusChanged(boolean gainFocus, int direction, @Nullable Rect previouslyFocusedRect) {
         super.onFocusChanged(gainFocus, direction, previouslyFocusedRect);
-        if (gainFocus && isAvailable()) start();
-        else if (!gainFocus) stop();
+        // QBox: 焦点路过麦克风不再自动开录音 —— 用户只是按方向键经过，不该弹权限、不该拉起语音。
+        // 录音只在按下 OK（setOnClickListener -> start()）时启动；离开时仍然收尾。
+        if (!gainFocus) stop();
     }
 
     @Override

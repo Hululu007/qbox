@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 分组标题并入行容器后的 view id（代码里 TextView.setId 使用） -->
+    <item name="qbox_row_title" type="id" />
+</resources>
