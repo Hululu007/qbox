@@ -26,4 +26,16 @@
         tools:text="120 KB/s"
         tools:visibility="visible" />
 
+    <!-- 页面加载态文案：由 ProgressLayout 打开，视频缓冲页不显示（那边用 traffic）。 -->
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="58dp"
+        android:text="@string/qbox_loading"
+        android:textColor="#B3FFFFFF"
+        android:textSize="16sp"
+        android:visibility="gone" />
+
 </FrameLayout>

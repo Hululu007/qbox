@@ -464,4 +464,5 @@
     <string name="action_home">Set as home</string>
     <string name="action_history">Play history</string>
     <string name="action_refresh">Refresh</string>
+    <string name="qbox_loading">Loading…</string>
 </resources>

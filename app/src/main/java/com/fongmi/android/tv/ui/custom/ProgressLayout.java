@@ -52,7 +52,9 @@ public class ProgressLayout extends RelativeLayout {
         mEmptyView = mEmptyBinding.getRoot();
         mEmptyView.setTag(TAG_PROGRESS);
         mEmptyView.setVisibility(GONE);
-        mProgressView = ViewProgressBinding.inflate(LayoutInflater.from(getContext())).getRoot();
+        ViewProgressBinding progress = ViewProgressBinding.inflate(LayoutInflater.from(getContext()));
+        progress.hint.setVisibility(VISIBLE);
+        mProgressView = progress.getRoot();
         mProgressView.setTag(TAG_PROGRESS);
         mProgressView.setVisibility(GONE);
         LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);

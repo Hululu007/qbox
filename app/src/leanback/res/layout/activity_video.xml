@@ -38,9 +38,8 @@
         android:focusableInTouchMode="true"
         android:foreground="@drawable/selector_video"
         android:nextFocusLeft="@id/video"
-        android:nextFocusRight="@id/content"
-        android:nextFocusUp="@id/video"
-        android:nextFocusDown="@id/flag">
+        android:nextFocusRight="@id/play"
+        android:nextFocusUp="@id/video">
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/poster"
@@ -259,7 +258,6 @@
             android:focusableInTouchMode="true"
             android:gravity="center"
             android:nextFocusUp="@id/actor"
-            android:nextFocusDown="@id/flag"
             android:singleLine="true"
             android:text="@string/detail_desc"
             android:textColor="@color/text"
@@ -278,7 +276,6 @@
             android:focusableInTouchMode="true"
             android:gravity="center"
             android:nextFocusUp="@id/actor"
-            android:nextFocusDown="@id/flag"
             android:singleLine="true"
             android:text="@string/keep"
             android:textColor="@color/text"
@@ -297,7 +294,6 @@
             android:gravity="center"
             android:nextFocusRight="@id/change"
             android:nextFocusUp="@id/actor"
-            android:nextFocusDown="@id/flag"
             android:singleLine="true"
             android:text="@string/play_change"
             android:textColor="@color/text"
