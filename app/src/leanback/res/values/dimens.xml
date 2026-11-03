@@ -9,7 +9,12 @@
     <dimen name="qbox_header_content">46dp</dimen>
     <dimen name="qbox_tabs_gap">6dp</dimen>
     <dimen name="qbox_tabs_height">42dp</dimen>
-    <dimen name="qbox_content_top">144dp</dimen>
+    <!-- 内容区起点（列表 paddingTop 的基准，实际行顶还会再加一个聚焦放大的 zoomPad）：
+         顶栏+分类条 118dp，行顶 = 135 + 15 ≈ 150dp → 距分类条 32dp。
+         首页第一行有分组标题时文字从这里开始；分类页/聚合页没有标题时海报从这里开始，
+         两边的「第一眼内容」距分类条保持一致，不会一边空一大条、一边贴住。
+         之前 144dp 实际行顶 159dp（距分类条 41dp），分类页看起来空得很明显。 -->
+    <dimen name="qbox_content_top">135dp</dimen>
 
     <!-- 顶栏 + 分类条的下沿（22 + 46 + 2 + 6 + 42 = 118dp）。
          列表绘制的硬下限：再往上画就会盖住分类条。 -->
