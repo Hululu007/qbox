@@ -65,7 +65,7 @@
     <string name="play_decode">硬解</string>
     <string name="play_timer">定时</string>
     <string name="play_edition">标题</string>
-    <string name="play_chapter">选集</string>
+    <string name="play_chapter">章节</string>
     <string name="play_more">更多</string>
     <string name="play_less">收起</string>
     <string name="play_close">关闭</string>

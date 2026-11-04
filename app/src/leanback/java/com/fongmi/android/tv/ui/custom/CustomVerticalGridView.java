@@ -15,6 +15,7 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
+import androidx.leanback.widget.HorizontalGridView;
 import androidx.leanback.widget.OnChildViewHolderSelectedListener;
 import androidx.leanback.widget.VerticalGridView;
 import androidx.recyclerview.widget.RecyclerView;
@@ -375,6 +376,47 @@ public class CustomVerticalGridView extends VerticalGridView {
                     + " childCount=" + getChildCount() + " adapter=" + (getAdapter() == null ? -1 : getAdapter().getItemCount()));
         }
         return handled;
+    }
+
+    /**
+     * 海报墙上下移动保持列对齐。
+     *
+     * <p>Leanback 默认把焦点交给下一行的「该行 selectedPosition」（未访问过的行是 0），
+     * 所以从第 3 列按 ↓ 会跳到下一行第 1 列。这里在焦点搜索阶段直接把目标改成
+     * 「下一行的同一列」，并返回那个子 View，由系统完成聚焦。
+     */
+    @Override
+    public View focusSearch(View focused, int direction) {
+        if (direction == View.FOCUS_DOWN) {
+            View sameColumn = findSameColumnBelow(focused);
+            if (sameColumn != null) return sameColumn;
+        }
+        return super.focusSearch(focused, direction);
+    }
+
+    private View findSameColumnBelow(View focused) {
+        if (focused == null) return null;
+        View parent = (View) focused.getParent();
+        if (!(parent instanceof HorizontalGridView)) return null;
+        HorizontalGridView grid = (HorizontalGridView) parent;
+        int column = grid.getChildAdapterPosition(focused);
+        if (column < 0) return null;
+        View rowView = (View) grid.getParent();
+        int rowPos = getChildAdapterPosition(rowView);
+        if (rowPos < 0) return null;
+        View nextRow = findChildByPosition(rowPos + 1);
+        if (nextRow == null) return null;
+        HorizontalGridView next = nextRow.findViewById(androidx.leanback.R.id.row_content);
+        if (next == null || next.getAdapter() == null) return null;
+        int count = next.getAdapter().getItemCount();
+        if (count == 0) return null;
+        int target = Math.min(column, count - 1);
+        for (int i = 0; i < next.getChildCount(); i++) {
+            View child = next.getChildAt(i);
+            if (child != null && next.getChildAdapterPosition(child) == target) return child;
+        }
+        // 目标列还没布局出来时交回 Leanback，避免返回一个不在屏幕上的 View。
+        return null;
     }
 
     public boolean moveToTop() {

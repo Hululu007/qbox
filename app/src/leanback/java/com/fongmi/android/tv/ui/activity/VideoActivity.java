@@ -653,6 +653,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     @Override
     public void renderEpisodes(List<Episode> items) {
         setEpisodeAdapter(items);
+        // 单集（电影/单片）不需要「章节」入口：绝大多数场景用不上，默认收起。
+        if (mBinding != null) mBinding.control.action.chapter.setVisibility(items != null && items.size() > 1 ? View.VISIBLE : View.GONE);
     }
 
     @Override
@@ -993,6 +995,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private void onRepeat() {
         player().setRepeatOne(!player().isRepeatOne());
         mBinding.control.action.repeat.setSelected(player().isRepeatOne());
+        // 循环是开关型按钮，之前没有任何文案反馈，用户不知道按了发生什么。
+        Notify.show(getString(R.string.play_repeat) + (player().isRepeatOne() ? "：开" : "：关"));
     }
 
     @Override
@@ -1030,13 +1034,28 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         setScale(index == array.length - 1 ? 0 : ++index);
     }
 
+    private static final float[] SPEED_STEPS = {1f, 1.5f, 1.75f, 2f, 3f, 0.75f};
+
     private void onSpeed() {
-        SpeedSettingDialog.create().player(player()).save(true).show(this);
-        hideControl();
+        // 点按循环常用倍速：1 → 1.5 → 1.75 → 2 → 3 → 0.75 → 1，并给 OSD 反馈；
+        // 精细倍速留在长按（SpeedSettingDialog），不再默认弹设置窗。
+        float current = player().getSpeed();
+        float next = SPEED_STEPS[0];
+        for (int i = 0; i < SPEED_STEPS.length; i++) {
+            if (Math.abs(SPEED_STEPS[i] - current) < 0.01f) {
+                next = SPEED_STEPS[(i + 1) % SPEED_STEPS.length];
+                break;
+            }
+        }
+        player().setSpeed(next);
+        SpeedSetting.putPlayback(next);
+        String text = next == Math.round(next) ? String.valueOf((int) next) : String.valueOf(next);
+        Notify.show("倍速 " + text + "x");
     }
 
     private boolean onSpeedLong() {
-        SpeedSetting.putPlayback(PlaybackAction.toggleSpeed(player(), mBinding.widget.message));
+        SpeedSettingDialog.create().player(player()).save(true).show(this);
+        hideControl();
         return true;
     }
 

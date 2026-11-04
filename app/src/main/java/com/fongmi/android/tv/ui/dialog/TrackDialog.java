@@ -31,6 +31,7 @@ import com.fongmi.android.tv.player.track.TrackUtil;
 import com.fongmi.android.tv.ui.adapter.TrackAdapter;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.utils.FileChooser;
+import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 
 import java.util.ArrayList;
@@ -165,6 +166,12 @@ public final class TrackDialog extends BaseBottomSheetDialog implements TrackAda
 
     @Override
     public void onItemClick(Track item) {
+        // 只有一个音轨/视轨时不允许"切换"：之前点一下会把唯一轨道也置成未选，
+        // 表现为黑屏或静音（用户反馈）。字幕仍允许选/关。
+        if (type != C.TRACK_TYPE_TEXT && adapter.getItemCount() <= 1) {
+            Notify.show("当前只有一个" + ResUtil.getStringArray(R.array.select_track)[type - 1] + "，无需切换");
+            return;
+        }
         player.setTrack(Arrays.asList(item.key(player.getKey()).save()));
         dismiss();
     }
