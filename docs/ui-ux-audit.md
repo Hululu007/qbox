@@ -701,6 +701,17 @@ N-04 启动 loading 文案；空态视觉（收藏页 3D 盒子与整体扁平�
   1) 列表容器加 24dp paddingTop；或 2) 列表顶层加 80dp 顶部渐隐（`shape_top_fade`），
   让滚出顶边的行淡出，而不是硬裁。
 
+### N-23 直播列表顶部硬裁 + 亮色画面下频道名难读（已修）
+
+- 修法：
+  1. 列表顶层新增 `listTopScrim`（400dp×120dp，`shape_live_top_glow` 径向渐变从左上角 #E6 淡出），
+     随 `showUI/hideUI` 显隐——滚出顶边的行柔和淡出，不再被屏幕硬裁一半，也没有矩形硬边；
+  2. `shape_live_list` 的横向压暗从「左 #F0 → 中 #A6 → 右透明」加强为
+     「左 #F0 → 0.78 处 #E6 → 右透明」，频道名列整体落在压暗区内。
+- 证据：`shots/live-list-scrim2.png`——亮色广告画面下 CCTV13~CCTV23 频道名清晰可读，
+  右侧画面正常露出；`shots/live-top-glow.png` 为顶部径向渐隐效果。
+- 说明：`centerX` 对 linear 渐变在部分 API 上会被忽略，实际效果以真机截图为准（已确认可读）。
+
 
 
 
