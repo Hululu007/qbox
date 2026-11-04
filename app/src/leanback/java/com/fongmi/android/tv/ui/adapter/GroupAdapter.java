@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.ui.adapter;
 
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
@@ -66,7 +67,18 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.ViewHolder> 
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Group item = mItems.get(position);
         holder.binding.name.setText(item.getName());
+        // 褰撳墠鍒嗙粍鐢ㄥ姞绮楁爣璁帮細Leanback 鐨?selected 浼氳窡鐫€鐒︾偣璧帮紝涓嶈兘鐢ㄨ儗鏅尯鍒嗐€屾鍦ㄧ湅鍝釜鍒嗙粍銆嶃€?
+        holder.binding.name.setTypeface(null, item == current ? Typeface.BOLD : Typeface.NORMAL);
         holder.binding.getRoot().setOnClickListener(v -> mListener.onItemClick(item));
+    }
+
+    /** 褰撳墠鎾斁鐨勫垎缁勶紝浠呯敤浜庡姞绮楁爣璁帮紝涓嶅弬涓庣劍鐐?閫変腑鐘舵€併€?*/
+    private Group current;
+
+    public void setCurrent(Group group) {
+        if (current == group) return;
+        current = group;
+        notifyDataSetChanged();
     }
 
     public interface OnClickListener {

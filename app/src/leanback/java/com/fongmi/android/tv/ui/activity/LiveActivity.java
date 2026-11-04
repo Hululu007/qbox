@@ -824,6 +824,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     @Override
     public void renderGroupSelection(Group group) {
         mGroup = group;
+        mGroupAdapter.setCurrent(group);
         mBinding.group.setSelectedPosition(mGroupAdapter.indexOf(group));
     }
 

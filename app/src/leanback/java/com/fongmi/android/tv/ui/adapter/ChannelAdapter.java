@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.ui.adapter;
 
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
@@ -68,6 +69,8 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
         holder.binding.name.setText(item.getShow());
         holder.binding.number.setText(item.getNumber());
         holder.binding.getRoot().setSelected(item.isSelected());
+        // 褰撳墠棰戦亾鍔犵矖锛氬垪琛ㄩ噷鐨?selected 浼氶殢鐒︾偣绉诲姩锛屽姞绮楁墠鑳藉湪瀵艰埅鏃朵粛鐪嬪嚭銆屾鍦ㄦ挱鍝釜鍙般€嶃€?
+        holder.binding.name.setTypeface(null, item.isSelected() ? Typeface.BOLD : Typeface.NORMAL);
         holder.binding.getRoot().setRightListener(() -> mListener.showEpg(item));
         holder.binding.getRoot().setOnClickListener(v -> mListener.onItemClick(item));
         holder.binding.getRoot().setOnLongClickListener(v -> mListener.onLongClick(item));
