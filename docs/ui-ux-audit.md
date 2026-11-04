@@ -557,6 +557,18 @@ N-04 启动 loading 文案；空态视觉（收藏页 3D 盒子与整体扁平�
   试验过的 tag 取 fragment、静态注册「全部」实例等改动全部回滚，未留在代码里。
 - 记录保留，避免以后再去动 pager 的 `destroyItem`/`getItem` 引发新问题。
 
+### N-20 搜索页按 BACK 不退出、偶尔删掉一个字（已修）
+
+- 现象（214）：搜索页焦点在关键字输入框时，连按 BACK 页面不退出，输入框里的字偶尔少一个
+  （「ZZZZZZ」变「ZZZZZ」），用户以为遥控器坏了。
+- 根因：`SearchActivity.dispatchKeyEvent` 只拦了菜单键和方向键，BACK 交给默认分发；
+  EditText 获得焦点时 BACK 被输入法/编辑框先消费（收起输入法/删字符），Activity 的
+  `onBackInvoked -> finish()` 根本没跑。
+- 修复：`dispatchKeyEvent` 里显式处理 `ACTION_UP + KEYCODE_BACK -> finish()`，
+  不再依赖输入法/编辑框的行为。
+- 证据（214）：进搜索页按一次 BACK 直接回首页（`HomeActivity`），不再卡在搜索页或删字。
+
+
 
 
 
