@@ -656,6 +656,15 @@ N-04 启动 loading 文案；空态视觉（收藏页 3D 盒子与整体扁平�
   核对代码 `mBinding.content.setTag(item.getContent())` 后确认是**源数据本身重复**（简介字段里同一句写了两遍），
   不是 UI 重复渲染；弹窗无关闭按钮，BACK 关闭（按遥控器习惯可接受）。
 
+### R23-01 推送页补齐标准顶栏（已修）
+
+- 问题：推送页只有居中的二维码 + 地址 + 「推送剪贴板内容」，**没有标题、没有返回按钮**，
+  与收藏/设置/搜索等页的「22dp 顶栏 + 46dp 返回 + 20sp 标题」不一致，用户不知道当前在哪一页。
+- 修法：`activity_push.xml` 改成「顶栏（返回 + 「推送」标题）+ 居中内容区」两段；
+  `PushActivity.initEvent` 里 `mBinding.back.setOnClickListener(v -> finish())`。
+- 证据：`shots/push-header.png`（左上返回箭头 + 「推送」标题，二维码/地址/剪贴板入口整体居中）。
+
+
 
 
 
