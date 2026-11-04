@@ -101,6 +101,12 @@ public class FolderFragment extends BaseFragment {
         return child == null || child.isAtTop();
     }
 
+    /** 筛选展开时第一次按 ↑ 就进筛选项，而不是只滚动一下。 */
+    public boolean upToFilter() {
+        TypeFragment child = getChild();
+        return child != null && child.upToFilter();
+    }
+
     public String getFirstPic() {
         TypeFragment child = getChild();
         return child == null ? null : child.getFirstPic();

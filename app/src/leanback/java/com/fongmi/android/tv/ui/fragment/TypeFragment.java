@@ -361,6 +361,25 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         return mBinding.recycler.requestFocus();
     }
 
+    /**
+     * 筛选面板展开时，从海报第一排按 ↑ 直接把焦点交给筛选项。
+     * 之前第一次 ↑ 只把筛选行滚回视口、焦点还留在海报上（看不出发生了什么），
+     * 用户得按两次；这里在 Activity 层拦截，第一次就落到 chip。
+     */
+    public boolean upToFilter() {
+        if (!filterVisible || mBinding == null || mFilters == null || mFilters.isEmpty()) return false;
+        if (mBinding.recycler.getSelectedPosition() != mFilters.size()) return false;
+        int row = Math.max(0, Math.min(mLastFilterRow, mFilters.size() - 1));
+        mBinding.recycler.setSelectedPosition(row);
+        App.post(() -> {
+            if (mBinding == null) return;
+            androidx.recyclerview.widget.RecyclerView.ViewHolder holder = mBinding.recycler.findViewHolderForAdapterPosition(row);
+            View target = holder == null ? null : firstFocusable(holder.itemView);
+            if (target != null) target.requestFocus();
+        });
+        return true;
+    }
+
     /** 内容区是否已经滚到第一行：决定「上」是回顶栏，还是继续在网格里换行。 */
     public boolean isAtTop() {
         if (mBinding == null) return true;

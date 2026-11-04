@@ -326,6 +326,10 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
                 mBinding.typeRecycler.requestFocus();
                 return true;
             }
+            if (keyCode == KeyEvent.KEYCODE_DPAD_UP && isInside(mBinding.pager, focus)) {
+                FolderFragment folder = getFragment();
+                if (folder != null && folder.upToFilter()) return true;
+            }
             if (keyCode == KeyEvent.KEYCODE_DPAD_UP && isInside(mBinding.pager, focus) && isPagerAtTop()) {
                 return focusTopBar();
             }
