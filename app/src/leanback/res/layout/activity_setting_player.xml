@@ -56,9 +56,14 @@
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="16dp"
         android:animateLayoutChanges="true"
+        android:background="@drawable/shape_settings_panel"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="12dp">
 
         <androidx.appcompat.widget.LinearLayoutCompat
             android:id="@+id/engine"
