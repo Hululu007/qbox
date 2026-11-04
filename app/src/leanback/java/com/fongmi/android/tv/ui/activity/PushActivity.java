@@ -49,6 +49,7 @@ public class PushActivity extends BaseActivity {
 
     @Override
     protected void initEvent() {
+        mBinding.back.setOnClickListener(v -> finish());
         mBinding.code.setOnClickListener(this::onCode);
         mBinding.clip.setOnClickListener(this::onClip);
     }
