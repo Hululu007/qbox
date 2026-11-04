@@ -558,7 +558,9 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void setFunc() {
-        mBinding.live.setVisibility(LiveConfig.hasUrl() ? View.VISIBLE : View.GONE);
+        // 没有直播源时用 INVISIBLE 而不是 GONE：保留胶囊占位，搜索/收藏/推送/设置的图标位置
+        // 不会因为换了个没有直播的配置源而整体左移，遥控器肌肉记忆不变。
+        mBinding.live.setVisibility(LiveConfig.hasUrl() ? View.VISIBLE : View.INVISIBLE);
     }
 
     private void getHistory() {
