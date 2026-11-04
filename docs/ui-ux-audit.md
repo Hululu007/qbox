@@ -540,29 +540,22 @@ N-04 启动 loading 文案；空态视觉（收藏页 3D 盒子与整体扁平�
 - 实测：按 ↓ 到最后一行「预载设置」时列表会把它完整滚入视口（`shots/player-settings-last.png`），
   初始那半行只是「还有内容」的滚动提示，不是裁切 bug；保持现状。
 
-### N-13 站点 tab 行右缘渐隐（已处理）
+### N-13 站点 tab 行右缘渐隐：已回滚（本身引入了回归）
 
-- 站点多时最后一个 tab 会被屏幕右缘硬切一半；`activity_collect.xml` 的 tab 行外包一层 FrameLayout，
-  右端加 56dp 横向渐变（透明 → #F20B0B0F），超出部分在渐变下「淡出」。
-- 站点少（7 个以内）时最后一个 tab 结束在 32dp 内边距处，渐变覆盖不到，不会把完整 tab 压暗。
-- 注意：本轮两次搜索都只出 7 个 tab，未再撞到溢出场景；溢出时的实际观感留到下次源多站点时补图。
+- 上一版把 tabs 的 `HorizontalGridView` 包进 FrameLayout、右侧加 56dp 渐变；
+  结果 `CollectFragment.setHeader(activity, R.id.result, R.id.recycler)` 依赖 recycler 是原布局的**直接子 View**，
+  多包一层后 header 绑定/测量失效，**搜索结果页整页空白**（这就是 N-19 的表象）。
+- 已 `git revert`（`5fd8f55`），重装后搜索「ZZZZZZ」正常出 5 张卡（`shots/agg-reverted.png`）。
+- 结论：渐隐要换非侵入做法（在 Activity 根布局加 overlay，不动 recycler 父层级），优先级降为 P3；
+  当前接受"半个 tab 作滚动提示"。
 
-### N-19 搜索结果为空/「全部」页空白（根因已定位，未修，需专项重构）
+### N-19 搜索结果空白：撤销（是 N-13 的连带回归，不是 pager 问题）
 
-- 现象（214）：搜「ZZZZZZ」时站点 tab 出现（盘她/茉莉/荐片/B哔哔合集），但内容区一片空白；
-  「全部」页既不显示结果也不显示空态；搜「后会友期」时也出现过同样空白。
-- 排查结论：
-  - `CollectActivity.PageAdapter extends FragmentStatePagerAdapter`，`getItem(position)` **每次都 new**
-    一个 `CollectFragment`，而 `destroyItem()` 是**空实现**、`saveState/restoreState` 也被清空；
-  - 每来一个站点结果就 `notifyDataSetChanged()`：旧 fragment 不被销毁，同位置又 instantiate 出新的，
-    屏幕上留着的仍是最早那个空 fragment；
-  - 原观察者用 `getFragment().addVideo()`（内部 `instantiateItem(0)`）取「当前页」，
-    很可能拿到的是新建的、未上屏的 fragment；多站点时问题必现。
-- 试过的修法：把结果累加进 `Collect.all()` 的 list、只靠重建显示；空态改由 Activity 延迟 8s 检查。**
-  仍然空白**，因为空 `destroyItem` + 重复 instantiate 的问题没解决。
-- 处理：**已回滚试验代码**，保持 1.9.19 原状，避免引入重复 fragment / 焦点错乱；
-  N-19 需要专项：要么改成一个共享聚合列表 + 不重建 fragment，要么把聚合结果页改成
-  RecyclerView + ViewPager2（或直接用 ViewPager2 的 FragmentStateAdapter）。优先级 P1（搜索是主链路）。
+- 之前判定「聚合 pager 生命周期导致『全部』页空白」是**误判**：空白由 N-13 的 FrameLayout 包裹引起，
+  与 `FragmentStatePagerAdapter`/`notifyDataSetChanged` 无关。
+- 回滚 N-13 后，同一关键词「ZZZZZZ」在「全部」页正常显示 5 张卡、站点 tab 切换正常；
+  试验过的 tag 取 fragment、静态注册「全部」实例等改动全部回滚，未留在代码里。
+- 记录保留，避免以后再去动 pager 的 `destroyItem`/`getItem` 引发新问题。
 
 
 
