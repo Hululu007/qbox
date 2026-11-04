@@ -57,17 +57,33 @@
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
-    <androidx.leanback.widget.HorizontalGridView
-        android:id="@+id/recycler"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:clipChildren="false"
-        android:clipToPadding="false"
-        android:paddingStart="32dp"
-        android:paddingTop="8dp"
-        android:paddingEnd="32dp"
-        app:focusOutEnd="false"
-        app:focusOutFront="false" />
+        android:layout_height="wrap_content">
+
+        <androidx.leanback.widget.HorizontalGridView
+            android:id="@+id/recycler"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:paddingStart="32dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="32dp"
+            app:focusOutEnd="false"
+            app:focusOutFront="false" />
+
+        <!-- 站点多时右缘渐隐，避免最后一个 tab 被屏幕硬切一半。 -->
+        <View
+            android:layout_width="56dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="end"
+            android:background="@drawable/shape_tab_edge_fade"
+            android:clickable="false"
+            android:focusable="false"
+            android:importantForAccessibility="no" />
+
+    </FrameLayout>
 
     <com.fongmi.android.tv.ui.custom.CustomViewPager
         android:id="@+id/pager"
