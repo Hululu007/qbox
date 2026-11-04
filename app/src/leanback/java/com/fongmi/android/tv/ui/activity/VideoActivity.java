@@ -1211,9 +1211,14 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
         setExtra(view != null && isInExtra(view));
         updatePlayPause();
-        if (view == null || !view.isShown()) view = getFocus2();
-        if (view == null || !view.isShown()) view = mBinding.control.action.more;
-        view.requestFocus();
+        // 等控制条真正布局完再要焦点：之前同步 requestFocus 时按钮还 isShown()==false，
+        // 焦点留在画面上，→/← 被当成快进（用户反馈"按钮完全无法聚焦"的真正原因）。
+        View target = view;
+        mBinding.control.getRoot().post(() -> {
+            View focus = target != null && target.isShown() ? target : getFocus2();
+            if (focus == null || !focus.isShown()) focus = mBinding.control.action.more;
+            if (focus != null) focus.requestFocus();
+        });
         setSubtitleLift(true);
         setR1Callback();
     }
