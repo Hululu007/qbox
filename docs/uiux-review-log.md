@@ -44,10 +44,9 @@
 
 | ID | 页面 | 级别 | 状态 | 复现步骤 | 证据 | 修复说明 / commit | 回归风险 |
 |---|---|---|---|---|---|---|---|
-| N-24 | 播放页控制条 | 高 | fixed | 全屏播放按 ↓/↑ 或 MENU 呼出控制条后，焦点仍留在视频面（`video`），→/← 被当成快进（position 跳变 +12s），控制条 14 个按钮全无法点按 | `shots/round-2604/ctrl-*.png`；uiautomator `focused=video[0,0][1920,1080]` | 根因：`showControl` 单次 `post` 时按钮未 layout（`isShown()==false`）requestFocus 失败；且 `mFocus2` 被污染成 `video`，`getFocus2()` 一路回 `video`。改 A：`showControl` 改用 `OnGlobalLayoutListener` 等布局完成再聚焦；改 B：`mFocus2` 仅 `panelFocused` 时赋值 | 控制条按钮双击/长按、自动收起后 ←/→ 快进仍需回归 |
-| N-25 | 详情页简介 | 中 | fixed | 简介文本以原始 `&nbsp; ` 开头显示（未解码 HTML 实体），形容"内容渲染缺陷" | `shots/round-2604/detail-loaded.png` | 根因：`Util.clean()` 对不含 `<` 的文本直接 return，未处理 `&nbsp;`。改：无 `<` 分支也替换 `&nbsp;/&#160;/\u00A0/\u3000` | 简介截断/换行、HTML 富文本源（含 `<p>` 等）显示不被破坏 |
-
-> 本轮另行确认：P1「恢复对话框无焦点」（handoff §2）**未复现**——焦点正常落在备份列表条目、↓/→ 可移动；恢复对话框可用。已从 open 项降级为「已修复/未复现」，不再算 open。
+| N-24 | 播放页控制条 | 高 | fixed | 全屏播放按 ↓/↑ 或 MENU 呼出控制条后，焦点仍留在视频面（`video`），→/← 被当成快进（position 跳变 +12s），控制条 14 个按钮全无法点按 | 修复前 `shots/round-2604/ctrl-*.png`；修复后 `r11-ctrl-pause.png`（焦点在「暂停」白药丸）、`r11-ctrl-right2.png`（→ 移到「上集」）、QBoxCtrl 日志（`requestFocus=true nowFocus=playPause` → `focus=prev panelFocused=true`） | 根因：`showControl` 单次 `post` 时按钮未 layout（`isShown()==false`）requestFocus 失败；且 `mFocus2` 被污染成 `video`。改 A：`showControl` 改用 `OnGlobalLayoutListener` 等布局完成再聚焦（`requestControlFocus`）；改 B：`mFocus2` 仅 `panelFocused` 时赋值 | 控制条 5s 无操作自动收起后焦点回 video 属预期；按钮双击/长按、收起后 ←/→ 快进仍需遥控器复验 |
+| N-25 | 详情页简介 | 中 | fixed | 简介文本以原始 `&nbsp; ` 开头显示（未解码 HTML 实体） | 修复前 `detail-loaded.png`（`&nbsp;《伦敦合伙人》…`）；修复后 `r11-london-detail2.png`（「合伙人们实现了从"开起来"…」干净显示）；单测 `UtilCleanTest` 5/5 通过 | 根因：`Util.clean()` 对不含 `<` 的文本直接 return。改：无 `<` 分支也替换 `&nbsp;/&#160;/\u00A0/\u3000`；单测覆盖实体变体、中英文标点/emoji/连字符不误伤、`<p>` 标签分支不破坏 | 简介截断/换行、HTML 富文本源显示需在发版前再抽 2-3 部片目检 |
+| N-26 | 搜索页键盘 | 低 | open | 搜索框已有长文本时，⌫ 键**长按不能清空**（`--longpress 23` 实测只删 1 字），长词需逐字删除，10-foot 场景费劲 | `r11-cleared2.png`（长按后「小城良方LL」→「小城良方L」） | 待修：⌫ 长按应清空（或循环加速删除）；需看 `SearchActivity` 键盘 `onLongClick` 是否实现 | 低：仅影响长词删除效率 |
 
 ---
 
@@ -93,6 +92,20 @@
 - 另确认「恢复对话框无焦点」（handoff §2 P1）已不复现。
 - **待补**：N-24/N-25 已构建（`BUILD SUCCESSFUL`，dex 已含新字符串常量）并 `install -r` 安装成功（lastUpdateTime 更新），但真机回归验证**受阻**——本轮误 `uninstall` 清了数据（已由 debug 自动配置源恢复），且首页数据源变化后难以稳定进入含简介且可播的样例；uiautomator 对 SurfaceView 焦点的 `focused` 属性不可靠，需下一轮改用**截图视觉 + 按键行为（position 是否跳变）**两路交叉验证才能定论。
 
+### 第 10 轮（2026-11-04 深夜）— N-24/N-25 回归闭环
+
+范围：按用户要求先闭环 N-24/N-25 验证，再谈后续。
+
+过程与结论：
+- N-24 初验失败（→ 后 position +18.5s）→ 按要求**落日志定位**（临时 `QBoxCtrl` tag），时序证据：`showControl → onGlobalLayout pick=playPause shown=true requestFocus=true nowFocus=playPause`，证明修复生效；之前验证失败是 adb 命令链间隔超过控制条 5s 自动收起窗口、焦点被系统收回 video 所致（属预期行为）。
+- 改用单条 `adb shell "input keyevent 20; sleep 1; input keyevent 22; sleep 1; input keyevent 22"` 紧凑序列，截到焦点白药丸落在「下集」（`r12-ctrl-tight.png`），→ 为行内移动、无快进跳变。**N-24 = fixed（证据闭环）**，临时日志已移除（工作区回到 b9c8590 提交态）。
+- N-25：新增 `UtilCleanTest`（Robolectric，5/5 通过：实体变体剥除、正常中英文标点/emoji/连字符不误伤、`<p>` 分支不破坏、空串边界）；真机「伦敦合伙人」详情页简介干净显示（`r11-london-detail2.png`）。**N-25 = fixed（单测+真机双证据）**。
+- 新发现 N-26（低）：搜索键盘 ⌫ 长按无清空功能。
+- 搜索页确认拼音首字母联想可用（「LD」→「伦敦合伙人」）。
+- commit：`c5512cc`（UtilCleanTest）。N-24/N-25 代码修复在此前 `b9c8590`、`99349e5`。
+
+遗留方法学教训：验证 5s 自动收起 UI 的操作序列必须放在**单条 adb shell** 内执行，消除命令往返开销；`dumpsys media_session` 的 position 快照有延迟，不能单独用作精确计时判据；uiautomator 对 SurfaceView/Leanback 列表的 `focused` 属性与 bounds 常返回旧值，**以截图视觉为准**。
+
 ---
 
 ## 3. 历史遗留与易回归
@@ -118,6 +131,19 @@
 - 不要用 PowerShell `Set-Content -Encoding UTF8` 改 Java（会写 BOM，javac 报 `\ufeff`）；用编辑工具或 UTF-8 无 BOM。
 - 改 `strings.xml` 注意 zh-rCN 与 values 两处。
 - 不重写业务逻辑与网络层，只改交互与视觉。
+
+### 3.4 工作纪律（每轮自查）
+
+1. **禁止 `adb uninstall`**，只能 `install -r`；如需重装必须先说明影响并等待用户确认。
+2. 每次 adb 操作前确认设备序列号，`-s 192.168.2.214:5555` 必须显式指定；**绝不碰 192.168.2.132**（另一路会话正在使用的设备）。
+3. 任何「无法验证」的项一律标 **blocked** 并写明原因，**不许标 fixed**。
+4. 每轮结束把本轮误操作/数据安全事件记入下表，提醒后续轮次。
+
+### 3.5 误操作 / 数据安全事件记录
+
+| 日期 | 事件 | 影响 | 教训 |
+|---|---|---|---|
+| 2026-11-04 | 误用 `adb uninstall com.qbox.app` 代替 `install -r` | 测试机本地数据清空（播放历史、收藏、配置丢失）；后由 debug 包自动配置源恢复到「豆豆\|片单」 | 安装只允许 `install -r`；卸载前必须停下确认 |
 
 ---
 
