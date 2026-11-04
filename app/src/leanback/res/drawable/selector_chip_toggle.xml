@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 切换类按钮（循环/弹幕等开关型）背景。
+     焦点优先级最高但保留状态：focused+selected=白底蓝描边；selected=蓝底衬蓝描边；
+     focused=白药丸；normal=透明。 -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/shape_chip_toggle_on_focused" android:state_focused="true" android:state_selected="true" />
+    <item android:drawable="@drawable/shape_chip_focused" android:state_focused="true" />
+    <item android:drawable="@drawable/shape_chip_toggle_on" android:state_selected="true" />
+    <item android:drawable="@drawable/shape_chip_normal" />
+</selector>

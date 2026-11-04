@@ -71,6 +71,7 @@ import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.setting.DanmakuSetting;
 import com.fongmi.android.tv.setting.DecodeSetting;
 import com.fongmi.android.tv.setting.PlayerSetting;
+import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.setting.SpeedSetting;
 import com.fongmi.android.tv.ui.adapter.ArrayAdapter;
 import com.fongmi.android.tv.ui.adapter.EpisodeAdapter;
@@ -699,6 +700,9 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.control.action.opening.setText(history.getOpening() <= 0 ? getString(R.string.play_op) : Util.timeMs(history.getOpening()));
         mBinding.control.action.ending.setText(history.getEnding() <= 0 ? getString(R.string.play_ed) : Util.timeMs(history.getEnding()));
         player().setSpeed(SpeedSetting.getPlayback());
+        player().setRepeatOne(Setting.isRepeatOne());
+        mBinding.control.action.repeat.setSelected(player().isRepeatOne());
+        updateSpeedButton();
         setScale(getScale());
         setPartAdapter();
     }
@@ -995,6 +999,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     private void onRepeat() {
         player().setRepeatOne(!player().isRepeatOne());
+        Setting.putRepeatOne(player().isRepeatOne());
         mBinding.control.action.repeat.setSelected(player().isRepeatOne());
         // 循环是开关型按钮，之前没有任何文案反馈，用户不知道按了发生什么。
         Notify.show(getString(R.string.play_repeat) + (player().isRepeatOne() ? "：开" : "：关"));
@@ -1050,8 +1055,15 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         }
         player().setSpeed(next);
         SpeedSetting.putPlayback(next);
+        updateSpeedButton();
         String text = next == Math.round(next) ? String.valueOf((int) next) : String.valueOf(next);
         Notify.show("倍速 " + text + "x");
+    }
+
+    private void updateSpeedButton() {
+        // 切换类按钮状态规则（N-28）：非 1x 时按钮直接显示当前倍速，1x 时回到简洁文案。
+        float speed = player().getSpeed();
+        mBinding.control.action.speed.setText(Math.abs(speed - 1f) < 0.01f ? getString(R.string.play_speed) : SpeedSetting.format(speed));
     }
 
     private boolean onSpeedLong() {
@@ -1211,6 +1223,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
         setExtra(view != null && isInExtra(view));
         updatePlayPause();
+        updateSpeedButton();
         // 等控制条真正布局完再要焦点：setVisibility(VISIBLE) 只触发 requestLayout，
         // 单次 post 时按钮往往还没 measure/layout，isShown() 仍为 false，焦点就留在画面上，
         // →/← 被当成快进（用户反馈"按钮完全无法聚焦"的真正原因）。

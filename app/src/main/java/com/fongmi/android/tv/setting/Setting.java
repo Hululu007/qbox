@@ -136,4 +136,13 @@ public class Setting {
     public static void putZhuyin(boolean zhuyin) {
         Prefers.put("zhuyin", zhuyin);
     }
+
+    // 循环开关持久化：重进播放页/重启应用后恢复上次选择（N-28）。
+    public static boolean isRepeatOne() {
+        return Prefers.getBoolean("repeat_one");
+    }
+
+    public static void putRepeatOne(boolean repeat) {
+        Prefers.put("repeat_one", repeat);
+    }
 }

@@ -75,6 +75,7 @@ import com.fongmi.android.tv.player.media.PlaySpec;
 import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.setting.DanmakuSetting;
 import com.fongmi.android.tv.setting.PlayerSetting;
+import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.setting.SpeedSetting;
 import com.fongmi.android.tv.ui.adapter.EpisodeAdapter;
 import com.fongmi.android.tv.ui.adapter.FlagAdapter;
@@ -688,6 +689,8 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
         mBinding.control.action.opening.setText(history.getOpening() <= 0 ? getString(R.string.play_op) : Util.timeMs(history.getOpening()));
         mBinding.control.action.ending.setText(history.getEnding() <= 0 ? getString(R.string.play_ed) : Util.timeMs(history.getEnding()));
         player().setSpeed(SpeedSetting.getPlayback());
+        player().setRepeatOne(Setting.isRepeatOne());
+        mBinding.control.action.repeat.setSelected(player().isRepeatOne());
         setScale(getScale());
     }
 
@@ -985,6 +988,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
 
     private void onRepeat() {
         player().setRepeatOne(!player().isRepeatOne());
+        Setting.putRepeatOne(player().isRepeatOne());
         mBinding.control.action.repeat.setSelected(player().isRepeatOne());
     }
 
