@@ -1,78 +1,102 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_app"
-    android:orientation="vertical">
+    android:background="@drawable/bg_app">
 
     <androidx.appcompat.widget.LinearLayoutCompat
-        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="32dp"
-        android:paddingTop="@dimen/qbox_header_pad_top"
-        android:paddingEnd="32dp"
-        android:paddingBottom="2dp">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/back"
-            android:layout_width="46dp"
-            android:layout_height="46dp"
-            android:background="@drawable/selector_action_icon"
-            android:clickable="true"
-            android:contentDescription="@string/back"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:padding="12dp"
-            android:src="@drawable/ic_back"
-            app:tint="@color/text" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:layout_width="0dp"
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="18dp"
-            android:layout_weight="1"
-            android:letterSpacing="0.04"
-            android:singleLine="true"
-            android:text="@string/home_keep"
-            android:textColor="@color/qbox_text"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="32dp"
+            android:paddingTop="@dimen/qbox_header_pad_top"
+            android:paddingEnd="32dp"
+            android:paddingBottom="2dp">
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/clock"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFeatureSettings="tnum"
-            android:letterSpacing="0.02"
-            android:textColor="@color/qbox_text_dim"
-            android:textSize="15sp"
-            tools:text="09:20:00" />
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/back"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:background="@drawable/selector_action_icon"
+                android:clickable="true"
+                android:contentDescription="@string/back"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:padding="12dp"
+                android:src="@drawable/ic_back"
+                app:tint="@color/text" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="18dp"
+                android:layout_weight="1"
+                android:letterSpacing="0.04"
+                android:singleLine="true"
+                android:text="@string/home_keep"
+                android:textColor="@color/qbox_text"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/clock"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFeatureSettings="tnum"
+                android:letterSpacing="0.02"
+                android:textColor="@color/qbox_text_dim"
+                android:textSize="15sp"
+                tools:text="09:20:00" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <com.fongmi.android.tv.ui.custom.ProgressLayout
+            android:id="@+id/progressLayout"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:overScrollMode="never"
+                android:paddingStart="32dp"
+                android:paddingTop="32dp"
+                android:paddingEnd="32dp"
+                android:paddingBottom="24dp" />
+
+        </com.fongmi.android.tv.ui.custom.ProgressLayout>
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
-    <com.fongmi.android.tv.ui.custom.ProgressLayout
-        android:id="@+id/progressLayout"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+    <!-- 删除模式提示：卡片上的删除图标本身不聚焦，靠这条常驻提示告诉用户「OK 删除 / BACK 取消」。 -->
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/deleteHint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="32dp"
+        android:background="@drawable/shape_delete_hint"
+        android:paddingStart="24dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="10dp"
+        android:text="按 OK 删除当前收藏 · 按 BACK 取消"
+        android:textColor="@color/qbox_text"
+        android:textSize="16sp"
+        android:visibility="gone"
+        tools:visibility="visible" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipChildren="false"
-            android:clipToPadding="false"
-            android:overScrollMode="never"
-            android:paddingStart="32dp"
-            android:paddingTop="32dp"
-            android:paddingEnd="32dp"
-            android:paddingBottom="24dp" />
-
-    </com.fongmi.android.tv.ui.custom.ProgressLayout>
-
-</androidx.appcompat.widget.LinearLayoutCompat>
+</FrameLayout>

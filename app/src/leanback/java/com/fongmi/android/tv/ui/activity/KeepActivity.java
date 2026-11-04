@@ -3,6 +3,7 @@ package com.fongmi.android.tv.ui.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.viewbinding.ViewBinding;
@@ -94,19 +95,30 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     @Override
     public void onItemDelete(Keep item) {
         mAdapter.remove(item.delete(), () -> {
-            if (mAdapter.getItemCount() == 0) mAdapter.setDelete(false);
+            if (mAdapter.getItemCount() == 0) {
+                setDeleteMode(false);
+                // 删掉最后一条后要回到空态，否则留一整页空白（既没卡片也没提示）。
+                mBinding.progressLayout.showEmpty("还没有收藏内容，在详情页点「收藏」加入", null);
+            }
         });
     }
 
     @Override
     public boolean onLongClick() {
-        mAdapter.setDelete(true);
+        setDeleteMode(true);
         return true;
+    }
+
+    /** 删除模式：卡片上出现删除图标，同时底部常驻提示「OK 删除 / BACK 取消」。 */
+    private void setDeleteMode(boolean delete) {
+        mAdapter.setDelete(delete);
+        if (mBinding == null) return;
+        mBinding.deleteHint.setVisibility(delete ? View.VISIBLE : View.GONE);
     }
 
     @Override
     protected void onBackInvoked() {
-        if (mAdapter.isDelete()) mAdapter.setDelete(false);
+        if (mAdapter.isDelete()) setDeleteMode(false);
         else super.onBackInvoked();
     }
 }
