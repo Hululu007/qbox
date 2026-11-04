@@ -16,8 +16,8 @@ android {
         applicationId "com.qbox.app"
         minSdk libs.versions.minSdk.get().toInteger()
         targetSdk libs.versions.targetSdk.get().toInteger()
-        versionCode 76
-        versionName "1.9.18"
+        versionCode 77
+        versionName "1.9.19"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString(), "eventBusIndex": "com.fongmi.android.tv.event.EventIndex"]
@@ -74,6 +74,9 @@ android {
         }
     }
 
+    // CI 可通过 -PqboxTestConfig=<url> 指定 debug 首启配置；默认仍是老白测试源。
+    def qboxTestConfig = (project.findProperty('qboxTestConfig') ?: 'https://tvbox.laobaitv.net').toString().replace('"', '')
+
     buildTypes {
         release {
             minifyEnabled = true
@@ -84,8 +87,8 @@ android {
             buildConfigField "String", "QBOX_TEST_CONFIG", '""'
         }
         debug {
-            // 只有 debug 包内置老白测试源，方便真机验收；release 里这个字符串是空的。
-            buildConfigField "String", "QBOX_TEST_CONFIG", '"https://tvbox.laobaitv.net"'
+            // debug 包默认内置老白测试源；CI 可用 -PqboxTestConfig=<url> 换成本地 mock。release 里为空。
+            buildConfigField "String", "QBOX_TEST_CONFIG", '"' + qboxTestConfig + '"'
             // QBox: 调试包同样用 release 证书，debug/release 可互相覆盖安装，不再因签名不一致清数据。
             signingConfig = signingConfigs.release
         }

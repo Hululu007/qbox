@@ -27,6 +27,12 @@ public class Traffic {
     private static String getSpeed() {
         long nowTimeStamp = System.currentTimeMillis();
         long nowTotalRxBytes = TrafficStats.getUidRxBytes(UID) / 1024;
+        // 第一次采样只建立基线：否则会拿「开机以来的总流量 / 当前时间戳」算出一个假速度。
+        if (lastTimeStamp == 0) {
+            lastTimeStamp = nowTimeStamp;
+            lastTotalRxBytes = nowTotalRxBytes;
+            return "0" + UNIT_KB;
+        }
         long speed = (nowTotalRxBytes - lastTotalRxBytes) * 1000 / Math.max(nowTimeStamp - lastTimeStamp, 1);
         lastTimeStamp = nowTimeStamp;
         lastTotalRxBytes = nowTotalRxBytes;
@@ -40,7 +46,8 @@ public class Traffic {
     }
 
     public static void reset() {
-        lastTotalRxBytes = 0;
-        lastTimeStamp = 0;
+        if (TrafficStats.getUidRxBytes(UID) == TrafficStats.UNSUPPORTED) return;
+        lastTotalRxBytes = TrafficStats.getUidRxBytes(UID) / 1024;
+        lastTimeStamp = System.currentTimeMillis();
     }
 }

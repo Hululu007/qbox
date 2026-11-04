@@ -22,15 +22,18 @@
 
     <style name="Theme.App" parent="Theme.Base" />
 
-    <!-- 设置页分区标题：小字号、字距拉开、压暗，和可聚焦的行区分开。 -->
+    <!-- 设置页分区标题：小字号、字距拉开、压暗，和可聚焦的行区分开。
+         前面加一条品牌蓝竖条，给纯黑页面一点结构和扫读锚点。 -->
     <style name="SettingHeader">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginTop">14dp</item>
-        <item name="android:layout_marginBottom">4dp</item>
-        <item name="android:letterSpacing">0.08</item>
-        <item name="android:textColor">@color/qbox_text_mute</item>
-        <item name="android:textSize">13sp</item>
+        <item name="android:layout_marginTop">18dp</item>
+        <item name="android:layout_marginBottom">6dp</item>
+        <item name="android:drawableStart">@drawable/shape_setting_accent</item>
+        <item name="android:drawablePadding">8dp</item>
+        <item name="android:letterSpacing">0.1</item>
+        <item name="android:textColor">#A9A9B6</item>
+        <item name="android:textSize">14sp</item>
     </style>
 
     <!-- 对话框：Material3 默认会按 elevation 给 surface 叠加一层紫灰，和纯黑界面不搭，这里关掉叠色。 -->
@@ -62,7 +65,7 @@
     <style name="SettingRow">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginTop">6dp</item>
+        <item name="android:layout_marginTop">4dp</item>
         <item name="android:background">@drawable/selector_item</item>
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
@@ -70,9 +73,9 @@
         <item name="android:gravity">center_vertical</item>
         <item name="android:orientation">horizontal</item>
         <item name="android:paddingStart">16dp</item>
-        <item name="android:paddingTop">5dp</item>
+        <item name="android:paddingTop">8dp</item>
         <item name="android:paddingEnd">16dp</item>
-        <item name="android:paddingBottom">5dp</item>
+        <item name="android:paddingBottom">8dp</item>
     </style>
 
     <style name="SettingLabel">
@@ -81,7 +84,7 @@
         <item name="android:duplicateParentState">true</item>
         <item name="android:singleLine">true</item>
         <item name="android:textColor">@color/text</item>
-        <item name="android:textSize">16sp</item>
+        <item name="android:textSize">17sp</item>
     </style>
 
     <style name="SettingValue">
@@ -94,7 +97,7 @@
         <item name="android:gravity">end</item>
         <item name="android:singleLine">true</item>
         <item name="android:textColor">@color/text</item>
-        <item name="android:textSize">16sp</item>
+        <item name="android:textSize">17sp</item>
     </style>
 
     <style name="Theme.Crash" parent="Theme.Base">

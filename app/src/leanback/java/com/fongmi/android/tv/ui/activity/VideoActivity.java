@@ -144,6 +144,13 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private boolean seekFocus;
     private long seekBase;
     private long lastSeekKeyTick;
+    /**
+     * 用户刚按下的播放意图。MediaController 的 playWhenReady 是跨进程异步回传的，
+     * 点完立刻读会读到上一拍的状态 —— 按钮文字就会「慢一次」，暂停时仍写暂停、播放时仍写播放。
+     * 按下时先乐观地翻到目标状态，声音/画面状态回传（或 800ms 兜底）后再交还给真实状态。
+     */
+    private Boolean mPlayIntent;
+    private int mPlayIntentSeq;
     private final Runnable mHideControl = this::hideControl;
 
     /** 播放器 buffering/ready 时会把焦点甩回画面层，这里按需把焦点钉回进度条。 */
@@ -1235,8 +1242,11 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void setTraffic() {
-        // QBox: 加载态保留带宽速度，方便判断是网络慢还是源慢。
+        // QBox: 加载态实时显示带宽速度，方便判断是网络慢还是源慢。
+        // 之前只 post 一次，数字永远停在打开加载层那一瞬间（用户实测卡在 37 KB/s）。
+        if (mBinding == null || mBinding.progress.getRoot().getVisibility() != View.VISIBLE) return;
         Traffic.setSpeed(mBinding.progress.traffic);
+        App.post(mR3, 500);
     }
 
     private void onStats() {
@@ -1541,6 +1551,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     /** 暂停/恢复的意图一变就刷新按钮，不再等 isPlaying 跟着变（缓冲时两者不同步）。 */
     @Override
     public void onPlayWhenReadyChanged(boolean playWhenReady, int reason) {
+        if (mPlayIntent != null && playWhenReady == mPlayIntent) mPlayIntent = null;
         if (isOwner()) updatePlayPause();
     }
 
@@ -1607,25 +1618,39 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         // 播完以后再按，用户想的是「重播」，不是「暂停一个已经停住的画面」。
         if (isEnded()) {
             onReplay();
-            updatePlayPause();
+            showPlayIntent(true);
             return;
         }
-        if (player().isPlayWhenReady()) onPaused();
+        boolean playing = player().isPlayWhenReady();
+        if (playing) onPaused();
         else if (player().isEmpty()) onRefresh();
         else onPlay();
+        showPlayIntent(!playing);
+    }
+
+    /** 先按用户意图刷新按钮，再在状态回传/超时后交还给真实状态。 */
+    private void showPlayIntent(boolean playing) {
+        mPlayIntent = playing;
+        final int seq = ++mPlayIntentSeq;
         updatePlayPause();
+        App.post(() -> {
+            if (seq != mPlayIntentSeq) return;
+            mPlayIntent = null;
+            updatePlayPause();
+        }, 800);
     }
 
     /**
      * 按钮文字跟随真实播放意图。
      * 之前只看 isPlayWhenReady：播完（ENDED）时它仍是 true，按钮会停在「暂停」，
      * 用户看到的是「已经播完了却写着暂停」。这里把 ENDED 也算成可播放态。
+     * 另外点按瞬间 MediaController 状态还没回传，用 mPlayIntent 覆盖，避免慢一拍。
      */
     private void updatePlayPause() {
         if (service() == null || mBinding == null) return;
         try {
-            boolean canPlay = isEnded() || !player().isPlayWhenReady();
-            mBinding.control.action.playPause.setText(canPlay ? R.string.play : R.string.pause);
+            boolean playing = mPlayIntent != null ? mPlayIntent : (!isEnded() && player().isPlayWhenReady());
+            mBinding.control.action.playPause.setText(playing ? R.string.pause : R.string.play);
         } catch (Throwable ignored) {
         }
     }

@@ -766,11 +766,21 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             boolean inContent = isInside(mBinding.recycler, getCurrentFocus()) || focusLostInContent();
             boolean inTabs = isInside(mBinding.typeRecycler, getCurrentFocus()) || focusLostInTabs();
             if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP && inContent
-                    && mBinding.recycler.getSelectedPosition() <= 1
                     && mTypeAdapter != null && mTypeAdapter.size() > 0) {
-                mBinding.recycler.setSelectedPosition(0);
-                mBinding.typeRecycler.requestFocus();
-                return true;
+                int pos = mBinding.recycler.getSelectedPosition();
+                // 有「最近观看」时它是第 0 行，「更新推荐」首行是第 1 行：
+                // 从推荐首行按 ↑ 必须先回到最近观看，而不是直接跳到分类条（用户实测的跳级）。
+                if (pos == 1 && historyShown) {
+                    mBinding.recycler.setSelectedPosition(0);
+                    mBinding.recycler.requestFocus();
+                    return true;
+                }
+                // 真正在内容区最上面一行时，才把焦点交给分类条。
+                if (pos <= 0) {
+                    mBinding.recycler.setSelectedPosition(0);
+                    mBinding.typeRecycler.requestFocus();
+                    return true;
+                }
             }
             if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN && inTabs) {
                 focusContent();
