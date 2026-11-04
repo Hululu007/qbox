@@ -613,6 +613,19 @@ N-04 启动 loading 文案；空态视觉（收藏页 3D 盒子与整体扁平�
 - 214 实测：CCTV14 线路2 超时后约 20s 截图，底部仍显示「016 CCTV14 … 线路 2」；
 - `showError()` 里 `showInfo()` 后 `App.removeCallbacks(mR3)`，错误态不自动收起；正常播放仍 5s 收起。
 
+### N-21 直播「当前分组 / 当前频道」标记（已修，待补图）
+
+- 问题：Leanback 的 selected 会跟着焦点走，原来的 `selector_live` 只有 `state_focused`，
+  分组列/频道列都没有"正在播哪个台/哪个分组"的稳定标记。
+- 修法：不动背景选择器（避免破坏焦点白药丸），改用**加粗**：
+  - `GroupAdapter.setCurrent(group)`，`LiveActivity.renderGroupSelection` 时更新，当前分组名加粗；
+  - `ChannelAdapter.onBind` 对 `item.isSelected()` 的频道名加粗；
+  - 加粗不随焦点移动，导航时仍能看出当前分组/频道。
+- 实现注意：批量改 Java 文件时 PowerShell `Set-Content -Encoding UTF8` 会写入 BOM，
+  javac 报「非法字符 '\ufeff' / 需要 class」；已用字节级去 BOM 修好（构建 BUILD SUCCESSFUL）。
+- 待补：直播频道列本轮在播放态下用 OK/UP/LEFT/MENU 都没能稳定打开，
+  加粗标记的实际截图留到下次错误态/列表打开时补（逻辑与编译已验证）。
+
 
 
 
