@@ -712,6 +712,26 @@ N-04 启动 loading 文案；空态视觉（收藏页 3D 盒子与整体扁平�
   右侧画面正常露出；`shots/live-top-glow.png` 为顶部径向渐隐效果。
 - 说明：`centerX` 对 linear 渐变在部分 API 上会被忽略，实际效果以真机截图为准（已确认可读）。
 
+### R27 用户反馈 5 项：处理记录
+
+1. **海报墙按 ↓ 跳到下一行第 1 个（不保持列）** — 已修：
+   `CustomVerticalGridView.focusSearch(FOCUS_DOWN)` 里找到下一行的 `HorizontalGridView`，
+   把「同列」的子 View 直接作为焦点目标返回；找不到（未布局）才退回 Leanback 默认。
+   实测首页「最近观看」第 3 列（飞驰人生3）按 ↓ → 下一行第 3 列（小城良方）聚焦（`shots/home-3rd-down.png`）。
+2. **「选集」应叫「章节」、单集时收起** — 已改：`play_chapter` 中文改为「章节」；
+   `renderEpisodes` 里 `items.size() > 1` 才显示该按钮（电影/单片默认隐藏）。
+3. **单音轨/单视轨点一下黑屏/静音** — 已修：`TrackDialog.onItemClick` 在 AUDIO/VIDEO 且
+   只有 1 条轨道时只 toast「当前只有一个音轨/视轨，无需切换」，不再调用 `setTrack`（之前会把唯一轨道也置成未选）；
+   字幕仍允许选/关。
+4. **倍速交互** — 已改：点按循环 `1 → 1.5 → 1.75 → 2 → 3 → 0.75 → 1`，OSD 提示「倍速 1.5x」；
+   精细倍速设置改到长按（`SpeedSettingDialog`），不再默认弹窗。
+5. **循环无 UI 反馈** — 已改：`onRepeat` 切换后 toast「循环：开/关」（按钮 selected 态保留）。
+
+- 已构建 `afc7d9a` 并安装 214；列对齐已截图验证，倍速/循环 toast、章节收起、单轨 toast 的实机截图待补
+  （需要进播放页，当前导航状态较乱，下一轮补）。
+- 待做：把「精细倍速设置」也放进「更多」菜单（目前只在长按里）。
+
+
 
 
 
