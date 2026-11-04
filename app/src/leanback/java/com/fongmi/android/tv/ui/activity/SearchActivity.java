@@ -206,6 +206,12 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
+        // 搜索页 BACK 直接退出：之前焦点在 EditText 上时 BACK 会被输入法/编辑框吃掉，
+        // 表现为「按 BACK 不退出、偶尔删掉一个字」，用户以为遥控器坏了。
+        if (event.getAction() == KeyEvent.ACTION_UP && event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            finish();
+            return true;
+        }
         if (KeyUtil.isMenuKey(event)) showDialog();
         if (KeyUtil.isActionDown(event) && findFocus(event)) return true;
         return super.dispatchKeyEvent(event);
