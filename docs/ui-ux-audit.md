@@ -735,6 +735,13 @@ N-04 启动 loading 文案；空态视觉（收藏页 3D 盒子与整体扁平�
   再用 → 移到「倍速」按 OK 验证。
 - 待做：把「精细倍速设置」也放进「更多」菜单（目前只在长按里）。
 
+### R30-32 精细倍速收进「更多」（已实现）
+
+- `view_control_vod_action.xml` 的「更多」二级行新增「倍速设置」（`speedExtra`），
+  点击走 `onSpeedSetting()` 打开 `SpeedSettingDialog`；长按主行「倍速」也仍可进入。
+- 新增字符串 `play_speed_setting`（zh「倍速设置」/ en「Speed setting」）。
+- 与上一批 `afc7d9a` 一起待构建/安装后验证（倍速点按循环本身不弹窗，精细设置只在更多/长按里）。
+
 
 
 
