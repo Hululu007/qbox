@@ -89,7 +89,7 @@ QBOX_LIVE parsed=5 channels=2662
 | 项 | 状态 | 说明 |
 |---|---|---|
 | **N-12 冷启动 ~11.5s 首帧 / ~24s 内容** | 已缓解 | 已把直播/壁纸配置移出主线程；剩余耗时是 debug 55MB APK 的类加载 + 复杂布局 inflation，需要启动骨架屏或 release 包验证 |
-| **恢复对话框无焦点**（本轮发现） | 未修 | 设置 → 恢复 → 备份列表弹出后**焦点仍留在设置页**，→/↓ 无反应；试过 `onStart` 里 `post requestFocus` 无效（弹窗窗口本身没拿到焦点），需要查 `BaseAlertDialog` 的 window focus 设置 |
+| **恢复对话框无焦点**（本轮发现） | 未修 | 设置 → 恢复 → 备份列表弹出后**焦点仍留在设置页**，→/↓ 无反应；试过 `onStart` 里 `post requestFocus` 无效。已排查：`BaseAlertDialog` 没有动 window 标志、`ThemeOverlay.QBox.Dialog` 只是配色覆盖；**现象指向弹窗窗口本身没有拿到 window focus**（设置页的「恢复」行还保持灰药丸）。下一步建议在 `RestoreDialog.onStart` 里 `getDialog().getWindow()` 主动 `setFocusable(true)`/`setFlags`，或改成 `BottomSheetDialogFragment`（参考 `TrackDialog`，它的列表焦点是正常的） |
 
 ### P2 — 偏源侧 / 低优先
 
