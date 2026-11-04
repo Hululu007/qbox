@@ -547,12 +547,22 @@ N-04 启动 loading 文案；空态视觉（收藏页 3D 盒子与整体扁平�
 - 站点少（7 个以内）时最后一个 tab 结束在 32dp 内边距处，渐变覆盖不到，不会把完整 tab 压暗。
 - 注意：本轮两次搜索都只出 7 个 tab，未再撞到溢出场景；溢出时的实际观感留到下次源多站点时补图。
 
-### N-19 搜索结果为空时页面全空、没有提示（新登记）
+### N-19 搜索结果为空/「全部」页空白（根因已定位，未修，需专项重构）
 
-- 现象（214）：搜「后会友期」时 tab 出来了（7 个站点），但内容区一片空白，既没有「没有找到」也没有加载提示；
-  同一关键词上一轮能出结果，属源侧时好时坏。
-- 建议：`CollectActivity` 的聚合 tab 在 `size == 0` 时显示空态文案（「没有找到相关内容，换个关键词或站点试试」），
-  并在搜索未完成时显示「正在搜索…」；优先级 P2。
+- 现象（214）：搜「ZZZZZZ」时站点 tab 出现（盘她/茉莉/荐片/B哔哔合集），但内容区一片空白；
+  「全部」页既不显示结果也不显示空态；搜「后会友期」时也出现过同样空白。
+- 排查结论：
+  - `CollectActivity.PageAdapter extends FragmentStatePagerAdapter`，`getItem(position)` **每次都 new**
+    一个 `CollectFragment`，而 `destroyItem()` 是**空实现**、`saveState/restoreState` 也被清空；
+  - 每来一个站点结果就 `notifyDataSetChanged()`：旧 fragment 不被销毁，同位置又 instantiate 出新的，
+    屏幕上留着的仍是最早那个空 fragment；
+  - 原观察者用 `getFragment().addVideo()`（内部 `instantiateItem(0)`）取「当前页」，
+    很可能拿到的是新建的、未上屏的 fragment；多站点时问题必现。
+- 试过的修法：把结果累加进 `Collect.all()` 的 list、只靠重建显示；空态改由 Activity 延迟 8s 检查。**
+  仍然空白**，因为空 `destroyItem` + 重复 instantiate 的问题没解决。
+- 处理：**已回滚试验代码**，保持 1.9.19 原状，避免引入重复 fragment / 焦点错乱；
+  N-19 需要专项：要么改成一个共享聚合列表 + 不重建 fragment，要么把聚合结果页改成
+  RecyclerView + ViewPager2（或直接用 ViewPager2 的 FragmentStateAdapter）。优先级 P1（搜索是主链路）。
 
 
 
