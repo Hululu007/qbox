@@ -2,10 +2,12 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
 
-    <!-- 直播频道表：左侧压暗保证文字可读，右侧渐隐露出画面。 -->
+    <!-- 直播频道表：左侧压暗保证文字可读，右侧渐隐露出画面。
+         压暗区域延长到 78% 宽度（频道名在列表右半段），避免遇到亮色画面时频道名看不清。 -->
     <gradient
         android:angle="0"
-        android:centerColor="#A6000000"
+        android:centerColor="#E6000000"
+        android:centerX="0.78"
         android:endColor="#00000000"
         android:startColor="#F0000000"
         android:type="linear" />

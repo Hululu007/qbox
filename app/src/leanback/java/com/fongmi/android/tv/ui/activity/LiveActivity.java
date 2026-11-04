@@ -443,12 +443,14 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         App.removeCallbacks(mR4);
         if (isGone(mBinding.recycler)) return;
         mBinding.recycler.setVisibility(View.GONE);
+        mBinding.listTopScrim.setVisibility(View.GONE);
         setPosition();
     }
 
     private void showUI() {
         if (isVisible(mBinding.recycler) || mGroupAdapter.getItemCount() == 0) return;
         mBinding.recycler.setVisibility(View.VISIBLE);
+        mBinding.listTopScrim.setVisibility(View.VISIBLE);
         setPosition();
         setUITimer();
         hideEpg();

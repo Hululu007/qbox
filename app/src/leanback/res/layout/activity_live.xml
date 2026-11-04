@@ -85,5 +85,17 @@
             tools:listitem="@layout/adapter_epg_data" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <!-- 列表顶部渐隐：滚出顶边的频道行淡出，而不是被屏幕硬裁一半。 -->
+    <View
+        android:id="@+id/listTopScrim"
+        android:layout_width="400dp"
+        android:layout_height="120dp"
+        android:layout_gravity="top|start"
+        android:background="@drawable/shape_live_top_glow"
+        android:clickable="false"
+        android:focusable="false"
+        android:visibility="gone" />
+
 </FrameLayout>
 

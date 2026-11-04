@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- 直播列表左上角的柔和压暗：径向渐变从左上角向外淡出，避免矩形硬边切在视频上。 -->
+    <gradient
+        android:centerX="0"
+        android:centerY="0"
+        android:endColor="#00000000"
+        android:gradientRadius="380dp"
+        android:startColor="#E6000000"
+        android:type="radial" />
+
+</shape>
