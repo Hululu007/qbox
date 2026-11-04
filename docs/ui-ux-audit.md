@@ -568,6 +568,21 @@ N-04 启动 loading 文案；空态视觉（收藏页 3D 盒子与整体扁平�
   不再依赖输入法/编辑框的行为。
 - 证据（214）：进搜索页按一次 BACK 直接回首页（`HomeActivity`），不再卡在搜索页或删字。
 
+### 第 7 轮补充：收藏长按删除 / 自动化回归
+
+- **收藏长按删除**：代码链路已核对（`KeepAdapter.setOnLongClickListener -> KeepActivity.onLongClick ->
+  mAdapter.setDelete(true)` → 卡片右上出现删除按钮 → 点击走 `onItemDelete` → `Keep.remove`；
+  BACK 在删除态下只退出删除模式，由 `KeepActivity.onBackInvoked` 处理），
+  但**adb 无法可靠模拟遥控器长按**：盒子 Android 9 没有 `input motionevent`，
+  `input keyevent --longpress 23` 不会触发 Leanback 卡片的 `performLongClick`（只发一次带 flag 的 down），
+  `input swipe` 同点长按会被当成点击（实测直接进播放）。这一条需要真遥控器人工验收。
+- **收藏卡片点击 → 播放**：214 实测点卡片进入播放（芒果TV 源，画面正常），BACK 一次回到收藏页。
+- **自动化回归（.toolchain/test.ps1）**：`BUILD SUCCESSFUL`；
+  `QBOX_TEST_OK sites=49`（配置管线）、`QBOX_FALLBACK_OK sites=49`（内置兜底）、
+  `QBOX_UI_OK source=65px`（首页布局 inflation）、直播 `parsed=5 channels=2662`，
+  首个频道流 `cctv1.m3u8 -> 206 application/vnd.apple.mpegurl`。
+
+
 
 
 
