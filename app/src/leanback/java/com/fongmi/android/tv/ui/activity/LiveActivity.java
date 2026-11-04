@@ -991,14 +991,17 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER) {
-            if (event.getAction() == KeyEvent.ACTION_DOWN && event.getRepeatCount() > 0) {
-                centerLongPress = true;
-                showControl(getFocus2());
-                return true;
-            }
-            if (event.getAction() == KeyEvent.ACTION_UP && centerLongPress) {
-                centerLongPress = false;
-                return true;
+            // 频道列表展开时，长按 OK 交给列表项处理（收藏切换）；列表收起时才用于呼出控制条。
+            if (isGone(mBinding.recycler)) {
+                if (event.getAction() == KeyEvent.ACTION_DOWN && event.getRepeatCount() > 0) {
+                    centerLongPress = true;
+                    showControl(getFocus2());
+                    return true;
+                }
+                if (event.getAction() == KeyEvent.ACTION_UP && centerLongPress) {
+                    centerLongPress = false;
+                    return true;
+                }
             }
         }
         if (isVisible(mBinding.control.getRoot())) setR1Callback();
