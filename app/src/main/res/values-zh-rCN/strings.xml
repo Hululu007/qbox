@@ -60,6 +60,7 @@
     <string name="play_backward">←</string>
     <string name="play_speed">倍速</string>
     <string name="play_speed_hint">倍速 <xliff:g name="speed">%1$s</xliff:g></string>
+    <string name="play_speed_setting">倍速设置</string>
     <string name="play_reset">刷新</string>
     <string name="play_replay">重播</string>
     <string name="play_decode">硬解</string>

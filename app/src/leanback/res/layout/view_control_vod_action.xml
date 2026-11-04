@@ -35,6 +35,12 @@
             android:text="@string/play_exo" />
 
         <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/speedExtra"
+            style="@style/Control"
+            android:layout_marginEnd="6dp"
+            android:text="@string/play_speed_setting" />
+
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/reset"
             style="@style/Control"
             android:layout_marginEnd="6dp"

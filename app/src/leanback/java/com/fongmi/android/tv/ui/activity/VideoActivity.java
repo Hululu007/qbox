@@ -354,6 +354,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.control.action.chapter.setOnClickListener(view -> onChapter());
         mBinding.control.action.opening.setOnClickListener(view -> onOpening());
         mBinding.control.action.speed.setOnLongClickListener(view -> onSpeedLong());
+        mBinding.control.action.speedExtra.setOnClickListener(view -> onSpeedSetting());
         mBinding.control.action.ending.setOnLongClickListener(view -> onEndingReset());
         mBinding.control.action.opening.setOnLongClickListener(view -> onOpeningReset());
         mBinding.control.action.more.setOnClickListener(view -> onMore());
@@ -1054,9 +1055,14 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private boolean onSpeedLong() {
+        onSpeedSetting();
+        return true;
+    }
+
+    /** 精细倍速（收在「更多」二级行，也可以长按倍速按钮进入） */
+    private void onSpeedSetting() {
         SpeedSettingDialog.create().player(player()).save(true).show(this);
         hideControl();
-        return true;
     }
 
     private void onReset() {
