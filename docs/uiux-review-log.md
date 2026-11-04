@@ -50,6 +50,8 @@
 | N-27 | 播放页·字幕面板 | 低 | open | 无字幕轨道的流点「字幕」弹出空面板，无「暂无可用字幕」占位文案 | `r12-subtitle.png`（面板标题+图标，列表区空） | 待修：空列表加占位文案（同 H-23 三态收口一起做） | 低 |
 | N-28 | 播放页·循环按钮 | 中 | fixed | 循环开/关只弹 toast，按钮本身无状态（`shape_chip_activated`=#1FFFFFFF 12% 白底≈不可见）；且 `setRepeatOne` 只写 ExoPlayer 运行时，重启/换片后丢失 | 修复前 `r12-loop.png`（循环开时按钮与普通按钮无区别）；修复后验收截图见第 11 轮记录 | ① 新增切换类按钮专用资源：`selector_chip_toggle`（开=accent_soft 底+1dp accent 描边+蓝字；开+焦点=白底+1.5dp accent 描边+蓝字；焦点=白药丸黑字；关=透明灰白字）；② `Setting.isRepeatOne/putRepeatOne` 持久化；③ `renderHistory` 恢复循环与按钮态；④ 倍速按钮非 1x 时直接显示当前值（`updateSpeedButton`，呼出/点按/恢复三处刷新）；⑤ mobile 端同步持久化逻辑（视觉规范台账挂账） | 循环按钮宽度不变（文字不切换）；倍速按钮文字随值变化（「倍速」↔「1.5x」）会微调行宽，需回归控制条排布 |
 | N-29 | 播放页·章节面板 | 低 | blocked | 「选择章节」面板弹出后列表为空（伦敦合伙人有 38 期，理论上应有章节/选集数据） | `r12-chapter.png`/`r12-chapter2.png` | 待查：是这路流无 chapter 数据，还是面板加载失败；先看 `haveChapter()` 判定与 adapter 数据源 | 低 |
+| N-30 | 直播播放 | 低 | open | 异常流（006 CCTV5 线路2，txiptv 酒店源）播放到 ENDED 后停在 00:00/00:00 暂停态：`playNextProgram` 因无 catchup 空转，不自动换线/换台；此时 `isLive()=false`，←/→ 落入 seek 分支失效，只能手动换台 | `r15-line.png`（00:00/00:00 暂停态）、`r15-line1.png`（连接超时） | 待修：ENDED 且无 catchup 可播时应回退 nextLine/nextChannel，或给出「重试/换台」引导而非死停 | 低 |
+| N-31 | 直播·频道收藏 | 中 | blocked（真机回归受阻） | TV 端长按 OK 被 `dispatchKeyEvent` 全局拦截开控制条（ACTION_DOWN repeatCount>0 直接消费），频道项 `OnLongClick`（加/删收藏）遥控器永远不可达，「收藏」分组永远为空 | Keep 表无任何 type=1 记录；代码路径 `LiveActivity.dispatchKeyEvent`（leanback）；焦点实测落在频道项（long-clickable=true） | 候选修复已提交：`dispatchKeyEvent` 加守卫——频道列表（recycler）可见时长按 OK 交还列表项；列表收起才开控制条。**回归受阻原因（注入局限，非代码问题）**：`input keyevent --longpress` 不产生 repeatCount>0 事件（退化为普通点击）；`input swipe` 同点触摸长按被系统吞；`sendevent /dev/input/event0 1 28 1` 按住 1.4s 亦未触发 View key-long-click，且期间无法区分事件是否到达列表项——需真实遥控器长按复验 | 列表收起时长按开控制条手势不变；列表内长按不再开控制条（改用 MENU 键）；**合并前必须真遥控器验证，失败则回退** |
 
 ### 切换类按钮的状态表达规则（N-28 落地，全站统一）
 
@@ -162,6 +164,38 @@ commit：`aa566e8`（fongmi-561）。N-27（字幕空面板占位）、N-29（�
 顺带确认：续播位置恢复（position=42 分钟处）、倍速跨重启恢复（speed=1.5）、循环图标随状态切换（media_session mIcon 变化）、内嵌字幕渲染正常、网盘源 QR 授权弹窗存在。logcat 无新增 FATAL/ANR。
 
 遗留：片头/片尾的 ↑/↓ 微调与长按重置未逐项（机制已由 OK 设值覆盖验证，微调走 CustomUpDownView 既有逻辑）；「上集/下集」单集 toast 为历史挂账项（`afc7d9a`）未复测。
+
+### 第 13 轮（2026-11-05 凌晨）— 二级设置页全量验证 + 测试机配置恢复
+
+范围：SettingActivity 全部二级页与对话框逐项进入（每页截图）。
+
+结果：播放设置 9 项页（`r14-setting-player.png`）、解码设置 6 项页（隧道模式切换+切回，`r14-decode*.png`）、预载页（单开关，`r14-preload*.png`）、UA 对话框（QR+输入）、播放键切换（暂停/播放↔呼出菜单）、备份（toast 备份成功）、版本（toast 已是最新版本）、DoH 选择对话框（系统/腾讯/阿里/360）、无痕切换（已切回关）、点播配置对话框（QR+地址+选择/确定/取消，`r14-vod-dialog*.png`）、缓存清理（20MB→无，`r14-cache*.png`）。
+
+配置恢复（不留验证痕迹）：图片尺寸循环 [小/中/大/特大] 验证后从「小」OK×2 经「中」恢复原值「大」（uiautomator sizeText=「大」确认）；隧道模式、无痕模式均已切回原值。
+
+顺带确认：弹幕设置入口为产品决策隐藏（`SettingActivity.java:78` 注释「QBox: 去掉弹幕相关入口，保持设置精简」，非缺陷）；预载页单开关信息密度低（UX 观察，不单独立项）。全程无 crash/ANR。
+
+### 第 14 轮（2026-11-05 凌晨）— 直播 EPG/换台/加密分组验证 + N-31 候选修复
+
+验证项与结果：
+
+| 项 | 结果 | 证据 |
+|---|---|---|
+| 频道列表呼出/分组切换 | ✅ OK 呼出；左列分组（收藏/央视/卫视/睛彩/咪视界/历年春晚/轮播）↓ 选中即刷新频道列（焦点驱动、**播放不中断**）；组内 OK 进频道列、↓ 选台、OK 换台 | `r15-group2.png`（卫视 pill + 030~038 频道列）、`r15-group-switch.png` |
+| ↑/↓ 直换台 | ✅ CCTV2→CCTV4→006 CCTV5 等；信息条实时更新频道号/台标/名称/**EPG 节目名+时段**/线路 | `r15-live-list.png`、`r15-line1.png`（「006 CCTV5 01:06~02:36 国际足球赛场…利物浦-富勒姆(4K)」） |
+| EPG 面板 | ✅ 源数据 36/141 频道有 EPG（logcat `EpgParser: bindResultsToLive with-epg=36 without-epg=105`，源 `gitee.com/taksssss/tv/.../112114.xml.gz`）；CCTV2/CCTV4 面板：当前节目置顶高亮、↓ 列表内焦点移动正常、节目与实播一致（中国经济大讲堂 / 爱在青山绿水间）；点击非当前节目在无 catchup 源下按设计无操作（`LivePlaybackController.selectEpg` return false） | `r15-epg-panel.png`、`r15-epg-nav2.png` |
+| CCTV1 无 EPG | ✅ 数据事实非 bug：EPG XML 频道表从 CCTV10 起、无 CCTV1 条目（已拉源文件核对）；点击 CCTV1 正确落入换台分支 | 本地 `epg.xml` 核对记录 |
+| 错误态 | ✅ 卡流 spinner「正在加载」；超时后 ⚠「连接超时」图标+文字；自动换线逻辑代码确认（`fallbackAfterError`：`LiveSetting.isChange` 开且非最后线路才自动换线；当前源最后线路超时后停留报错属预期） | `r15-line1.png`、`r15-cctv2.png` |
+| 加密分组 | ⛔ blocked（源未配置）：`Live.pass=0`（数据库实测）；连点「收藏」分组 5 次无 PassDialog 属预期 | tv.db `Live` 行 |
+| 手动切线（控制条「线路」按钮） | ⛔ blocked（源服务不稳定）：按钮正确显示当前值（线路 2）、点击触发 requestLive（media_session state 6→0 重载尝试），但 m3u 服务器 502、两线路均超时，端到端「切线后播放恢复」未证实 | media_session 快照、`r15-line1.png` |
+| 数字选台 | ⛔ blocked（未实测）：代码路径存在（`CustomKeyDownLive` 数字键→onShow/onFind），本轮未执行 | — |
+| 长按收藏（N-31） | ⛔ blocked（注入局限）：静态确认拦截根因并提交候选修复（`dispatchKeyEvent` 列表可见时放行长按）；三种注入方式均无法触发 View key-long-click，需真实遥控器复验 | 见 §1.3 N-31 行 |
+
+新发现登记：**N-30**（低，open）异常流 ENDED 死停 00:00 暂停态；**N-31**（中，blocked）TV 端长按收藏不可达。
+
+新发现待查项（N-30 关联观察）：CCTV5 线路2（`139.227.221.147:9901/tsfile/...` txiptv 酒店源）流卡在 00:00 且 `isLive()=false` 时，→ 键落入 `onKeyRight` 的 seek 分支（`LiveActivity.java:1061-1063`）而非 `nextLine`——切线路在异常流态下静默失效；另 `LivePlaybackController.switchLine`（`LivePlaybackController.java:149-155`）无 buffering/错误态守卫，异常中切线表现依赖上层。复现路径：直播 → ↓ 换至 006 CCTV5（若默认线路2）→ 等流 ENDED 卡 00:00 → 按 →。
+
+**N-24 状态重申：已闭环 fixed**（第 10/12 轮交叉证据：`r12-ctrl-pause.png` 焦点落「暂停」、QBoxCtrl 日志 `focus=playPause → focus=prev panelFocused=true`、紧凑序列 →/→ 行内移动不快进）。本轮直播侧控制条焦点行为同样受 5s 自动收起约束，验证序列必须单条 adb shell 内完成（§2 方法学教训已记）。
 
 ---
 
@@ -300,10 +334,10 @@ QBox 是 Android TV / TV 盒子产品，故以 Android TV 实际规范为主、t
 | 推送 PushActivity | QR 码（白点黑底可扫）、剪贴板、URL | — | ✅ | 标准顶栏（R23-01）正常 |
 | 设置 SettingActivity | 两列面板（内容源/播放｜系统/维护）、焦点导航 | 弹窗/二级页 | ✅ | 12 个可聚焦行、焦点上下右移动正常 |
 | 恢复对话框 | 备份列表、焦点移动、删除图标 | P1「无焦点」复验 | ✅ | 焦点正常落列表条目，DOWN/RIGHT 可移动（未复现 P1） |
-| 二级设置页（播放/解码/预载/弹幕） | — | — | ❌ | 本轮未逐页进入（已有 N-18 修复记录，待补验） |
+| 二级设置页（播放/解码/预载/弹幕） | 播放设置 9 项、解码 6 项（隧道切换+切回）、预载开关、UA 对话框、播放键、备份、版本、DoH、无痕、点播配置、缓存清理 | 弹幕入口为产品决策隐藏（代码注释确认）；部分循环项（引擎/渲染/缩放/后台播放/缓冲）只读值未逐项切换 | ✅ | 第 13 轮 |
 | 投屏 CastActivity | — | — | ⚠️ | 推送页已验证；独立 CastActivity 未单独进入 |
 | 更新检查 | — | — | ❌ | 需真实网络到 GitHub，未触发 |
 | 播放二级功能（倍速/音轨/字幕/选集/快进阶梯） | — | — | ⚠️ | 被 N-24 控制条焦点阻断，修复构建后补验 |
-| 直播 EPG / 换台 / 加密分组 | — | — | ⚠️ | 频道列表/信息条已验证；EPG 节目单与加密分组未逐项 |
+| 直播 EPG / 换台 / 加密分组 | EPG 面板（36/141 频道有数据、当前节目高亮、列表内焦点）、↑↓直换台、组内选台换台、错误态（加载/超时）、分组切换播放不中断 | 加密分组 blocked（源 pass=0）、手动切线端到端 blocked（源 502/超时）、数字选台 blocked（未实测）、N-31 长按收藏 blocked（注入局限，候选修复已提交） | ⚠️ | 第 14 轮 |
 
 > 未覆盖项将在 N-24 修复构建 + `install -r` 后，用「播放键=呼出菜单」设置补齐播放页二级功能；EPG/加密分组依赖具体源配置。
