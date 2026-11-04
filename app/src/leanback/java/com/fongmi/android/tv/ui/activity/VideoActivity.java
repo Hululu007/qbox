@@ -1211,16 +1211,27 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
         setExtra(view != null && isInExtra(view));
         updatePlayPause();
-        // 等控制条真正布局完再要焦点：之前同步 requestFocus 时按钮还 isShown()==false，
-        // 焦点留在画面上，→/← 被当成快进（用户反馈"按钮完全无法聚焦"的真正原因）。
-        View target = view;
-        mBinding.control.getRoot().post(() -> {
-            View focus = target != null && target.isShown() ? target : getFocus2();
-            if (focus == null || !focus.isShown()) focus = mBinding.control.action.more;
-            if (focus != null) focus.requestFocus();
-        });
+        // 等控制条真正布局完再要焦点：setVisibility(VISIBLE) 只触发 requestLayout，
+        // 单次 post 时按钮往往还没 measure/layout，isShown() 仍为 false，焦点就留在画面上，
+        // →/← 被当成快进（用户反馈"按钮完全无法聚焦"的真正原因）。
+        // 用 OnGlobalLayoutListener 等到布局真的完成后再挑一个可见按钮要焦点。
+        requestControlFocus(view);
         setSubtitleLift(true);
         setR1Callback();
+    }
+
+    private void requestControlFocus(View view) {
+        View target = view;
+        View root = mBinding.control.getRoot();
+        root.getViewTreeObserver().addOnGlobalLayoutListener(new android.view.ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                root.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                View focus = target != null && target.isShown() ? target : getFocus2();
+                if (focus == null || !focus.isShown()) focus = mBinding.control.action.more;
+                if (focus != null && focus.isShown()) focus.requestFocus();
+            }
+        });
     }
 
     private void hideControl() {
@@ -1730,7 +1741,9 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         boolean panelFocused = isVisible(mBinding.control.getRoot()) && isInside(mBinding.control.getRoot(), focus);
         if (isVisible(mBinding.control.getRoot())) {
             setR1Callback();
-            mFocus2 = focus;
+            // 只在焦点确实落在控制条内时才记 mFocus2，否则会把 video 记进去，
+            // 之后 getFocus2() 一直接到 video，控制条按钮永远拿不到焦点。
+            if (panelFocused) mFocus2 = focus;
         }
         // 详情页（非全屏）的纵向焦点链在 Activity 层显式路由。
         // 之前靠 nextFocusDown 指向 HorizontalGridView 的 id，而网格本身不可聚焦，
