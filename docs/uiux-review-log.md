@@ -47,6 +47,20 @@
 | N-24 | 播放页控制条 | 高 | fixed | 全屏播放按 ↓/↑ 或 MENU 呼出控制条后，焦点仍留在视频面（`video`），→/← 被当成快进（position 跳变 +12s），控制条 14 个按钮全无法点按 | 修复前 `shots/round-2604/ctrl-*.png`；修复后 `r11-ctrl-pause.png`（焦点在「暂停」白药丸）、`r11-ctrl-right2.png`（→ 移到「上集」）、QBoxCtrl 日志（`requestFocus=true nowFocus=playPause` → `focus=prev panelFocused=true`） | 根因：`showControl` 单次 `post` 时按钮未 layout（`isShown()==false`）requestFocus 失败；且 `mFocus2` 被污染成 `video`。改 A：`showControl` 改用 `OnGlobalLayoutListener` 等布局完成再聚焦（`requestControlFocus`）；改 B：`mFocus2` 仅 `panelFocused` 时赋值 | 控制条 5s 无操作自动收起后焦点回 video 属预期；按钮双击/长按、收起后 ←/→ 快进仍需遥控器复验 |
 | N-25 | 详情页简介 | 中 | fixed | 简介文本以原始 `&nbsp; ` 开头显示（未解码 HTML 实体） | 修复前 `detail-loaded.png`（`&nbsp;《伦敦合伙人》…`）；修复后 `r11-london-detail2.png`（「合伙人们实现了从"开起来"…」干净显示）；单测 `UtilCleanTest` 5/5 通过 | 根因：`Util.clean()` 对不含 `<` 的文本直接 return。改：无 `<` 分支也替换 `&nbsp;/&#160;/\u00A0/\u3000`；单测覆盖实体变体、中英文标点/emoji/连字符不误伤、`<p>` 标签分支不破坏 | 简介截断/换行、HTML 富文本源显示需在发版前再抽 2-3 部片目检 |
 | N-26 | 搜索页键盘 | 低 | open | 搜索框已有长文本时，⌫ 键**长按不能清空**（`--longpress 23` 实测只删 1 字），长词需逐字删除，10-foot 场景费劲 | `r11-cleared2.png`（长按后「小城良方LL」→「小城良方L」） | 待修：⌫ 长按应清空（或循环加速删除）；需看 `SearchActivity` 键盘 `onLongClick` 是否实现 | 低：仅影响长词删除效率 |
+| N-27 | 播放页·字幕面板 | 低 | open | 无字幕轨道的流点「字幕」弹出空面板，无「暂无可用字幕」占位文案 | `r12-subtitle.png`（面板标题+图标，列表区空） | 待修：空列表加占位文案（同 H-23 三态收口一起做） | 低 |
+| N-28 | 播放页·循环按钮 | 中 | fixed | 循环开/关只弹 toast，按钮本身无状态（`shape_chip_activated`=#1FFFFFFF 12% 白底≈不可见）；且 `setRepeatOne` 只写 ExoPlayer 运行时，重启/换片后丢失 | 修复前 `r12-loop.png`（循环开时按钮与普通按钮无区别）；修复后验收截图见第 11 轮记录 | ① 新增切换类按钮专用资源：`selector_chip_toggle`（开=accent_soft 底+1dp accent 描边+蓝字；开+焦点=白底+1.5dp accent 描边+蓝字；焦点=白药丸黑字；关=透明灰白字）；② `Setting.isRepeatOne/putRepeatOne` 持久化；③ `renderHistory` 恢复循环与按钮态；④ 倍速按钮非 1x 时直接显示当前值（`updateSpeedButton`，呼出/点按/恢复三处刷新）；⑤ mobile 端同步持久化逻辑（视觉规范台账挂账） | 循环按钮宽度不变（文字不切换）；倍速按钮文字随值变化（「倍速」↔「1.5x」）会微调行宽，需回归控制条排布 |
+| N-29 | 播放页·章节面板 | 低 | blocked | 「选择章节」面板弹出后列表为空（伦敦合伙人有 38 期，理论上应有章节/选集数据） | `r12-chapter.png`/`r12-chapter2.png` | 待查：是这路流无 chapter 数据，还是面板加载失败；先看 `haveChapter()` 判定与 adapter 数据源 | 低 |
+
+### 切换类按钮的状态表达规则（N-28 落地，全站统一）
+
+适用：循环、弹幕开关、倍速（取值显示）、缩放/解码/引擎（取值显示）、片头/片尾（取值显示）。
+
+1. **开关型**（开/关）：按钮持久显示状态——开 = `qbox_accent_soft` 底衬 + 1dp `qbox_accent` 描边 + accent 文字；关 = 透明底 + #C9C9D1 灰白字。焦点态仍是实心白药丸，**焦点+开 = 白底 + accent 描边 + accent 字**（焦点环与状态互不吞掉）。不靠 toast 表达状态（toast 保留为操作反馈）。
+2. **取值型**（倍速/缩放/解码/片头尾）：按钮文字直接显示当前值（如 `1.5x`），默认值时回到简洁文案（如「倍速」）。
+3. **面板选择型**（音轨/字幕/视轨/章节/画质）：按钮本身不带状态，选中项在弹层面板内标记；空面板必须有占位文案（N-27 待修）。
+4. 双通道原则：状态表达必须同时有形态差异（描边/底衬/文字内容）与颜色差异，禁止只靠颜色（色觉障碍 + 10 英尺距离）。
+5. 持久化：开关型与取值型状态一律写 `Prefers`（Setting/SpeedSetting），重进播放页与重启应用后恢复。
+6. mobile 端：持久化逻辑已同步；视觉规范（Control 样式 selected 态）待单独收口（手机形态不走焦点模型）。
 
 ---
 
@@ -105,6 +119,25 @@
 - commit：`c5512cc`（UtilCleanTest）。N-24/N-25 代码修复在此前 `b9c8590`、`99349e5`。
 
 遗留方法学教训：验证 5s 自动收起 UI 的操作序列必须放在**单条 adb shell** 内执行，消除命令往返开销；`dumpsys media_session` 的 position 快照有延迟，不能单独用作精确计时判据；uiautomator 对 SurfaceView/Leanback 列表的 `focused` 属性与 bounds 常返回旧值，**以截图视觉为准**。
+
+### 第 11 轮（2026-11-04 深夜）— N-28 循环按钮状态可见 + 持久化
+
+范围：用户实测反馈「循环按钮只有 toast、按钮本身无状态」，按 8 条要求处理并扩展为「切换类按钮状态表达规则」。
+
+改动：
+- 新增 `selector_chip_toggle` / `shape_chip_toggle_on` / `shape_chip_toggle_on_focused` / `control_toggle_text`（leanback），循环按钮换用；
+- `Setting.isRepeatOne/putRepeatOne` 持久化；leanback + mobile 两端 `onRepeat` 写入、`renderHistory` 恢复；
+- 倍速按钮非 1x 直接显示当前值（`updateSpeedButton`，呼出/点按/恢复三处刷新）。
+
+真机验收（全过）：
+- 关态：`r13-loop-off.png`（循环=透明灰白字，倍速=1.5x 已显示）；
+- 焦点+开：`r13-loop-on-focused.png`（白底+蓝描边+蓝字，toast「循环：开」辅助仍在）；
+- 非焦点开：`r13-loop-on-unfocused.png`、`r13-loop-persist2.png`（蓝底衬+蓝描边+蓝字，与灰白按钮一眼可辨）；
+- 持久化：重进播放页恢复（`r13-loop-persist2.png`）；**force-stop 重启后仍恢复**（`r13-loop-restart.png`）。
+
+顺带验证：网盘源（盘她|夸父）详情页 QR 授权弹窗存在（登录/授权场景确认）；「连接超时」「播放地址加载失败」错误态显示正常；收藏 toast 正常。
+
+commit：`aa566e8`（fongmi-561）。N-27（字幕空面板占位）、N-29（章节面板空）仍 open/blocked。
 
 ---
 
