@@ -54,8 +54,13 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
 
     private void getKeep() {
         mAdapter.setItems(Keep.getVod(), () -> {
-            if (mAdapter.getItemCount() == 0) mBinding.progressLayout.showEmpty("还没有收藏内容，在详情页点「收藏」加入", null);
-            else mBinding.progressLayout.showContent();
+            if (mAdapter.getItemCount() == 0) {
+                mBinding.progressLayout.showEmpty("还没有收藏内容，在详情页点「收藏」加入", null);
+            } else {
+                mBinding.progressLayout.showContent();
+                // 有收藏时焦点交给第一张卡（之前停在返回键上，要按一次下才进内容，和首页/分类页不一致）。
+                mBinding.recycler.post(() -> mBinding.recycler.requestFocus());
+            }
         });
     }
 
