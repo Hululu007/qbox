@@ -154,7 +154,10 @@ public class Util {
     }
 
     public static String clean(String text) {
-        if (!text.contains("<")) return text;
+        if (!text.contains("<")) {
+            // 没有 < 标签也可能有 &nbsp; 这类实体（简介开头常见），直接解码否则显示 "&nbsp; 伦敦…"。
+            return text.replace("&nbsp;", " ").replace("&#160;", " ").replace("\u00A0", " ").replace("\u3000", " ").trim();
+        }
         StringBuilder sb = new StringBuilder();
         text = Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY).toString().replace("\u00A0", " ").replace("\u3000", " ");
         for (String line : text.split("\\r?\\n")) sb.append(line.trim()).append("\n");
