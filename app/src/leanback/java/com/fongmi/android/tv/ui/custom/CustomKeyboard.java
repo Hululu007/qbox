@@ -28,6 +28,8 @@ public class CustomKeyboard implements KeyboardAdapter.OnClickListener {
 
     @Override
     public void onTextClick(String text) {
+        // 「空格」键显示中文标签、实际插入一个空格；其余按键直接插入字符。
+        if ("空格".equals(text)) text = " ";
         StringBuilder sb = new StringBuilder(binding.keyword.getText().toString());
         int cursor = binding.keyword.getSelectionStart();
         if (binding.keyword.length() > 19) return;
