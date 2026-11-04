@@ -564,6 +564,8 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mBinding.widget.error.setVisibility(View.VISIBLE);
         mBinding.widget.text.setText(text);
         hideProgress();
+        // 错误态也要能看出是哪个台：底部信息条保留，用户可按 ←/OK 换线路或换台。
+        showInfo();
     }
 
     private void hideError() {
