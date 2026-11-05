@@ -49,7 +49,9 @@ public class Util {
             i += size;
             if (code == 0x200D || code == 0xFE0F || code == 0xFE0E) continue;
             if (code >= 0xE000 && code <= 0xF8FF) continue;
-            if (code > 0xFFFF && !canRender(ch)) continue;
+            // SMP 平面（绝大多数 emoji）与 BMP 符号区（箭头/杂项符号/装饰符 0x2190–0x2BFF，如 ♥⭐▶）
+            // 在精简字体的电视盒子上同样会豆腐块，一并按字体实际渲染能力过滤；CJK 与常用标点不受影响。
+            if ((code > 0xFFFF || (code >= 0x2190 && code <= 0x2BFF)) && !canRender(ch)) continue;
             sb.append(ch);
         }
         return sb.toString().trim();

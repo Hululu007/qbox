@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 焦点态 > 选中态 > 普通态：焦点实白药丸；选中（当前分组/频道）12% 白底；普通透明。 -->
     <item android:drawable="@drawable/shape_live_focused" android:state_focused="true" />
+    <item android:drawable="@drawable/shape_live_selected" android:state_selected="true" />
 </selector>

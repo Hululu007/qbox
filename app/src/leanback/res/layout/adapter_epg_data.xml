@@ -6,7 +6,11 @@
     android:background="@drawable/selector_live"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:paddingBottom="10dp"
+    android:paddingLeft="14dp"
+    android:paddingRight="14dp"
+    android:paddingTop="10dp">
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/title"

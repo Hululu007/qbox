@@ -2,13 +2,13 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
 
-    <!-- 直播列表左上角的柔和压暗：径向渐变从左上角向外淡出，避免矩形硬边切在视频上。 -->
+    <!-- 直播列表顶部柔和渐隐：垂直线性渐变，顶端 45% 黑向下淡出。
+         旧版是圆心在左上角的径向渐变（半径 380dp 远大于视图 120dp 高），
+         与列表自身的 94% 黑底叠加后在左上角形成一块近乎纯黑的覆盖，首行分组/频道看不清。 -->
     <gradient
-        android:centerX="0"
-        android:centerY="0"
+        android:angle="270"
         android:endColor="#00000000"
-        android:gradientRadius="380dp"
-        android:startColor="#E6000000"
-        android:type="radial" />
+        android:startColor="#73000000"
+        android:type="linear" />
 
 </shape>

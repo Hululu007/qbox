@@ -97,7 +97,19 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
         if (decoration != null) binding.recycler.removeItemDecoration(decoration);
         binding.recycler.addItemDecoration(decoration = new SpaceItemDecoration(getCount(), 16));
         binding.recycler.setLayoutManager(new GridLayoutManager(requireContext(), getCount()));
-        if (!binding.mode.hasFocus()) binding.recycler.post(() -> binding.recycler.scrollToPosition(VodConfig.getHomeIndex()));
+        if (!binding.mode.hasFocus()) binding.recycler.post(() -> {
+            int index = VodConfig.getHomeIndex();
+            binding.recycler.scrollToPosition(index);
+            focusItem(index);
+        });
+    }
+
+    // 弹窗打开后焦点落到当前站点项：选中态可见，方向键可立即继续移动。
+    private void focusItem(int position) {
+        binding.recycler.post(() -> {
+            RecyclerView.ViewHolder vh = binding.recycler.findViewHolderForAdapterPosition(position);
+            if (vh != null) vh.itemView.requestFocus();
+        });
     }
 
     private void setType(int type) {

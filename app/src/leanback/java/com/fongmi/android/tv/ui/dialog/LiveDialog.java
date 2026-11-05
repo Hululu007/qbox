@@ -48,7 +48,20 @@ public class LiveDialog extends BaseAlertDialog implements LiveAdapter.OnClickLi
         binding.recycler.setHasFixedSize(true);
         binding.recycler.setItemAnimator(null);
         binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 16));
-        binding.recycler.post(() -> binding.recycler.scrollToPosition(LiveConfig.getHomeIndex()));
+        // 弹窗打开后焦点必须落到当前配置项：用户一开就能看见选中态，↓ 也能直接继续移动。
+        binding.recycler.post(() -> {
+            int index = LiveConfig.getHomeIndex();
+            binding.recycler.scrollToPosition(index);
+            focusItem(index);
+        });
+    }
+
+    private void focusItem(int position) {
+        binding.recycler.post(() -> {
+            androidx.recyclerview.widget.RecyclerView.ViewHolder vh = binding.recycler.findViewHolderForAdapterPosition(position);
+            android.view.View target = vh == null ? null : vh.itemView.findViewById(com.fongmi.android.tv.R.id.text);
+            if (target != null) target.requestFocus();
+        });
     }
 
     @Override
