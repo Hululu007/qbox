@@ -51,13 +51,28 @@
 | N-28 | 播放页·循环按钮 | 中 | fixed | 循环开/关只弹 toast，按钮本身无状态（`shape_chip_activated`=#1FFFFFFF 12% 白底≈不可见）；且 `setRepeatOne` 只写 ExoPlayer 运行时，重启/换片后丢失 | 修复前 `r12-loop.png`（循环开时按钮与普通按钮无区别）；修复后验收截图见第 11 轮记录 | ① 新增切换类按钮专用资源：`selector_chip_toggle`（开=accent_soft 底+1dp accent 描边+蓝字；开+焦点=白底+1.5dp accent 描边+蓝字；焦点=白药丸黑字；关=透明灰白字）；② `Setting.isRepeatOne/putRepeatOne` 持久化；③ `renderHistory` 恢复循环与按钮态；④ 倍速按钮非 1x 时直接显示当前值（`updateSpeedButton`，呼出/点按/恢复三处刷新）；⑤ mobile 端同步持久化逻辑（视觉规范台账挂账） | 循环按钮宽度不变（文字不切换）；倍速按钮文字随值变化（「倍速」↔「1.5x」）会微调行宽，需回归控制条排布 |
 | N-29 | 播放页·章节面板 | 低 | blocked | 「选择章节」面板弹出后列表为空（伦敦合伙人有 38 期，理论上应有章节/选集数据） | `r12-chapter.png`/`r12-chapter2.png` | 待查：是这路流无 chapter 数据，还是面板加载失败；先看 `haveChapter()` 判定与 adapter 数据源 | 低 |
 | N-30 | 直播播放 | 低 | open | 异常流（006 CCTV5 线路2，txiptv 酒店源）播放到 ENDED 后停在 00:00/00:00 暂停态：`playNextProgram` 因无 catchup 空转，不自动换线/换台；此时 `isLive()=false`，←/→ 落入 seek 分支失效，只能手动换台 | `r15-line.png`（00:00/00:00 暂停态）、`r15-line1.png`（连接超时） | 待修：ENDED 且无 catchup 可播时应回退 nextLine/nextChannel，或给出「重试/换台」引导而非死停 | 低 |
-| N-31 | 直播·频道收藏 | 中 | blocked（真机回归受阻） | TV 端长按 OK 被 `dispatchKeyEvent` 全局拦截开控制条（ACTION_DOWN repeatCount>0 直接消费），频道项 `OnLongClick`（加/删收藏）遥控器永远不可达，「收藏」分组永远为空 | Keep 表无任何 type=1 记录；代码路径 `LiveActivity.dispatchKeyEvent`（leanback）；焦点实测落在频道项（long-clickable=true） | 候选修复已提交：`dispatchKeyEvent` 加守卫——频道列表（recycler）可见时长按 OK 交还列表项；列表收起才开控制条。**回归受阻原因（注入局限，非代码问题）**：`input keyevent --longpress` 不产生 repeatCount>0 事件（退化为普通点击）；`input swipe` 同点触摸长按被系统吞；`sendevent /dev/input/event0 1 28 1` 按住 1.4s 亦未触发 View key-long-click，且期间无法区分事件是否到达列表项——需真实遥控器长按复验 | 列表收起时长按开控制条手势不变；列表内长按不再开控制条（改用 MENU 键）；**合并前必须真遥控器验证，失败则回退** |
+| N-31 | 直播·频道收藏 | 中 | fixed | TV 端长按 OK 被 `dispatchKeyEvent` 全局拦截开控制条（ACTION_DOWN repeatCount>0 直接消费），频道项 `OnLongClick`（加/删收藏）遥控器永远不可达，「收藏」分组永远为空 | Keep 表无任何 type=1 记录；代码路径 `LiveActivity.dispatchKeyEvent`（leanback）；焦点实测落在频道项（long-clickable=true）；**用户真机确认长按收藏可用（2026-11-05）** | 修复：`dispatchKeyEvent` 加守卫——频道列表（recycler）可见时长按 OK 交还列表项；列表收起才开控制条（commit `4d692ad`） | 列表收起时长按开控制条手势不变；列表内长按不再开控制条（改用 MENU 键） |
+| N-32 | 直播·频道列表 | 高 | fixed（已真机复验，证据见第 15 轮） | 列表左上角一块黑色覆盖看不清首行内容 | `r15-live-list.png`；根因：`listTopScrim` 用圆心在左上角的径向渐变（半径 380dp≫视图高 120dp），叠在列表 94% 黑底上双重压黑成块 | `shape_live_top_glow` 改垂直线性渐变（顶 45% 黑向下淡出）（`8d153fe`） | 低：纯视觉 |
+| N-33 | 直播·分组/频道行 | 中 | fixed（已真机复验，证据见第 15 轮） | 当前分组/频道无选中态标记（selector_live 只有焦点态）；且只有聚焦行有内边距，聚焦时文字右移、行高跳动 | 代码审计：`selector_live` 无 selected 分支；`shape_live_focused` 独占 padding | 新增 `shape_live_selected`（12% 白底，对齐分类 tab 规范）；padding 上移到三个列表项布局（`8d153fe`） | 低 |
+| N-34 | 直播配置/站点对话框 | 中 | fixed（已真机复验，证据见第 15 轮） | 「综合直播」等配置对话框打开后无可见焦点，用户不知道当前选中项、↓ 不知从哪开始 | 代码审计：`LiveDialog`/`SiteDialog` 只 scrollToPosition 无 requestFocus（P1 同族） | 打开后焦点落到当前选中项（`8d153fe`） | 低 |
+| N-35 | 全局·站点名 emoji | 低 | fixed（已真机复验，证据见第 15 轮） | BMP 符号区（♥⭐▶ 0x2190–0x2BFF）在精简字体盒子上会豆腐块但未被拦截 | 代码审计：`Util.cleanName` 只查 >0xFFFF | 渲染检查扩展到 BMP 符号区，CJK/常用标点不受影响（`8d153fe`） | 低 |
+| N-36 | 播放中·轨道/倍速弹层 | 高 | fixed（已真机复验，证据见第 15 轮） | 音轨/画质/字幕/倍速设置走 Material BottomSheet 默认主题（紫灰叠色+蓝色控件），与全站面板对话框两套 UI | 代码审计：`TrackDialog` 继承 `BaseBottomSheetDialog`，主题未覆盖 | `Theme.Base` 增加 `bottomSheetDialogTheme=ThemeOverlay.QBox.Sheet`（qbox_surface + 关叠色）（`79753d3`） | 中：所有底部弹层外观变化，需回归 |
+| N-37 | 全局·色彩 | 高 | fixed（已真机复验，证据见第 15 轮） | 超过 3 色的「奇怪蓝色」：背景左上蓝紫柔光 `#332B4A74`、进度条蓝 `0xFF4C8DFF`、主按钮焦点蓝描边、VOD 选中蓝描边、内容对话框链接黄、Material 控件 colorPrimary 蓝 | 全仓 `#hex`/`qbox_accent` 扫描清单 | 收敛为 ≤3 色：**中性（黑/白/灰阶）承担全部交互态；品牌蓝仅留 logo/设置分区竖条/链接语义**；`colorPrimary` 改白（驱动滑杆/勾选框/开关）（`79753d3`） | 中：所有 Material 控件变色，需回归 |
+| N-38 | 播放页·循环按钮 | 中 | fixed（已真机复验，证据见第 15 轮） | 激活态蓝色亮底不协调 | 用户反馈 | 激活态改白色系：开=白描边+15% 白底+白字；开+焦点=实白+内深色细环（`79753d3`） | 低 |
+| N-39 | 首页/分类/详情·氛围底图 | 中 | fixed（已真机复验，证据见第 15 轮） | 背景模糊海报从 40×40 中心方块 48× 放大，只剩局部色块、信息量低 | 代码审计：三处 `override(40,40).centerCrop()` | 改源海报中心 16:9 横带 `override(160,90)`，~12× 适度放大（`79753d3`） | 低 |
+| N-40 | 详情页顶部 | 低 | fixed（已真机复验，证据见第 15 轮） | 亮海报顶边硬切，无渐隐入黑 | `shape_backdrop_scrim` 顶部仅 22% 压暗 | 顶部加深到 55% 平滑过渡（共享 scrim，首页/分类/详情同受益）（`79753d3`） | 低 |
+| N-41 | 首页·最近观看 | 中 | fixed（已真机复验，证据见第 15 轮） | 焦点框下半圈被卡片的底部压暗遮罩吃掉（环是 image 的 foreground，遮罩兄弟节点画在它之上） | 代码审计：`adapter_history.xml` 层叠顺序 | 焦点环移到独立覆盖层（遮罩之上），白色实环全程完整（`79753d3`） | 低 |
+| N-42 | 首页·回到最近观看 | 低 | blocked（需真机） | 从更新推荐 ↑ 回最近观看缺滚动效果 | 设备待机无法观察；代码侧 `getHistory` 首行插入未见显式滚动调用 | 待真机确认现象（Leanback 行内滚动 vs 页面跳变）再定方案 | 低 |
+| N-43 | 播放页·快进手感 | 高 | fixed（已真机复验，证据见第 15 轮） | 一按方向键很快进入大步跳：阶梯按 repeat 计数分档，但 repeat 事件 ~50ms 一个、远快于 300ms 节流后的实际步进，按住约 0.2s 就进 20s 档 | 代码审计：`CustomKeyDownVod.stepFor(repeat)` / `VideoActivity.seekStep` | 改按**按住时长**分档：前 1.5s 每步 10s（秒级细调窗口）→3.5s 内 20s→6s 内 30s→9s 内 60s→13s 内 120s→17s 内 180s→300s；理论对比（同样按住 3s）：旧 ≈+8:20，新 ≈+2:10（`d5bbae2` + `79753d3` 同文件部分） | 中：快进体感变化，需真人手感复验 |
+| N-44 | 网盘管理 | 中 | fixed（复验通过） | 「我的云盘┃配置」站点点击无反应 | 站点为加固 spider（`csp_MyDriveGuard`） | 真机复验：点击「云盘配置」tab 触发 spider 请求（logcat `TV-category: key=MDrive,tid=peizhi`）且 VodActivity 正常打开，网盘管理网格完整渲染（登入网盘/清除四端 Cookie/自动排序/线路排序/手动推送授权）——当前构建下点击有响应，原反馈场景未复现 | 低 |
+| N-45 | 播放页·自动换源 | 高 | fixed（已真机复验，证据见第 15 轮） | 未登录网盘连续报错触发自动换源连跳，焦点一直被抢、手动抢不过 | 代码审计：`VodFallbackPolicy` 无上限连跳；`renderSources` 反复刷新 | 自动换源连续上限 3 次（手动换源不受限；手动选择本就 `setAutoFallback(false)` 已确认）；超限后界面稳定停在当前源（`f5cc81e`） | 中：正常换源链路需回归 |
+| N-46 | 配置加载 | 中 | fixed（已真机复验，证据见第 15 轮） | 「获取失败 xiuxiu pro」：用户配置源失效后卡在报错页（默认配置无此站点，非默认源问题） | 线上配置探测：tvbox.laobaitv.net 无 xiuxiu；`VodConfig.load` 只对默认源兜底 | 首载失败（内存与缓存都无站点）时回退内置快照（仅 debug；release 无快照资产则维持原报错）（`f5cc81e`） | 低 |
 
 ### 切换类按钮的状态表达规则（N-28 落地，全站统一）
 
 适用：循环、弹幕开关、倍速（取值显示）、缩放/解码/引擎（取值显示）、片头/片尾（取值显示）。
 
-1. **开关型**（开/关）：按钮持久显示状态——开 = `qbox_accent_soft` 底衬 + 1dp `qbox_accent` 描边 + accent 文字；关 = 透明底 + #C9C9D1 灰白字。焦点态仍是实心白药丸，**焦点+开 = 白底 + accent 描边 + accent 字**（焦点环与状态互不吞掉）。不靠 toast 表达状态（toast 保留为操作反馈）。
+1. **开关型**（开/关）：按钮持久显示状态——**开 = 白描边 + 15% 白底衬 + 白字；开+焦点 = 实白药丸 + 内侧 1.5dp 深色细环 + 深色字**；关 = 透明底 + #C9C9D1 灰白字。焦点态仍是实心白药丸，三态（开·非焦点 / 纯焦点 / 开+焦点）两两可区分。不靠 toast 表达状态（toast 保留为操作反馈）。（2026-11-05 B7：激活态由品牌蓝收敛为白色系，蓝色只留品牌位/链接语义。）
 2. **取值型**（倍速/缩放/解码/片头尾）：按钮文字直接显示当前值（如 `1.5x`），默认值时回到简洁文案（如「倍速」）。
 3. **面板选择型**（音轨/字幕/视轨/章节/画质）：按钮本身不带状态，选中项在弹层面板内标记；空面板必须有占位文案（N-27 待修）。
 4. 双通道原则：状态表达必须同时有形态差异（描边/底衬/文字内容）与颜色差异，禁止只靠颜色（色觉障碍 + 10 英尺距离）。
@@ -189,13 +204,42 @@ commit：`aa566e8`（fongmi-561）。N-27（字幕空面板占位）、N-29（�
 | 加密分组 | ⛔ blocked（源未配置）：`Live.pass=0`（数据库实测）；连点「收藏」分组 5 次无 PassDialog 属预期 | tv.db `Live` 行 |
 | 手动切线（控制条「线路」按钮） | ⛔ blocked（源服务不稳定）：按钮正确显示当前值（线路 2）、点击触发 requestLive（media_session state 6→0 重载尝试），但 m3u 服务器 502、两线路均超时，端到端「切线后播放恢复」未证实 | media_session 快照、`r15-line1.png` |
 | 数字选台 | ⛔ blocked（未实测）：代码路径存在（`CustomKeyDownLive` 数字键→onShow/onFind），本轮未执行 | — |
-| 长按收藏（N-31） | ⛔ blocked（注入局限）：静态确认拦截根因并提交候选修复（`dispatchKeyEvent` 列表可见时放行长按）；三种注入方式均无法触发 View key-long-click，需真实遥控器复验 | 见 §1.3 N-31 行 |
+| 长按收藏（N-31） | ✅ fixed：拦截根因修复（`dispatchKeyEvent` 列表可见时放行长按），**用户真机确认长按 OK 收藏可用** | §1.3 N-31 行 |
 
-新发现登记：**N-30**（低，open）异常流 ENDED 死停 00:00 暂停态；**N-31**（中，blocked）TV 端长按收藏不可达。
+新发现登记：**N-30**（低，open）异常流 ENDED 死停 00:00 暂停态；**N-31**（中）TV 端长按收藏不可达——候选修复当轮提交，**用户随后真机确认可用，已定案 fixed**。
 
 新发现待查项（N-30 关联观察）：CCTV5 线路2（`139.227.221.147:9901/tsfile/...` txiptv 酒店源）流卡在 00:00 且 `isLive()=false` 时，→ 键落入 `onKeyRight` 的 seek 分支（`LiveActivity.java:1061-1063`）而非 `nextLine`——切线路在异常流态下静默失效；另 `LivePlaybackController.switchLine`（`LivePlaybackController.java:149-155`）无 buffering/错误态守卫，异常中切线表现依赖上层。复现路径：直播 → ↓ 换至 006 CCTV5（若默认线路2）→ 等流 ENDED 卡 00:00 → 按 →。
 
 **N-24 状态重申：已闭环 fixed**（第 10/12 轮交叉证据：`r12-ctrl-pause.png` 焦点落「暂停」、QBoxCtrl 日志 `focus=playPause → focus=prev panelFocused=true`、紧凑序列 →/→ 行内移动不快进）。本轮直播侧控制条焦点行为同样受 5s 自动收起约束，验证序列必须单条 adb shell 内完成（§2 方法学教训已记）。
+
+### 第 15 轮（2026-11-05 上午）— 用户反馈 A→E 批次 + P1 族焦点根因修复
+
+真机环境：设备夜间待机后 adb 连接周期性断开（daemon 需每条命令内置 connect）；直播源当晚整体抖动（m3u 502、多线路超时）。
+
+**已修复并真机复验（证据截图均在 `shots/round-2604/`）**：
+
+| 项 | 真机证据 | 结论 |
+|---|---|---|
+| N-32 直播列表左上黑块 | `n15-live-list.png` | 首行分组/频道完全可读，顶部渐隐柔和 ✅ |
+| N-33 选中态/行对齐 | `n15-live-list.png` | 「卫视频道」12% 白底选中态、焦点白药丸（031）、行对齐无跳动 ✅ |
+| N-34/P1 族 对话框焦点 | `n15-livedlg7.png` | 「综合直播」实白焦点 pill 一眼可见 ✅；**附加根因修复**：`adapter_live/adapter_config/adapter_restore/dialog_player_engine` 的 `duplicateParentState` 误用导致焦点在但白 pill 不渲染（P1 族共同根因），已移除（commit 见下） |
+| N-35 emoji 防护 | `n15-home2.png` | 站点名 🗂 被剥离而非豆腐块（本机字体缺该字形→降级策略生效）✅ |
+| N-36 底部弹层统一 | `n15-track2.png` | 「选择音轨」弹层为 qbox_surface 深色面板+白色选中 pill，无 Material 紫灰叠色/蓝控件 ✅ |
+| N-37 色彩收敛 | `n15-ctrl.png`/`n15-seeking.png` | 进度条实白、无蓝色控件；品牌蓝仅剩 logo/设置分区竖条/链接语义 ✅ |
+| N-38 循环白色激活 | `n15-loop-on-uf.png`、`n15-seeking.png` | 开·非焦点=白描边+白底衬+白字；**且重启后开态保持（N-28 持久化再实证）**；单曲循环在 19:02 播到 20:49 片尾后无缝重播至 02:04（media_session/截图双重佐证）✅ |
+| N-39 底图中心截取 | `n15-home2.png`/`n15-detail2.png` | 底图从色块变为可辨识画面内容（16:9 中心横带、~12× 放大）✅ |
+| N-40 顶部渐隐 | `n15-detail2.png` | 详情页顶部平滑入黑无硬边 ✅ |
+| N-41 最近观看焦点环 | `n15-home2.png` | 走马上任卡片白色焦点环四边完整（含下沿）✅ |
+| N-43 快进阶梯 | `n15-seeking.png` + 位置推算 | 按住 ~4.3s 位移约 +250s（10s 细调窗→20s→30s 渐进）；旧阶梯同等时长约 +21:40 直接飞穿 20:49 片尾——对比成立 ✅ |
+| N-44 网盘管理 | `n15-drive2.png` + logcat | 点击有响应、网盘管理网格完整渲染（原反馈未复现）✅ |
+
+**代码修复待真人手感/场景复验**：N-45 自动换源上限（需未登录网盘连续报错场景）；N-46 配置兜底（需失效配置首载场景）。
+
+**blocked 不变**：N-26（搜索 ⌫ 长按清空，待修）、N-27（字幕空面板占位，待修）、N-29（章节面板空，待查源）、N-30（异常流 ENDED 死停）、N-42（回到最近观看滚动效果，现象待真机确认）。
+
+**本轮 commit**：`8d153fe`(A) `79753d3`(B+D，含同文件 C9 部分) `d5bbae2`(C) `f5cc81e`(E) + P1 族 `duplicateParentState` 修复（见 git log）。
+
+**过程教训**：① Set-Content 写 XML 带 BOM 导致资源合并失败一次（dialog_player_engine.xml），已用 Write 重写修复——XML 编辑一律走专用工具；② 设置页导航误触图片尺寸（大→特大），已按循环 [小/中/大/特大] OK×3 恢复「大」并截图确认；③ BACK 连按会把应用退到 launcher，导航序列前先确认当前窗口。
 
 ---
 
