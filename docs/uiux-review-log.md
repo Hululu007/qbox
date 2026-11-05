@@ -1,5 +1,7 @@
 # QBox UI/UX Review Log（统一记录文档）
 
+> **规则以 [GOLDEN-STANDARDS.md](GOLDEN-STANDARDS.md) 为准**；本文件只记过程与台账。
+
 > 本文件是 QBox TV 端 UI/UX 整改的**统一记录**，结构固定为四段：问题清单 → 迭代记录 → 历史遗留与易回归 → 回归检查清单。
 > 详细的分析台账见 [ui-ux-audit.md](ui-ux-audit.md)（R/N/H 编号寄存器），两者一致、本文件为终态索引。
 > 每轮开始先读本文件与 ui-ux-audit.md，确认没有把已修问题改回去；每轮结束更新本文件并提交 git。
