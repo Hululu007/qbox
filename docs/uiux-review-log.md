@@ -28,9 +28,9 @@
 | R25-01 | 全局·顶栏 | 低 | open（待取舍） | 顶栏胶囊聚焦展开会把左侧搜索/直播图标推左 70–93px；方案待拍板（固定槽位/容器左对齐/保持现状） | handoff §2 |
 | N-13 | 搜索·站点 tab | 低 | open（回滚待重做） | 站点 tab 行右缘渐隐：上一版 FrameLayout 包裹破坏 `setHeader` 导致搜索页空白，已 revert；需非侵入 overlay 方案 | handoff §2 |
 | N-14 | 首页/分类·海报 | 低 | open（源侧，观察） | 个别源返回占位图（深色块），非加载器问题 | handoff §2 |
-| N-47 | 详情页 | 高 | open | fontScale 1.3 下「主演」长文与播放/简介/收藏/换源按钮行重叠（TV-33 fail） | §18.3，fs13_detail.png |
-| N-48 | 首页·更新推荐 | 低 | open | 卡片纯海报无文本无 contentDescription，TalkBack 静默（TV-80 fail） | §18.3 |
-| N-49 | 播放页·媒体键 | 高 | open | 遥控器 PLAY/PAUSE 键全无效：`KeyUtil.isPlayPause` 死代码无调用方（TV-12 fail） | §18.3 |
+| N-47 | 详情页 | 高 | fixed（第 19 轮三档实测） | fontScale 1.3 下「主演」长文与播放/简介/收藏/换源按钮行重叠（TV-33 fail） | §18.3，fs13_detail.png |
+| N-48 | 首页·更新推荐 | 低 | fixed（第 19 轮 dump 实测） | 卡片纯海报无文本无 contentDescription，TalkBack 静默（TV-80 fail） | §18.3 |
+| N-49 | 播放页·媒体键 | 高 | fixed（第 19 轮状态机实测） | 遥控器 PLAY/PAUSE 键全无效：`KeyUtil.isPlayPause` 死代码无调用方（TV-12 fail） | §18.3 |
 
 ### 1.2 待补实机截图（功能已实现，验证挂账）
 
@@ -389,6 +389,41 @@ GS-35~GS-45 共 11 条并入 `docs/GOLDEN-STANDARDS.md`（引用 TV 编号，冲
 | 快进阶梯 | TV-13 官方建议固定秒数，本项目 10→300s 阶梯加速 | 长片盲操效率 + 进度实时可见 | GS-42 |
 | 海报比例 | 标准 2:3/16:9，本项目竖海报 3:4 | FongMi 片源比例现实 | GS-39 |
 | 对比度来源 | 4.5:1 出自 WCAG 非 TV 官方 | 标注溯源，仍按 4.5:1 执行 | GS-38 |
+
+---
+
+### 第 19 轮（2026-11-05 傍晚）— N-49 媒体键接线 + N-47 fontScale 修复 + N-48 卡片 desc + 阶梯细调窗口延长
+
+**性质**：修复第 18 轮审计登记的三项 open（N-49→N-47→N-48），并采纳 GS-42 建议把快进首档细调窗口 1.5s→2.5s。全部真机取证。
+
+#### 19.1 N-49 媒体键 PLAY_PAUSE（最高优先）
+
+- **根因链（三层）**：① 系统把媒体键路由给 MediaSession，不进 `Activity.dispatchKeyEvent`（logcat：`MediaSessionService: Sending KeyEvent... to com.qbox.app/androidx.media3.session.id`），所以 `KeyUtil.isPlayPause` 挂了也没人调；② media3 默认处理在本机实测无效；③ 自写接管后先后踩两个坑——UP 事件漏给 media3 默认实现会二次切换（DOWN 暂停→UP 又播放，实测 state 6→3）；UP 实际到达 Activity 而我加的 dispatchKeyEvent 兜底再次切换（EventLogger：pause 后 100ms 被 play 拉回，USER_REQUEST）。
+- **修法**：只在 `PlaybackService.onMediaButtonEvent` 接管播放键族（PLAY_PAUSE 切换 / PLAY 只播 / PAUSE 只停），DOWN/UP 全消费；VideoActivity 不留任何媒体键兜底（FF/REW 也移除，否则 session DOWN + Activity UP 双重 seek）。NEXT/PREV/STOP 走 media3 默认 → `wrap()` 已映射 dispatchNext/Prev/Stop（换集/停播语义保持）。
+- **实测**：播放中 `input keyevent 85` → `dumpsys media_session` state 3→**2**（position 冻结，两次查询同值），再按 → **3**；最终无日志构建复测 3→2→3。FF（90）= **+15s** 单次（EventLogger SEEK +15000 量级），REW（89）= **-5s**（EventLogger：pos 2380867→2375858）。NEXT/PREV/STOP 代码路径已在 wrap() 接线，未实测（会换集/退出，语义符合预期，记录为「接线存在、未逐项真机」）。
+- **证据**：`shots/round-2604/n49_fixed2_pause.png`、logcat QBoxKey/EventLogger 序列。
+
+#### 19.2 N-47 fontScale 详情页重叠
+
+- **根因**：详情页文本栈（片名/备注/信息行/导演/主演）从顶向下长，按钮行 `layout_alignBottom=video` 从底向上长，中间无硬约束——fontScale 1.3 时两端对撞重叠。
+- **修法**：`actor` 改单行 ellipsize + `layout_above=@id/row2` 钉住按钮行上缘（+8dp margin）；`name` 顺带收为单行（2 行 32sp 在 1.3 下独占 110dp，是主要溢出源）。无负 margin。
+- **三档实测**（uiautomator bounds，actor 底 vs row2 顶）：1.0 → 399 vs 415（gap 16px）；1.15 → 391 vs 407（16px）；1.3 → 385 vs 401（16px）。三档无交叠；1.3 截图目检演员单行省略、按钮行完整（`n47_13.png`）。测完 fontScale 已恢复 1.0。
+
+#### 19.3 N-48 更新推荐卡片无障碍名
+
+- **修法**：`VodRectHolder`/`VodOvalHolder` 根节点补 `contentDescription`（标题→备注→站点名兜底）。收藏/最近观看卡片有可见文本，天然有标签，不缺。
+- **实测**：首页 dump 26 个无自文本焦点节点：7 图标 + 5 推荐卡有 desc、**0 缺失**（修复前 5 缺失）。TalkBack 朗读验证 **blocked**（本机无 TalkBack 服务，`enabled_accessibility_services=null`），以 dump 存在性替代。
+
+#### 19.4 快进阶梯：首档细调窗口 1.5s→2.5s（GS-42 建议落地）
+
+- `stepFor`：10s 档 0–2.5s → 20s 档 2.5–4.5s → 30s 档 4.5–7s → 60s 档 7–10s → 120s 档 10–14s → 180s 档 14–18s → 300s。
+- **实测曲线**（sendevent 合成按住 + 临时 QBoxSeek 日志，测后已删）：hold 0→+10s、435ms→+20、1001→+30、1539→+40、2069→+50、2586→+70（2.5s 准点升档）、4006→+130、4523→+160（4.5s 准点升档）。
+- **位移表**：0.5s≈+20s / 1s≈+30s / 2s≈+50s / 4s≈+130s（旧窗口为 +20/+40/+90/+200）——2s 处不再过早冲进 20s 档。
+
+#### 19.5 误操作 / 环境事件
+
+- 验证期间另一会话把 `com.baiguotv.tv.debug` 推到 192.168.2.214 前台一次（白果TV 调试包）；已把 qbox 拉回前台继续。提醒：该盒为多会话共用，验证前先看 `mCurrentFocus`。
+- 设备 fontScale 已恢复 1.0；播放进度为正常观看记录，无测试残留值。
 
 ---
 
