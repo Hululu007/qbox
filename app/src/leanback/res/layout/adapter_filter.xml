@@ -8,5 +8,5 @@
     android:focusable="true"
     android:focusableInTouchMode="true"
     android:textColor="@color/text"
-    android:textSize="14sp"
+    android:textSize="13sp"
     tools:text="全部" />

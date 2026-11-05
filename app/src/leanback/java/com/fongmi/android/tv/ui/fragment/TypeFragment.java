@@ -156,6 +156,8 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         if (height == mRowHeight) return;
         mRowHeight = height;
         mBinding.recycler.applyContentTop(getResources().getDimensionPixelSize(R.dimen.qbox_content_top), getResources().getDimensionPixelSize(R.dimen.qbox_header_total), height, true);
+        // 内容到达会重算行距；筛选面板展开期间保持紧凑行距不被覆盖。
+        if (filterVisible) mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(8));
     }
 
     private void setViewModel() {
@@ -294,6 +296,10 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         // 先把内容起点压低，再插行：顺序反了会让列表先按 144dp 布局一次再重排，
         // 焦点在这两次布局之间容易被带到第二排去。
         mBinding.recycler.setContentTopTemp(getHeaderBottomPx() + ResUtil.dp2px(8));
+        // 筛选行间距收紧：全局行距是为海报墙算的（≥24dp），chip 行沿用会显得稀疏。
+        // 面板展开期间改 8dp（chip 34dp + 行间 16dp ≈ chip 半高，不拥挤的下限），
+        // 收起时 applyRowMetrics 会恢复海报行距。
+        mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(8));
         mAdapter.addAll(0, rows);
         // 筛选行不参与滚动贴顶，否则从第二排筛选按一下 ↓，整块筛选会被甩出屏幕。
         mBinding.recycler.setSnapStartIndex(mFilters.size());

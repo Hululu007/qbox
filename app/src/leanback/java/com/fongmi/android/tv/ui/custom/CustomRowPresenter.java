@@ -41,6 +41,7 @@ public class CustomRowPresenter extends ListRowPresenter {
     private static final int TITLE_LAYOUT = R.layout.adapter_header;
 
     private final int spacing;
+    private final int focusZoomFactor;
 
     public CustomRowPresenter(int spacing) {
         this(spacing, FocusHighlight.ZOOM_FACTOR_SMALL);
@@ -49,6 +50,7 @@ public class CustomRowPresenter extends ListRowPresenter {
     public CustomRowPresenter(int spacing, int focusZoomFactor) {
         super(focusZoomFactor);
         this.spacing = spacing;
+        this.focusZoomFactor = focusZoomFactor;
         setShadowEnabled(false);
         setSelectEffectEnabled(false);
         setKeepChildForeground(false);
@@ -63,8 +65,15 @@ public class CustomRowPresenter extends ListRowPresenter {
         RowPresenter.ViewHolder holder = super.createRowViewHolder(parent);
         // 1.9.16 重写行容器时漏掉了横向间距：卡片之间贴在一起（海报墙看起来像一张拼图），
         // 历史卡比海报宽时还会压到下一张的片名上。这里把构造参数里的 spacing 真正接上。
-        if (holder instanceof ListRowPresenter.ViewHolder)
-            ((ListRowPresenter.ViewHolder) holder).getGridView().setHorizontalSpacing(ResUtil.dp2px(spacing));
+        if (holder instanceof ListRowPresenter.ViewHolder) {
+            HorizontalGridView gridView = ((ListRowPresenter.ViewHolder) holder).getGridView();
+            gridView.setHorizontalSpacing(ResUtil.dp2px(spacing));
+            // 筛选 chip 行（ZOOM_FACTOR_NONE）紧凑化：leanback 默认行上下各 8dp，
+            // 行间 16dp 对大 chip 观感太松；收到各 4dp（行间 8dp，守 8dp 栅格）。
+            if (focusZoomFactor == FocusHighlight.ZOOM_FACTOR_NONE) {
+                gridView.setPadding(gridView.getPaddingLeft(), ResUtil.dp2px(4), gridView.getPaddingRight(), ResUtil.dp2px(4));
+            }
+        }
         View root = holder.view;
         if (root instanceof LinearLayout) {
             LinearLayout row = (LinearLayout) root;
