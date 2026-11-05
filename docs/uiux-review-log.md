@@ -245,6 +245,58 @@ commit：`aa566e8`（fongmi-561）。N-27（字幕空面板占位）、N-29（�
 
 ---
 
+### 第 16 轮（2026-11-05 白天）— 按钮固定槽位三态实证 + 全站弹层面板化统一
+
+**范围**：用户四要求——①按钮尺寸不随内容位移（高优先）②去 AI 味 ③所有菜单统一一套组件 ④验收记录。长期规则已抽入 [GOLDEN-STANDARDS.md](GOLDEN-STANDARDS.md)（本轮新增 GS-32），本节只记过程与证据。
+
+#### 16.1 按钮固定槽位（片头/片尾/倍速等取值型按钮）
+
+改动：`styles.xml` 新增 `Control.Value`（固定 76dp 槽位 + 内容居中 + `tnum` 等宽数字 + 单行 ellipsize）；`Control` 内边距 14→11dp（960dp 屏 14 按钮行宽回收——88dp 槽位曾致「更多」溢出屏外、控制条无焦点的回归）；`view_control_vod_action.xml`（speed/opening/ending + extra 行 scale/decode/player）与 `view_control_live_action.xml`（line）换用 `Control.Value`；`VideoActivity.requestControlFocus` 加 playPause 末位保险。
+
+**三态 bounds 实测**（1920×1080 像素，白色焦点药丸像素测量法 `shots/round-2604/`）：
+
+| 按钮 | 无秒数 | 有秒数 | 秒数变化 | 结论 |
+|---|---|---|---|---|
+| 片头 | `[908,977][1051,1043]`（sA3/reset，「片头」） | `[908,977][1051,1043]`（sB_open，「00:01」） | `[908,977][1051,1043]`（sC4「00:05」；sAe「00:04」同） | **完全一致** ✅ |
+| 片尾 | `[1068,977][1211,1043]`（sAe5） | —（片尾文案不变） | `[1068,977][1211,1043]`（sCe2，片头=00:05 时） | **完全一致** ✅ |
+| 详情（右邻位移检测） | x=[1575..1676]（sA_open） | `[1576,980][1675,1040]`（sB_end/w2/w3） | — | 不动 ✅ |
+| 更多（行尾溢出检测） | `[1692,980][1791,1040]`（fix2/probe） | `[1692,980][1791,1040]`（w1） | — | 不动 ✅ |
+
+连续操作截图序列：`fix2`（14 键无溢出）→ `sA3` → `sB_open` → `sC4` → `sAe` → `reset`（片头归零）→ `sAe5`，全行逐帧同位。
+
+#### 16.2 全站弹层面板化（菜单统一组件）
+
+- `shape_panel.xml`（新）：qbox_surface 实底 + 28dp 圆角，全站面板共用背景。
+- `BaseBottomSheetDialog.panelize`（TV 端）：窗口 560dp 居中、窗底透明、sheet 用 shape_panel、动画 `Animation_Dialog` 淡入淡出。覆盖 14 个 BottomSheet 弹层（音轨/视轨/字幕/字幕搜索/倍速设置/引擎/音视频设置/弹幕×3/章节/选季/解析/Pass）。
+- `BaseAlertDialog`：TV 端统一 560dp（原 0.4/0.55/0.6 比例各处不一）；`onStart` 兜底不设宽的面板（简介等）；窗底透明 + decorView 贴 shape_panel（Material 默认背景自带 ~25dp 阴影内缩，可见面板曾比窗口窄 50px）。覆盖 简介/直播配置/站点/历史/恢复/DoH/UA/弹幕 API/mpv/预载/更新 等 13 个。
+- `Theme.Base`：`bottomSheetDialogTheme=ThemeOverlay.QBox.Sheet`（+`QBox.BottomSheet` 关 `margin*SystemWindowInsets`）。
+
+**本机特有坑（→ GS-32）**：该盒子上报假左侧系统 inset（320px），Material 把它转成 sheet 的 marginLeft → 面板偏右、右缘被裁（修复前 dump：sheet=[720..1520] vs 窗口=[400..1520]，panel4.png）。修复 = sheet inset 分发吃掉 + 常驻布局监听每次布局强制 margin 归零 + 窗口 `layoutInDisplayCutoutMode=ALWAYS`。代码里留 `QBoxSheet` Log.e 作哨兵（left>0 即报警）。
+
+**面板一致性实测（两族同参）**：
+
+| 属性 | 音轨面板（BottomSheet，panel8） | 简介面板（AlertDialog，intro3） |
+|---|---|---|
+| 窗口/可见宽度 | 1120px=560dp（[400..1520]） | 1120px=560dp（[399..1519]） |
+| 位置 | 居中 | 居中 |
+| 圆角/背景 | 28dp / qbox_surface（shape_panel） | 28dp / qbox_surface（shape_panel） |
+| 动画 | Animation_Dialog 淡入淡出 | 主题对话框淡入淡出 |
+| BACK 关闭 | 不变（BackCallback 原有行为） | 不变 |
+
+直播配置/设置弹窗与简介同基类（BaseAlertDialog），同参生效，下轮补截图挂账。
+
+#### 16.3 去 AI 味进展
+
+面板已收敛为：实底 surface、无阴影（窗底透明去默认阴影内缩）、28dp 统一圆角、白/灰阶交互色、单一淡入淡出。字号阶梯/图标线宽全量审计挂账下轮（本轮优先级：按钮固定 > 菜单统一 > 质感细节）。
+
+#### 16.4 验证方法学教训（本轮新增）
+
+- **adb input 注入在本机会随机丢键**（0.12~0.7s 间隔均发生，丢 50%~100%）：多键链不可信；可靠手法 = 每条命令自带 82 呼出 + tap 聚焦（tap 前不能有 screencap，否则 tap 失效）+ 尾cap + 像素测量闭环，逐命令验证落点。
+- tap 不重置控制条 5s 收起计时器（dispatchKeyEvent 才重置）；命令间隔 >5s 后第一键必丢进 video（↑ 会拉起进度条借用态）。
+- 弹窗打开态下 uiautomator dump 稳定可用（视频播放面则不可靠）；弹窗 bounds 用 dump、控制条用截图像素测。
+
+---
+
 ## 3. 历史遗留与易回归
 
 > 这些是此前轮次记录、易在回归中复发的问题，改代码前必须对照。
@@ -332,6 +384,8 @@ commit：`aa566e8`（fongmi-561）。N-27（字幕空面板占位）、N-29（�
 | 间距/圆角 | 已统一到 `dimens.xml`（32dp 内容区、16dp 卡片间距、24dp 行距） | 维持单一来源 | 已落地 |
 | 动效 | 焦点放大 ZOOM_FACTOR_SMALL、150–250ms | 统一时长 | 待确认 |
 | 三态 | H-23：各页各写 | 统一 loading/空态/错误态组件 + 文案 | 待收口 |
+| **弹层面板（第 16 轮落地）** | 曾两套 UI（BottomSheet 默认紫灰 vs 面板对话框） | **两族基类收敛**：`BaseBottomSheetDialog.panelize` + `BaseAlertDialog.setWidth`；560dp 居中、shape_panel（qbox_surface+28dp）、淡入淡出、BACK 不变 | **已落地**（音轨/简介实测同参，见 §16.2） |
+| **取值型按钮（第 16 轮落地）** | 片头/片尾随秒数变宽、整行跳动 | `Control.Value`：76dp 固定槽位 + 内容居中 + `tnum` 等宽数字 + ellipsize | **已落地**（三态 bounds 实证一致，见 §16.1） |
 
 ---
 

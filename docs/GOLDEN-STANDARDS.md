@@ -38,6 +38,8 @@
   反例：片头 `09:12` 撑宽按钮；个别源海报占位图被当内容（N-14）。｜验证：构造极端值逐项过。｜来源：N-14、GS-03
 - **GS-14｜顶栏槽位固定**：顶栏图标/胶囊聚焦展开不得推挤相邻元素（固定槽位或容器左对齐，二选一后全站统一）。
   来源：R25-01（方案待拍板，新改动不得再恶化）
+- **GS-32｜弹层窗口防假安全区**：弹层窗口必须 `layoutInDisplayCutoutMode=ALWAYS`（与主窗口一致）；BottomSheet 另需吃掉 sheet 的 inset 分发并在每次布局强制 margin 归零（`BaseBottomSheetDialog.fixSheetFrame`，勿删）。
+  反例：本机（IP810N）上报假左侧系统 inset 320px，Material `marginLeftSystemWindowInsets` 转成 sheet marginLeft → 面板偏右 ~400dp 宽、右缘被裁（sheet=[720..1520] vs 窗口=[400..1520]）。｜验证：弹层打开后 uiautomator dump，`design_bottom_sheet` bounds == 窗口 bounds；或截图像素扫描面板左右边。｜来源：第 16 轮面板化
 
 ## 三、焦点与场景（应当遵守）
 
@@ -109,4 +111,5 @@
 ## 七、变更记录
 
 - 2026-11-05：初版，GS-01～GS-31（Blocker 10 / 应当 20 / 建议 1），沉淀自第 1–15 轮（N-24~N-46、P1 族、D2、A2、P2）。
+- 2026-11-05：新增 GS-32（弹层防假安全区/inset margin，第 16 轮面板化）；GS-03「按钮定宽/定槽位」在本轮落地（Control.Value 76dp 槽位 + 三态 bounds 实证）。
 - 规则回流要求：每次修复若产生新教训，新增/修改一条 GS-xx 并在此登记日期与编号；台账细节仍记 `uiux-review-log.md`，本文件只留规则。
