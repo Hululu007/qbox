@@ -28,6 +28,9 @@
 | R25-01 | 全局·顶栏 | 低 | open（待取舍） | 顶栏胶囊聚焦展开会把左侧搜索/直播图标推左 70–93px；方案待拍板（固定槽位/容器左对齐/保持现状） | handoff §2 |
 | N-13 | 搜索·站点 tab | 低 | open（回滚待重做） | 站点 tab 行右缘渐隐：上一版 FrameLayout 包裹破坏 `setHeader` 导致搜索页空白，已 revert；需非侵入 overlay 方案 | handoff §2 |
 | N-14 | 首页/分类·海报 | 低 | open（源侧，观察） | 个别源返回占位图（深色块），非加载器问题 | handoff §2 |
+| N-47 | 详情页 | 高 | open | fontScale 1.3 下「主演」长文与播放/简介/收藏/换源按钮行重叠（TV-33 fail） | §18.3，fs13_detail.png |
+| N-48 | 首页·更新推荐 | 低 | open | 卡片纯海报无文本无 contentDescription，TalkBack 静默（TV-80 fail） | §18.3 |
+| N-49 | 播放页·媒体键 | 高 | open | 遥控器 PLAY/PAUSE 键全无效：`KeyUtil.isPlayPause` 死代码无调用方（TV-12 fail） | §18.3 |
 
 ### 1.2 待补实机截图（功能已实现，验证挂账）
 
@@ -348,6 +351,47 @@ commit：`aa566e8`（fongmi-561）。N-27（字幕空面板占位）、N-29（�
 
 ---
 
+### 第 18 轮（2026-11-05 白天）— 外部 TV 标准审计（tv-design-standard）
+
+**性质**：纯审计+规则并入，不改产品代码。标准文件 `tv-design-standard/{STANDARD,CHECKLIST,GAP-ANALYSIS}.md`（52 条 TV-01~TV-88）。
+
+#### 18.1 旧 skill 处理（GAP-ANALYSIS 建议已执行）
+
+- `tvos-design-guidelines` 重写为 v2.0.0：29pt 更正为默认值（最小 23pt）；删除无出处的 48pt 标题/60pt 安全区/3–7 tab/自制字号表；250×150pt 卡片与 TAB-06 标注「社区经验值」；4.5:1 标注出自 WCAG。全部条目对齐 TV-xx 编号与级别。
+- `android-design-guidelines` v1.1.0：加「手机/平板 MD3，TV 不适用」声明 + 5 处冲突表（动态取色→TV-41、底部导航→TV-53、48dp 热区→TV-03/04、禁纯黑→TV-40、预测性返回→TV-10），保留不删。
+- 注意：`.dsh/` 在 .gitignore 内（本地技能），skill 改动只落盘不入仓。
+
+#### 18.2 金标准并入
+
+GS-35~GS-45 共 11 条并入 `docs/GOLDEN-STANDARDS.md`（引用 TV 编号，冲突写明取舍；文件 144 行 ≤150）。commit `d3f1086`（docs 仓，未 push）。
+
+#### 18.3 真机审计 pass/fail（重点 5 项，逐项带取证）
+
+| TV 项 | 检查点 | 结果 | 取证 |
+|---|---|---|---|
+| TV-22 过扫安全区 | 关键内容不入 5% 过扫区 | **pass（本机）** | 1080p 实测无过扫裁切：topbar 左缘 34.5dp、焦点环 36dp；对照 5% 建议值 48dp 未达，记观察项（720p 盒子有裁切史，TV-23 三档复测挂账） |
+| TV-34 对比度 | 正文 ≥4.5:1 实测非目测 | **pass** | 面板白字/qbox_surface 实测 15.6:1 |
+| TV-33 fontScale 1.3 | 无截断无出屏 | **部分 fail** | 首页 pass（tab 行不折行、长标题正常 ellipsize，fs13_home.png）；控制条 pass（13 键等分不截断不滚动，fs13_ctrl.png）；**详情页 fail：主演长文与「播放/简介/收藏/换源」按钮行重叠**（fs13_detail.png）→ 登记 N-47 open |
+| TV-80 contentDescription | 图标按钮/无文本焦点项有标签 | **部分 fail** | 首页 dump：26 个无自文本焦点节点中 7 有 desc；**「更新推荐」5 张卡片无文本无 desc**（纯海报布局）→ 登记 N-48 open；控制条按钮均有文字=有标签 |
+| TV-12 播放键语义 | 中键暂停/呼出控制条；媒体键 PLAY_PAUSE | **部分 fail** | 中键 pass（历轮实证）；**媒体键 fail：sendevent key 85 播放无反应；`KeyUtil.isPlayPause` 为死代码无调用方** → 登记 N-49 open |
+| TV-13 快进语义 | 左右固定秒数/长按拖拽 | **有意偏离** | 阶梯 10→300s（17.3 定量曲线），见 GS-42，不改；建议方向=加速前延长首档细调窗口 |
+
+#### 18.4 Top 高危项（本轮新登记）
+
+- **N-47**：详情页 fontScale 1.3 主演文字与按钮行重叠（可读性崩，fs13_detail.png）。
+- **N-49**：遥控器媒体键 PLAY/PAUSE 全无效（isPlayPause 死代码；需接 dispatchKeyEvent 或 MediaSession 媒体键路由）。
+- **N-48**：更新推荐卡片无障碍标签缺失（TalkBack 静默）。
+
+#### 18.5 有意偏离清单（不改，拍板留档）
+
+| 项 | 偏离 | 理由 | 记录 |
+|---|---|---|---|
+| 快进阶梯 | TV-13 官方建议固定秒数，本项目 10→300s 阶梯加速 | 长片盲操效率 + 进度实时可见 | GS-42 |
+| 海报比例 | 标准 2:3/16:9，本项目竖海报 3:4 | FongMi 片源比例现实 | GS-39 |
+| 对比度来源 | 4.5:1 出自 WCAG 非 TV 官方 | 标注溯源，仍按 4.5:1 执行 | GS-38 |
+
+---
+
 ## 3. 历史遗留与易回归
 
 > 这些是此前轮次记录、易在回归中复发的问题，改代码前必须对照。
@@ -436,7 +480,7 @@ commit：`aa566e8`（fongmi-561）。N-27（字幕空面板占位）、N-29（�
 | 动效 | 焦点放大 ZOOM_FACTOR_SMALL、150–250ms | 统一时长 | 待确认 |
 | 三态 | H-23：各页各写 | 统一 loading/空态/错误态组件 + 文案 | 待收口 |
 | **弹层面板（第 16 轮落地）** | 曾两套 UI（BottomSheet 默认紫灰 vs 面板对话框） | **两族基类收敛**：`BaseBottomSheetDialog.panelize` + `BaseAlertDialog.setWidth`；560dp 居中、shape_panel（qbox_surface+28dp）、淡入淡出、BACK 不变 | **已落地**（音轨/简介实测同参，见 §16.2） |
-| **取值型按钮（第 16 轮落地）** | 片头/片尾随秒数变宽、整行跳动 | `Control.Value`：76dp 固定槽位 + 内容居中 + `tnum` 等宽数字 + ellipsize | **已落地**（三态 bounds 实证一致，见 §16.1） |
+| **取值型按钮（第 17 轮重做）** | 片头/片尾随秒数变宽、整行跳动；16 轮 76dp 定宽被用户打回（修一个坏一个） | **整行等分**：`0dp+weight=1` + 居中 + tnum + ellipsize，宽度由等分决定不由文案决定（GS-33；禁单控件定 dp） | **已落地**（各键宽度差 ≤1px、行铺满无滚动，见 §17.1） |
 
 ---
 
