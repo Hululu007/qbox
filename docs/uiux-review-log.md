@@ -427,6 +427,59 @@ GS-35~GS-45 共 11 条并入 `docs/GOLDEN-STANDARDS.md`（引用 TV 编号，冲
 
 ---
 
+### 第 20 轮（2026-11-05 深夜）— 快进斜坡重做（起步 1s 级）+ 海报背景/顶栏过渡 + 筛选行紧凑化
+
+**背景**：19 轮把首档 10s 窗口延长被用户判"不达标"——实测手感仍是 10s 起步（19 轮验收口径只看 2s 位移变小，错）。20 轮按用户口径重做：前 3 秒全程 1s 级细调。另两组：海报背景马赛克/顶栏硬分界线、筛选子列表松散。
+
+#### 20.1 快进/快退斜坡重做（commit 见代码仓）
+
+- **新斜坡**（`CustomKeyDownVod.RAMP` = {阶段上限, 步长, 节拍}）：0–3s：±1s/130ms → 3–5s：±10s/500ms → 5–7s：±30s/900ms → 7–10s：±60s/700ms → 10–14s：±120s → 14–18s：±180s → 300s。按下首 tick 即 +1s，松手即停。
+- **FF/REW 统一**：媒体键不再走 media3 固定 ±15s/-5s；`PlaybackService.onMediaButtonEvent` 把 FF/REW 转发给前台 Activity（`NavigationCallback.onMediaSeek`），复用同一斜坡+同一条控制条 seek UI。
+- **实测采样表**（sendevent 合成按住 + QBoxSeek 日志，注入节拍 ~190ms 为下限瓶颈，真遥控器 50ms autorepeat 会更密）：
+
+| 按住 | 位移 | 阶段 | 当次步长 |
+|---|---|---|---|
+| 0.3s | +2s | 1 | 1s |
+| 0.5s | +3s | 1 | 1s |
+| 1s | +6s | 1 | 1s |
+| 1.5s | +8s | 1 | 1s |
+| 2s | +11s | 1 | 1s |
+| 2.5s | +14s | 1 | 1s |
+| 3s | +16s | 1 | 1s |
+| 4s | +26s | 2 | 10s |
+| 5s | +46s | 2 | 10s |
+| 6s | +76s | 3 | 30s |
+| 8s | +166s | 4 | 60s |
+
+  左键对称（1.2s 按住 −1s×6）。FF/REW 单击 = ±1s（QBoxSeek：hold=0 step=1000 acc=±1000）。位移曲线图 `shots/round-2604/ramp_curve.png`（前段平缓、3s 抬升肉眼可见）。
+- **验证坑位**：`dumpsys media_session` 的 position 在广告过滤片源上会与 EventLogger mediaPos 差 ~45s（过滤段重映射），读 position 判位移会误判成"倒退"——判位移以 EventLogger 的 SEEK pos 对为准（最终包 2s 按住 = 7×+1000ms 精确步进）。
+- FF/REW 长按的 repeat 注入无法用 sendevent（媒体键不路由）/input（无 repeat）模拟，按住升档路径与方向键同一函数，构造上同源；真机长按住留待用户手感确认。
+
+#### 20.2 海报背景与顶栏过渡（首页 + 分类页 + 详情页）
+
+- **底图**：`override(160,90)`→`override(480,270)`（最终放大 12×→4×），alpha 0.62→0.72——马赛克收敛、内容可辨识。
+- **顶栏**：`shape_top_scrim` 重写为 200dp 三段渐变（#000→#0C1116@36%→透明），替代旧 124dp 40%→0（那条在 y=248px 产生可辨认分界带）；`qbox_header_mask` 124dp→200dp（顶栏 70dp 的 2.9 倍，满足 ≥1.5×）。
+- **整屏 scrim**：顶部 55%→28%（顶栏压暗由 top_scrim 承担，不再双层叠黑），中部 35%→30%，底部 85% 不变。
+- **左右缘**：各 96dp `shape_edge_fade_start/end` 渐隐到黑。
+- **实测**：顶部 200dp 放大图无分界线/色带（`g2_top200_zoom.png`）；竖带亮度剖面相邻行最大跳变 20.18/255（改前 60.27，且改后峰值位于海报内容本身非 UI 边带）；改前改后同海报对比 `n49_home2.png` vs `g2_home_new2.png`。GS-20 已改写（与旧"160×90/12×"设定冲突，以本轮为准）。
+- **详情页**：同套底图/scrim 生效，演员单行无重叠保持（N-47 不回退）。注意：用户随后提出详情页背景仍不满意（渐变太急、黑色占比大），已立项下一轮做 Netflix/Apple TV+ 对标研究 + 2~3 版对比实现，本轮参数可能再变。
+
+#### 20.3 筛选子列表紧凑化
+
+- **行距**：行间 40dp→16dp（面板展开期间 `setVerticalSpacing(8dp)` + 行内 grid padding 8dp→4dp；收起时 applyRowMetrics 恢复海报行距；applyRowMetrics 在面板展开态保持 8dp 不被覆盖）。
+- **字号**：14sp→13sp（chip 高 34dp）。
+- **选中态**：`shape_item_round_activated`（selector 的 state_selected 映射）补 1.5dp 白描边 + 15% 白底——验证过程中发现 dump `selected` 对默认项为 false（未点选时无选中项），实选「国产剧」后 sel=true，焦点移开截图确认描边在（`g3_sel4.png`）。
+- **对齐**：chip 左缘 x=64px=tab 左缘 64px ✓（`g3_f2.xml` bounds）。
+- **bounds 表**：热度 [64,290][180,358] / 全部 [64,390][180,458]，chip 高 68px=34dp，行距 32px=16dp。
+
+#### 20.4 误操作 / 环境事件
+
+- 误点首页源名胶囊把站点切成「我的云盘|配置」，翻站点对话框恢复「豆豆丨片单」；期间误入一次搜索页（黑球）。设备最终态已核对：站点=豆豆丨片单、首页结构正常。
+- 验证期间设备多次被另一会话（白果TV debug/release、当贝桌面）抢占前台；每次注入前查 `mCurrentFocus`，不在前台时暂停等待，未在他人前台期间注入。
+- 教训：筛选 chip 选中态靠 `state_selected`（setSelected），不是 state_activated——selector 命名有误导性（`_activated.xml` 文件实际服务 selected 态）；改 drawable 前先确认状态映射，差点把选中描边改没了（已补救重建）。
+
+---
+
 ## 3. 历史遗留与易回归
 
 > 这些是此前轮次记录、易在回归中复发的问题，改代码前必须对照。
