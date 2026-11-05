@@ -85,9 +85,14 @@ public abstract class BaseBottomSheetDialog extends BottomSheetDialogFragment {
     private void setSheet(BottomSheetDialog dialog) {
         FrameLayout sheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
         if (sheet == null) return;
+        if (Util.isLeanback()) {
+            // TV 面板化：高度由内容决定（上限 85% 屏高，超出内部滚动），不走手机的固定半屏高度。
+            setBehavior(sheet);
+            panelize(dialog, sheet);
+            return;
+        }
         setHeight(sheet, getMaxHeight());
         setBehavior(sheet);
-        if (Util.isLeanback()) panelize(dialog, sheet);
     }
 
     /**
@@ -103,6 +108,7 @@ public abstract class BaseBottomSheetDialog extends BottomSheetDialogFragment {
         int width = ResUtil.dp2px(560);
         BottomSheetBehavior<FrameLayout> behavior = BottomSheetBehavior.from(sheet);
         behavior.setMaxWidth(width);
+        behavior.setMaxHeight((int) (ResUtil.getScreenHeight() * 0.85f));
         // 本机会上报假的左侧系统 inset（320px），Material 会把它转成 sheet 的 marginLeft，
         // 面板偏右且右缘被裁（实测 sheet=[720..1520]，窗口=[400..1520]）。
         // 吃掉 sheet 的 inset 分发；布局监听器常驻、每次布局强制归零 margin（inset 何时下发不确定，一次性清不掉）。
@@ -112,6 +118,7 @@ public abstract class BaseBottomSheetDialog extends BottomSheetDialogFragment {
             @Override
             public void onGlobalLayout() {
                 fixSheetFrame(sheet);
+                centerSheet(sheet);
                 if (sheet.getLeft() > 0) android.util.Log.e("QBoxSheet", "sheet pushed right: left=" + sheet.getLeft() + " marginLeft=" + ((ViewGroup.MarginLayoutParams) sheet.getLayoutParams()).leftMargin);
             }
         });
@@ -126,6 +133,17 @@ public abstract class BaseBottomSheetDialog extends BottomSheetDialogFragment {
         lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
         window.setAttributes(lp);
         window.setWindowAnimations(android.R.style.Animation_Dialog);
+    }
+
+    /**
+     * BottomSheetBehavior 永远把 sheet 贴在窗口底部；窗口保持全高，用 translationY 把 sheet
+     * 平移到垂直居中（每次布局重算，behavior 重排后会被重置，所以常驻监听里反复应用）。
+     */
+    private void centerSheet(FrameLayout sheet) {
+        View parent = (View) sheet.getParent();
+        if (parent == null || parent.getHeight() == 0 || sheet.getHeight() == 0) return;
+        float ty = Math.max(0, (parent.getHeight() - sheet.getHeight()) / 2f) - sheet.getTop();
+        if (Math.abs(sheet.getTranslationY() - ty) > 1f) sheet.setTranslationY(ty);
     }
 
     private void fixSheetFrame(FrameLayout sheet) {

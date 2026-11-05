@@ -18,19 +18,19 @@
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/scale"
-            style="@style/Control.Value"
+            style="@style/Control"
             android:layout_marginEnd="6dp"
             android:text="@string/play_scale" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/decode"
-            style="@style/Control.Value"
+            style="@style/Control"
             android:layout_marginEnd="6dp"
             android:text="@string/play_decode" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/player"
-            style="@style/Control.Value"
+            style="@style/Control"
             android:layout_marginEnd="6dp"
             android:text="@string/play_exo" />
 
@@ -39,6 +39,13 @@
             style="@style/Control"
             android:layout_marginEnd="6dp"
             android:text="@string/play_speed_setting" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/chapter"
+            style="@style/Control"
+            android:layout_marginEnd="6dp"
+            android:text="@string/play_chapter"
+            android:visibility="gone" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/reset"
@@ -98,7 +105,7 @@
 
         <com.fongmi.android.tv.ui.custom.CustomUpDownView
             android:id="@+id/speed"
-            style="@style/Control.Value"
+            style="@style/Control"
             android:layout_marginEnd="4dp"
             android:text="@string/play_speed" />
 
@@ -125,13 +132,13 @@
 
         <com.fongmi.android.tv.ui.custom.CustomUpDownView
             android:id="@+id/opening"
-            style="@style/Control.Value"
+            style="@style/Control"
             android:layout_marginEnd="4dp"
             android:text="@string/play_op" />
 
         <com.fongmi.android.tv.ui.custom.CustomUpDownView
             android:id="@+id/ending"
-            style="@style/Control.Value"
+            style="@style/Control"
             android:layout_marginEnd="4dp"
             android:text="@string/play_ed" />
 
@@ -142,12 +149,6 @@
             android:background="@drawable/selector_chip_toggle"
             android:text="@string/play_repeat"
             android:textColor="@color/control_toggle_text" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/chapter"
-            style="@style/Control"
-            android:layout_marginEnd="4dp"
-            android:text="@string/play_chapter" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/replay"

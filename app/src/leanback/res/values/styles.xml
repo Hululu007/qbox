@@ -144,29 +144,25 @@
         <item name="android:shadowRadius">2</item>
     </style>
 
+    <!-- 控制条按钮：整行等分（width=0 + weight=1），宽度由等分决定、不由文案决定——
+         文案/秒数变化天然不会引起位移。禁止给单个控件定死 dp 宽度解决抖动（GS-33）。 -->
     <style name="Control">
-        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">1</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:background">@drawable/selector_chip</item>
         <item name="android:focusable">true</item>
         <item name="android:focusableInTouchMode">true</item>
-        <item name="android:paddingStart">11dp</item>
-        <item name="android:paddingEnd">11dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingStart">4dp</item>
+        <item name="android:paddingEnd">4dp</item>
         <item name="android:paddingTop">8dp</item>
         <item name="android:paddingBottom">8dp</item>
         <item name="android:textColor">@color/text</item>
         <item name="android:textSize">16sp</item>
-    </style>
-
-    <!-- 取值型控制按钮（倍速/片头/片尾/缩放/解码/引擎/线路）：固定槽位宽度 76dp
-         （恰容纳 tnum「99:59」+ 内边距），内容从「片头」到「99:59」宽度都不变，
-         控制条不再因取值变化而跳动；与 11dp 内边距配合保证整行不溢出。 -->
-    <style name="Control.Value" parent="Control">
-        <item name="android:layout_width">76dp</item>
-        <item name="android:gravity">center</item>
-        <item name="android:fontFeatureSettings">tnum</item>
         <item name="android:singleLine">true</item>
         <item name="android:ellipsize">end</item>
+        <item name="android:fontFeatureSettings">tnum</item>
     </style>
 
 </resources>

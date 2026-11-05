@@ -42,7 +42,8 @@ public final class SubtitleSettingDialog {
     public void show(FragmentActivity activity) {
         FragmentManager manager = activity.getSupportFragmentManager();
         for (Fragment fragment : manager.getFragments()) if (fragment instanceof BottomSheet || fragment instanceof SideSheet) return;
-        if (Util.isFullscreenLand(activity) || Util.isLeanback()) new SideSheet(subtitleView, player).show(manager, null);
+        // TV 端统一 BottomSheet（面板化）；仅手机横屏保留侧边抽屉。
+        if (!Util.isLeanback() && Util.isFullscreenLand(activity)) new SideSheet(subtitleView, player).show(manager, null);
         else new BottomSheet(subtitleView, player).show(manager, null);
     }
 

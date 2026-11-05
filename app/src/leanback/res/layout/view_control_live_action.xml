@@ -16,7 +16,7 @@
         tools:visibility="visible">
 
         <androidx.appcompat.widget.LinearLayoutCompat
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal">
@@ -53,7 +53,7 @@
         </androidx.appcompat.widget.LinearLayoutCompat>
 
         <androidx.appcompat.widget.LinearLayoutCompat
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:gravity="center_vertical"
@@ -123,7 +123,7 @@
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/line"
-            style="@style/Control.Value"
+            style="@style/Control"
             android:layout_marginEnd="8dp"
             android:visibility="gone"
             tools:text="来源 1"

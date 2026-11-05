@@ -41,7 +41,9 @@ public final class SpeedSettingDialog {
     public void show(FragmentActivity activity) {
         FragmentManager manager = activity.getSupportFragmentManager();
         for (Fragment fragment : manager.getFragments()) if (fragment instanceof BottomSheet || fragment instanceof SideSheet) return;
-        if (Util.isFullscreenLand(activity) || Util.isLeanback()) new SideSheet(player, save).show(manager, null);
+        // TV 端统一走 BottomSheet（经 BaseBottomSheetDialog.panelize 成 560dp 居中面板）；
+        // 仅手机横屏保留侧边抽屉，不再让 TV 出现「另一套 UI」。
+        if (!Util.isLeanback() && Util.isFullscreenLand(activity)) new SideSheet(player, save).show(manager, null);
         else new BottomSheet(player, save).show(manager, null);
     }
 

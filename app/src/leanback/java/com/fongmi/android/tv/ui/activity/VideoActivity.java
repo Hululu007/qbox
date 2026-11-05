@@ -339,11 +339,13 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.control.action.ending.setDownListener(this::onEndingSub);
         mBinding.control.action.opening.setUpListener(this::onOpeningAdd);
         mBinding.control.action.opening.setDownListener(this::onOpeningSub);
+        mBinding.control.action.speed.setUpListener(() -> stepSpeed(true));
+        mBinding.control.action.speed.setDownListener(() -> stepSpeed(false));
         mBinding.control.action.next.setOnClickListener(view -> checkNext());
         mBinding.control.action.prev.setOnClickListener(view -> checkPrev());
         mBinding.control.action.playPause.setOnClickListener(view -> onPlayPause());
         mBinding.control.action.scale.setOnClickListener(view -> onScale());
-        mBinding.control.action.speed.setOnClickListener(view -> onSpeed());
+        mBinding.control.action.speed.setOnClickListener(view -> onSpeedSetting());
         mBinding.control.action.reset.setOnClickListener(view -> onReset());
         mBinding.control.action.replay.setOnClickListener(view -> onReplay());
         mBinding.control.action.parse.setOnClickListener(view -> onParse());
@@ -355,7 +357,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.control.action.edition.setOnClickListener(view -> onEdition());
         mBinding.control.action.chapter.setOnClickListener(view -> onChapter());
         mBinding.control.action.opening.setOnClickListener(view -> onOpening());
-        mBinding.control.action.speed.setOnLongClickListener(view -> onSpeedLong());
         mBinding.control.action.speedExtra.setOnClickListener(view -> onSpeedSetting());
         mBinding.control.action.ending.setOnLongClickListener(view -> onEndingReset());
         mBinding.control.action.opening.setOnLongClickListener(view -> onOpeningReset());
@@ -1041,24 +1042,20 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         setScale(index == array.length - 1 ? 0 : ++index);
     }
 
-    private static final float[] SPEED_STEPS = {1f, 1.5f, 1.75f, 2f, 3f, 0.75f};
-
-    private void onSpeed() {
-        // 点按循环常用倍速：1 → 1.5 → 1.75 → 2 → 3 → 0.75 → 1，并给 OSD 反馈；
-        // 精细倍速留在长按（SpeedSettingDialog），不再默认弹设置窗。
+    /**
+     * 倍速为「可调值类」控件：聚焦时 ↑/↓ 沿 PRESETS 就地调档（即时生效、不弹窗、不动焦点），
+     * OK/点击打开倍速面板（onSpeedSetting）。到顶/到底不环绕，防止误按跳变。
+     * CustomUpDownView.dispatchKeyEvent 已消费 ↑/↓，不会串到快进/快退（GS 防串键规则）。
+     */
+    private void stepSpeed(boolean up) {
         float current = player().getSpeed();
-        float next = SPEED_STEPS[0];
-        for (int i = 0; i < SPEED_STEPS.length; i++) {
-            if (Math.abs(SPEED_STEPS[i] - current) < 0.01f) {
-                next = SPEED_STEPS[(i + 1) % SPEED_STEPS.length];
-                break;
-            }
-        }
+        float next = up ? SpeedSetting.next(current) : SpeedSetting.prev(current);
+        if (up && next < current) next = SpeedSetting.MAX;   // next() 到顶环绕回 MIN，这里改成钉住 MAX
+        if (!up && next > current) next = SpeedSetting.MIN;  // prev() 同理钉住 MIN
         player().setSpeed(next);
         SpeedSetting.putPlayback(next);
         updateSpeedButton();
-        String text = next == Math.round(next) ? String.valueOf((int) next) : String.valueOf(next);
-        Notify.show("倍速 " + text + "x");
+        Notify.show("倍速 " + SpeedSetting.formatValue(next) + "x");
     }
 
     private void updateSpeedButton() {
@@ -1067,12 +1064,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.control.action.speed.setText(Math.abs(speed - 1f) < 0.01f ? getString(R.string.play_speed) : SpeedSetting.format(speed));
     }
 
-    private boolean onSpeedLong() {
-        onSpeedSetting();
-        return true;
-    }
-
-    /** 精细倍速（收在「更多」二级行，也可以长按倍速按钮进入） */
+    /** 精细倍速面板（倍速按钮 OK 或「更多」二级行进入）。 */
     private void onSpeedSetting() {
         SpeedSettingDialog.create().player(player()).save(true).show(this);
         hideControl();
@@ -1836,18 +1828,12 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
                 return true;
             }
             case KeyEvent.KEYCODE_DPAD_UP:
-                if (focus instanceof CustomUpDownView) return false;
-                if (!inExtra && focus == mBinding.control.action.more) {
-                    if (!isVisible(mBinding.control.action.extra)) setExtra(true);
-                    focusFirst(mBinding.control.action.extra);
-                    return true;
-                }
-                // 其余动作键按「上」直接进进度条，可以逐秒拖拽，不再只能在动作行里横着滚。
-                seekFocus = true;
-                mBinding.control.seekBox.requestFocus();
-                return true;
+                // 可调值类（倍速/片头/片尾，CustomUpDownView）：↑ 放行给控件就地调档（其 dispatch 消费，不串键）。
+                // 选择类：↑ 一律消费且无副作用——不再跳进度条、不改值、防误触（GS 防串键规则）。
+                return !(focus instanceof CustomUpDownView);
             case KeyEvent.KEYCODE_DPAD_DOWN:
                 if (focus instanceof CustomUpDownView) return false;
+                // 唯一例外：extra 行里按 ↓ 回主行「更多」——纯行内焦点导航（无值/seek 副作用），否则焦点会被困在 extra 行。
                 if (inExtra) mBinding.control.action.more.requestFocus();
                 return true;
             default:
@@ -1932,16 +1918,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
             previous = child;
         }
         return null;
-    }
-
-    private void focusFirst(ViewGroup row) {
-        for (int i = 0; i < row.getChildCount(); i++) {
-            View child = row.getChildAt(i);
-            if (child.isShown() && child.isFocusable()) {
-                child.requestFocus();
-                return;
-            }
-        }
     }
 
     private static boolean isInside(View ancestor, View view) {
