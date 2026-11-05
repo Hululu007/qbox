@@ -17,12 +17,14 @@
         android:scaleType="centerCrop" />
 
     <View
+        android:id="@+id/backdrop_scrim"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/shape_backdrop_scrim" />
+        android:background="@drawable/shape_backdrop_scrim_a" />
 
     <!-- 右侧信息区再压一层横向渐变，文字不压在亮色剧照上。 -->
     <View
+        android:id="@+id/detail_scrim"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/shape_detail_scrim" />

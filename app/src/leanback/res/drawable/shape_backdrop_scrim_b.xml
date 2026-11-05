@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 变体 B：顶部实底黑区只盖头部行（70dp），再接 210dp 长渐隐进海报；底部同 A。 -->
+    <item
+        android:gravity="top"
+        android:height="70dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#F20C1116" />
+        </shape>
+    </item>
+
+    <item
+        android:height="210dp"
+        android:top="70dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:endColor="#000C1116"
+                android:startColor="#F20C1116"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:centerColor="#00090A0D"
+                android:centerY="0.55"
+                android:endColor="#D9090A0D"
+                android:startColor="#00090A0D"
+                android:type="linear" />
+        </shape>
+    </item>
+
+</layer-list>

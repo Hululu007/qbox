@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- 变体 C 的右侧信息区压暗（Apple 风轻遮罩版）：比 shape_detail_scrim 整体弱一档，
+         55% 处 55%、右缘 82%——文字仍可读，但海报透得更多。 -->
+    <gradient
+        android:angle="0"
+        android:centerColor="#8C090A0D"
+        android:centerX="0.55"
+        android:endColor="#D1090A0D"
+        android:startColor="#00090A0D"
+        android:type="linear" />
+
+</shape>

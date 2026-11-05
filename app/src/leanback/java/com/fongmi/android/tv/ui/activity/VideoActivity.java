@@ -311,6 +311,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mVideoBg = mBinding.video.getBackground();
         mClock = Clock.create(mBinding.widget.clock);
         mKeyDown = CustomKeyDownVod.create(this);
+        if (com.fongmi.android.tv.BuildConfig.DEBUG) androidx.core.content.ContextCompat.registerReceiver(this, mBackdropVariantReceiver, new android.content.IntentFilter("com.qbox.app.DEBUG_BACKDROP"), androidx.core.content.ContextCompat.RECEIVER_EXPORTED);
         styleSeekBar();
         mR1 = this::hideControl;
         mR2 = this::updateFocus;
@@ -2038,8 +2039,28 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         }
     }
 
+    /** 详情页底图变体（DEBUG 对比用）：`adb shell am broadcast -a com.qbox.app.DEBUG_BACKDROP --ei v <0|1|2>` 运行时切换。 */
+    private static final int[] BACKDROP_SCRIM_VARIANTS = {R.drawable.shape_backdrop_scrim_a, R.drawable.shape_backdrop_scrim_b, R.drawable.shape_backdrop_scrim_c};
+    private static final int[] DETAIL_SCRIM_VARIANTS = {R.drawable.shape_detail_scrim, R.drawable.shape_detail_scrim, R.drawable.shape_detail_scrim_light};
+    private static final float[] BACKDROP_ALPHA_VARIANTS = {0.80f, 0.72f, 0.85f};
+
+    private final android.content.BroadcastReceiver mBackdropVariantReceiver = new android.content.BroadcastReceiver() {
+        @Override
+        public void onReceive(android.content.Context context, android.content.Intent intent) {
+            applyBackdropVariant(intent.getIntExtra("v", 0));
+        }
+    };
+
+    private void applyBackdropVariant(int variant) {
+        int v = Math.max(0, Math.min(BACKDROP_SCRIM_VARIANTS.length - 1, variant));
+        mBinding.backdropScrim.setBackgroundResource(BACKDROP_SCRIM_VARIANTS[v]);
+        mBinding.detailScrim.setBackgroundResource(DETAIL_SCRIM_VARIANTS[v]);
+        mBinding.backdrop.setAlpha(BACKDROP_ALPHA_VARIANTS[v]);
+    }
+
     @Override
     protected void onDestroy() {
+        if (com.fongmi.android.tv.BuildConfig.DEBUG) unregisterReceiver(mBackdropVariantReceiver);
         mClock.release();
         saveHistory(true);
         DanmakuApi.cancel();

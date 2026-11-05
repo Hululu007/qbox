@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 变体 C（Apple TV+ 风）：无黑区，整屏 15%→20% 轻压 + 底部 75% 渐暗；顶部只留 100dp 45%→0 的浅渐变。 -->
+    <item
+        android:gravity="top"
+        android:height="100dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:endColor="#00000000"
+                android:startColor="#73000000"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:centerColor="#33090A0D"
+                android:centerY="0.55"
+                android:endColor="#BF090A0D"
+                android:startColor="#26090A0D"
+                android:type="linear" />
+        </shape>
+    </item>
+
+</layer-list>
