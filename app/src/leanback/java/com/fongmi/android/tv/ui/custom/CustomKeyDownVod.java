@@ -86,7 +86,7 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
      * QBox 1.9.10：快进改成阶梯加速；1.9.20 起改为按「按住时长」分档（C9）。
      * 旧版按 repeat 计数分档，但 repeat 事件约 50ms 一个、远快于 300ms 节流后的实际步进，
      * 按住约 0.2s 就进入 20s 档，一松手飞过头。现按按住时长：
-     * 前 1.5s 每步 10s（秒级细调窗口）→ 3.5s 内 20s → 6s 内 30s → 9s 内 60s → 13s 内 120s → 17s 内 180s → 300s。
+     * 前 2.5s 每步 10s（细调窗口，GS-42 建议由 1.5s 延长）→ 4.5s 内 20s → 7s 内 30s → 10s 内 60s → 14s 内 120s → 18s 内 180s → 300s。
      */
     private void seek(KeyEvent event, boolean forward) {
         int repeat = event.getRepeatCount();
@@ -101,12 +101,12 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
     }
 
     private long stepFor(long elapsedMs) {
-        if (elapsedMs < 1_500) return Constant.INTERVAL_SEEK;
-        if (elapsedMs < 3_500) return 20_000;
-        if (elapsedMs < 6_000) return 30_000;
-        if (elapsedMs < 9_000) return 60_000;
-        if (elapsedMs < 13_000) return 120_000;
-        if (elapsedMs < 17_000) return 180_000;
+        if (elapsedMs < 2_500) return Constant.INTERVAL_SEEK;
+        if (elapsedMs < 4_500) return 20_000;
+        if (elapsedMs < 7_000) return 30_000;
+        if (elapsedMs < 10_000) return 60_000;
+        if (elapsedMs < 14_000) return 120_000;
+        if (elapsedMs < 18_000) return 180_000;
         return 300_000;
     }
 

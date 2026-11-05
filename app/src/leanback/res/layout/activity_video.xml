@@ -97,7 +97,7 @@
         android:layout_marginEnd="28dp"
         android:layout_toEndOf="@+id/video"
         android:ellipsize="end"
-        android:maxLines="2"
+        android:maxLines="1"
         android:textColor="@color/qbox_text"
         android:textSize="32sp"
         android:textStyle="bold"
@@ -182,16 +182,20 @@
         android:textSize="14sp"
         tools:text="导演 · 孙皓" />
 
+    <!-- 主演单行 + 下缘钉在按钮行之上：fontScale 放大时各行变高，
+         上面文本栈向下长、按钮行（钉在 video 底）向上长，没有硬约束就会重叠（N-47）。 -->
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/actor"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/director"
+        android:layout_above="@+id/row2"
         android:layout_alignStart="@+id/name"
         android:layout_marginTop="6dp"
         android:layout_marginEnd="28dp"
+        android:layout_marginBottom="8dp"
         android:ellipsize="end"
-        android:maxLines="2"
+        android:maxLines="1"
         android:nextFocusDown="@id/content"
         android:textColor="@color/qbox_text_mute"
         android:textSize="14sp"

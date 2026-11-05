@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.view.KeyEvent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -274,6 +275,33 @@ public class PlaybackService extends MediaLibraryService implements MediaLibrary
         clients.connect(controller, getPackageName());
         SessionCommands commands = MediaSession.ConnectionResult.DEFAULT_SESSION_AND_LIBRARY_COMMANDS.buildUpon().add(COMMAND_REPEAT).build();
         return new MediaLibrarySession.ConnectionResult.AcceptedResultBuilder(session).setAvailableSessionCommands(commands).build();
+    }
+
+    /**
+     * 系统把遥控器媒体键路由给 MediaSession（不进 Activity.dispatchKeyEvent），
+     * media3 默认处理在本机实测无效（事件到了但播放不暂停），这里显式接管播放键族。
+     * FF/REW/NEXT/PREV/STOP 走默认：wrap() 已把 next/prev/stop 映射到 dispatch*，FF/REW 用默认增量。
+     */
+    @Override
+    public boolean onMediaButtonEvent(@NonNull MediaSession session, @NonNull MediaSession.ControllerInfo controllerInfo, @NonNull Intent intent) {
+        KeyEvent event = intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
+        if (event == null) return MediaLibrarySession.Callback.super.onMediaButtonEvent(session, controllerInfo, intent);
+        switch (event.getKeyCode()) {
+            // DOWN 与 UP 都要消费：UP 交给 media3 默认实现会再切一次播放态，等于没按（20:27 实测 state 6→3）。
+            case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
+                if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                    if (player.isPlayWhenReady()) player.pause(); else player.play();
+                }
+                return true;
+            case KeyEvent.KEYCODE_MEDIA_PLAY:
+                if (event.getAction() == KeyEvent.ACTION_DOWN) player.play();
+                return true;
+            case KeyEvent.KEYCODE_MEDIA_PAUSE:
+                if (event.getAction() == KeyEvent.ACTION_DOWN) player.pause();
+                return true;
+            default:
+                return MediaLibrarySession.Callback.super.onMediaButtonEvent(session, controllerInfo, intent);
+        }
     }
 
     private boolean isAppController(@NonNull MediaSession.ControllerInfo controller) {

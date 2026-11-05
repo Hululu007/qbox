@@ -38,9 +38,18 @@ public class VodRectHolder extends BaseVodHolder {
         binding.year.setVisibility(android.view.View.GONE);
         binding.remark.setText(meta);
         binding.remark.setVisibility(TextUtils.isEmpty(meta) ? android.view.View.GONE : android.view.View.VISIBLE);
+        // 海报态（更新推荐等）标题可能 GONE，焦点卡没有可读文本，TalkBack 静默（N-48）；
+        // 根节点补上内容名：有标题读标题，没有则退到备注/站点名。
+        binding.getRoot().setContentDescription(buildDesc(item, meta));
         binding.getRoot().setOnClickListener(v -> listener.onItemClick(item));
         binding.getRoot().setOnLongClickListener(v -> listener.onLongClick(item));
         ImgUtil.load(item.getName(), item.getPic(), binding.image);
+    }
+
+    private CharSequence buildDesc(Vod item, String meta) {
+        if (!TextUtils.isEmpty(item.getName())) return item.getName();
+        if (!TextUtils.isEmpty(meta)) return meta;
+        return item.getSiteName();
     }
 
     /** 年份与备注合并成一行次要信息（2026 · 更新至第4集），卡片上不放彩色角标。 */

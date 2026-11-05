@@ -1704,16 +1704,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         }
     }
 
-    private boolean onSeekBack() {
-        controller().seekBack();
-        return true;
-    }
-
-    private boolean onSeekForward() {
-        controller().seekForward();
-        return true;
-    }
-
     private boolean isFullscreen() {
         return fullscreen;
     }
@@ -1764,8 +1754,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
             return mKeyDown.onKeyDown(event);
         }
         if (panelFocused && onControlKey(event)) return true;
-        if (KeyUtil.isMediaFastForward(event)) return onSeekForward();
-        if (KeyUtil.isMediaRewind(event)) return onSeekBack();
         return super.dispatchKeyEvent(event);
     }
 
