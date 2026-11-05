@@ -20,6 +20,7 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
     private boolean full;
     private long holdTime;
     private long lastSeekTick;
+    private long holdStartTick;
 
     public static CustomKeyDownVod create(Activity activity) {
         return new CustomKeyDownVod(activity);
@@ -82,34 +83,37 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
     }
 
     /**
-     * QBox 1.9.10：快进改成阶梯加速。
-     * 单次按键 10s（精确）；按住后步长 10s → 20s → 30s → 60s → 120s → 180s → 300s
-     * 逐档放大，避免以前「按住 = 每 50ms 跳 10s」那种一松手就飞过头的体感。
+     * QBox 1.9.10：快进改成阶梯加速；1.9.20 起改为按「按住时长」分档（C9）。
+     * 旧版按 repeat 计数分档，但 repeat 事件约 50ms 一个、远快于 300ms 节流后的实际步进，
+     * 按住约 0.2s 就进入 20s 档，一松手飞过头。现按按住时长：
+     * 前 1.5s 每步 10s（秒级细调窗口）→ 3.5s 内 20s → 6s 内 30s → 9s 内 60s → 13s 内 120s → 17s 内 180s → 300s。
      */
     private void seek(KeyEvent event, boolean forward) {
         int repeat = event.getRepeatCount();
         long now = SystemClock.uptimeMillis();
-        // 长按的 repeat 事件来得很密：先 200ms 一步，别让第一次长按就飞过头。
+        if (repeat == 0) holdStartTick = now;
+        // 长按的 repeat 事件来得很密：先 300ms 一步，别让第一次长按就飞过头。
         if (repeat > 0 && now - lastSeekTick < 300) return;
         lastSeekTick = now;
-        long step = stepFor(repeat);
+        long step = stepFor(now - holdStartTick);
         holdTime += forward ? step : -step;
         listener.onSeeking(holdTime);
     }
 
-    private long stepFor(int repeat) {
-        if (repeat <= 4) return Constant.INTERVAL_SEEK;
-        if (repeat <= 9) return 20_000;
-        if (repeat <= 19) return 30_000;
-        if (repeat <= 44) return 60_000;
-        if (repeat <= 69) return 120_000;
-        if (repeat <= 99) return 180_000;
+    private long stepFor(long elapsedMs) {
+        if (elapsedMs < 1_500) return Constant.INTERVAL_SEEK;
+        if (elapsedMs < 3_500) return 20_000;
+        if (elapsedMs < 6_000) return 30_000;
+        if (elapsedMs < 9_000) return 60_000;
+        if (elapsedMs < 13_000) return 120_000;
+        if (elapsedMs < 17_000) return 180_000;
         return 300_000;
     }
 
     public void reset() {
         holdTime = 0;
         lastSeekTick = 0;
+        holdStartTick = 0;
     }
 
     public interface Listener {
