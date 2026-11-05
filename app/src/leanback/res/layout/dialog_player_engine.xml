@@ -43,8 +43,9 @@
         android:paddingEnd="24dp"
         android:paddingBottom="24dp">
 
+        <!-- 三个引擎按钮：焦点在自身，不能用 duplicateParentState（否则焦点白 pill 画不出来）。 -->
+
         <com.google.android.material.textview.MaterialTextView
-            android:duplicateParentState="true"
             android:id="@+id/exo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -57,7 +58,6 @@
             android:textSize="14sp" />
 
         <com.google.android.material.textview.MaterialTextView
-            android:duplicateParentState="true"
             android:id="@+id/mpv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -70,7 +70,6 @@
             android:textSize="14sp" />
 
         <com.google.android.material.textview.MaterialTextView
-            android:duplicateParentState="true"
             android:id="@+id/other"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
