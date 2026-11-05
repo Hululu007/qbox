@@ -2,12 +2,16 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
 
-    <!-- 顶栏压暗：只压 40% → 0，够顶栏文字读清，又不会把 Infuse 式模糊海报底图糊成一整块黑。
-         内容已被裁在 124dp，这里不需要实底。 -->
+    <!-- 第 20 轮：顶栏实底 + 长距离渐隐。
+         顶 0→~36%（200dp 里的前 72dp）：纯黑 #000 → 深灰 #0C1116，给 tab 稳定深色底；
+         余下 64%：#0C1116 → 全透明，长距离过渡，顶栏与海报之间无可辨认分界线。
+         与 shape_backdrop_scrim 叠加后，顶部总压暗足够文字可读，下方海报完整透出。 -->
     <gradient
         android:angle="270"
-        android:endColor="#00090A0D"
-        android:startColor="#8C090A0D"
+        android:centerColor="#FF0C1116"
+        android:centerY="0.36"
+        android:endColor="#000C1116"
+        android:startColor="#FF000000"
         android:type="linear" />
 
 </shape>

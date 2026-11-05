@@ -422,9 +422,9 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             }
             if (TextUtils.isEmpty(url) || url.equals(mBackdropUrl)) return;
             mBackdropUrl = url;
-            // 氛围底图：从源海报中心截取 16:9 横带（不再取 40×40 中心方块），
-            // 放大倍数从 ~48× 降到 ~12×，保留更多画面信息、不再是局部色块。
-            Glide.with(this).load(ImgUtil.getUrl(url)).override(160, 90).centerCrop()
+            // 氛围底图（第 20 轮）：源海报中心 16:9 横带，480×270 解码、约 4× 放大。
+            // 旧值 160×90（~12× 放大）马赛克重、内容少——低分辨率+高倍放大是主因，本轮收敛两者。
+            Glide.with(this).load(ImgUtil.getUrl(url)).override(480, 270).centerCrop()
                     .transition(DrawableTransitionOptions.withCrossFade(600))
                     .into(mBinding.backdrop);
             mBinding.backdrop.setVisibility(View.VISIBLE);

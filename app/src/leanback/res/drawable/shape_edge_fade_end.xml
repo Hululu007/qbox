@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- 右缘渐隐到黑（第 20 轮）。 -->
+    <gradient
+        android:angle="0"
+        android:endColor="#CC090A0D"
+        android:startColor="#00090A0D"
+        android:type="linear" />
+
+</shape>

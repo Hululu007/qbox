@@ -163,8 +163,8 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
         }
         if (TextUtils.isEmpty(url) || url.equals(mBackdropUrl)) return;
         mBackdropUrl = url;
-        // 氛围底图：源海报中心 16:9 横带截取，~12× 适度放大（原 40×40 方块 ~48× 放大只剩局部）。
-        Glide.with(this).load(ImgUtil.getUrl(url)).override(160, 90).centerCrop()
+        // 氛围底图（第 20 轮）：源海报中心 16:9 横带，480×270 解码约 4× 放大（去马赛克）。
+        Glide.with(this).load(ImgUtil.getUrl(url)).override(480, 270).centerCrop()
                 .transition(DrawableTransitionOptions.withCrossFade(500))
                 .into(mBinding.backdrop);
     }

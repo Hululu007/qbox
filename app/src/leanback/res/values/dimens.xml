@@ -31,7 +31,8 @@
          收到 114dp 后环顶边留有 6px 余量，同时仍在分类条下沿附近。 -->
     <dimen name="qbox_header_clip">114dp</dimen>
 
-    <!-- 顶部压暗渐变高度，只为了让顶栏文字在亮色海报上也读得清。 -->
-    <dimen name="qbox_header_mask">124dp</dimen>
+    <!-- 顶栏实底 + 长渐隐的高度：顶栏 70dp 的 ~2.9 倍（规范 ≥1.5 倍），
+         前 36% 近实底承载 tab，其余长渐隐进海报，无分界线（第 20 轮，原 124dp 硬边带）。 -->
+    <dimen name="qbox_header_mask">200dp</dimen>
 
 </resources>

@@ -6,12 +6,12 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_app">
 
-    <!-- 氛围底图：当前聚焦海报低分辨率放大，整屏铺满。 -->
+    <!-- 氛围底图：跟随焦点海报，整屏铺满（480×270 解码，约 4× 放大）。 -->
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/backdrop"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:alpha="0.62"
+        android:alpha="0.72"
         android:importantForAccessibility="no"
         android:scaleType="centerCrop" />
 
@@ -19,6 +19,19 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/shape_backdrop_scrim" />
+
+    <!-- 左右缘渐隐到黑：海报不硬贴屏幕边界（第 20 轮）。 -->
+    <View
+        android:layout_width="96dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:background="@drawable/shape_edge_fade_start" />
+
+    <View
+        android:layout_width="96dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:background="@drawable/shape_edge_fade_end" />
 
     <!-- 内容层：从屏幕最顶开始，靠 paddingTop 让出头部空间。
          绘制的硬裁切线在 124dp（CustomVerticalGridView.setClipTop），

@@ -11,7 +11,7 @@
         android:id="@+id/backdrop"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:alpha="0.62"
+        android:alpha="0.72"
         android:importantForAccessibility="no"
         android:scaleType="centerCrop" />
 
@@ -19,6 +19,19 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/shape_backdrop_scrim" />
+
+    <!-- 左右缘渐隐到黑（第 20 轮）。 -->
+    <View
+        android:layout_width="96dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:background="@drawable/shape_edge_fade_start" />
+
+    <View
+        android:layout_width="96dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:background="@drawable/shape_edge_fade_end" />
 
     <!-- 内容层：pager 从屏幕最顶开始，分类页里的列表再让出 paddingTop。
          和首页完全同一套尺寸，点进来时上方模块不会缩进/上移。 -->
