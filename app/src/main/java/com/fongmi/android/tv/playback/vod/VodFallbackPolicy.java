@@ -11,9 +11,14 @@ import java.util.List;
 
 class VodFallbackPolicy {
 
+    /** 连续自动换源上限：网盘未登录等场景会连续报错，超过上限后停止自动切换，
+         把界面稳定在当前源（用户可手动扫码登录或手动换源），避免「光标一直被抢」（E15）。 */
+    private static final int MAX_AUTO_FALLBACK = 3;
+
     private final VodPlaybackController controller;
     private final VodPlaybackState state;
     private final VodPlaybackHost host;
+    private int autoFallbackCount;
 
     VodFallbackPolicy(VodPlaybackController controller, VodPlaybackState state, VodPlaybackHost host) {
         this.controller = controller;
@@ -38,6 +43,7 @@ class VodFallbackPolicy {
     }
 
     void search(String keyword, boolean autoFallback) {
+        autoFallbackCount = 0;
         state.setSearchKeyword(keyword);
         state.setAutoFallback(autoFallback);
         state.setSelectFirstSource(autoFallback);
@@ -71,12 +77,15 @@ class VodFallbackPolicy {
     }
 
     private void fallbackToNextSource(boolean force) {
+        // 手动换源（force）不受上限约束；自动换源超过上限即停，界面稳定不再抢焦点。
+        if (!force && autoFallbackCount >= MAX_AUTO_FALLBACK) return;
         if (!state.hasSources()) search(host.getVodName(), true);
         else if (state.isAutoFallback() || force) nextSource();
     }
 
     private void nextSource() {
         if (!state.hasSources()) return;
+        autoFallbackCount++;
         Vod item = state.removeFirstSource();
         host.renderSources(state.getSources());
         host.showSwitchSource(item);

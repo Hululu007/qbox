@@ -124,9 +124,16 @@ public class VodConfig extends BaseConfig {
         try {
             json = Decoder.getJson(UrlUtil.convert(config.getUrl()), TAG);
         } catch (Throwable e) {
-            // QBox：默认源拉取失败时回退到内置快照，保证首次启动仍能出站点
-            if (!com.fongmi.android.tv.BuildConfig.DEBUG || DEFAULT_CONFIG.isEmpty() || !DEFAULT_CONFIG.equals(config.getUrl())) throw e;
-            json = readDefaultConfig();
+            // QBox：默认源拉取失败时回退到内置快照，保证首次启动仍能出站点；
+            // 任意源「首次加载」（内存与缓存都没有站点）失败时同样回退，不让用户卡在「获取失败」空页（E16）。
+            boolean isDefault = !DEFAULT_CONFIG.isEmpty() && DEFAULT_CONFIG.equals(config.getUrl());
+            boolean stuckWithoutData = !isLoaded();
+            if (!com.fongmi.android.tv.BuildConfig.DEBUG || (!isDefault && !stuckWithoutData)) throw e;
+            try {
+                json = readDefaultConfig();
+            } catch (Throwable assetMissing) {
+                throw e;
+            }
         }
         checkJson(config, Json.parse(json).getAsJsonObject());
     }
