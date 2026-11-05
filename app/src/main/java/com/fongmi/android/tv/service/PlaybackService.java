@@ -279,8 +279,8 @@ public class PlaybackService extends MediaLibraryService implements MediaLibrary
 
     /**
      * 系统把遥控器媒体键路由给 MediaSession（不进 Activity.dispatchKeyEvent），
-     * media3 默认处理在本机实测无效（事件到了但播放不暂停），这里显式接管播放键族。
-     * FF/REW/NEXT/PREV/STOP 走默认：wrap() 已把 next/prev/stop 映射到 dispatch*，FF/REW 用默认增量。
+     * media3 默认处理在本机实测无效（事件到了但播放不暂停），这里显式接管。
+     * 播放键族在此直接播/停；FF/REW 转发 Activity 走方向键同一套斜坡；NEXT/PREV/STOP 走默认（wrap() 已映射 dispatch*）。
      */
     @Override
     public boolean onMediaButtonEvent(@NonNull MediaSession session, @NonNull MediaSession.ControllerInfo controllerInfo, @NonNull Intent intent) {
@@ -298,6 +298,13 @@ public class PlaybackService extends MediaLibraryService implements MediaLibrary
                 return true;
             case KeyEvent.KEYCODE_MEDIA_PAUSE:
                 if (event.getAction() == KeyEvent.ACTION_DOWN) player.pause();
+                return true;
+            case KeyEvent.KEYCODE_MEDIA_FAST_FORWARD:
+                // 统一走方向键同一套斜坡：转发给前台 Activity（带 seek UI），不再用 media3 固定 +15s。
+                dispatch(callback -> callback.onMediaSeek(event, true));
+                return true;
+            case KeyEvent.KEYCODE_MEDIA_REWIND:
+                dispatch(callback -> callback.onMediaSeek(event, false));
                 return true;
             default:
                 return MediaLibrarySession.Callback.super.onMediaButtonEvent(session, controllerInfo, intent);
@@ -664,6 +671,10 @@ public class PlaybackService extends MediaLibraryService implements MediaLibrary
         }
 
         default void onAudio() {
+        }
+
+        /** FF/REW 媒体键转发：与方向键走同一套快进斜坡（见 CustomKeyDownVod.RAMP）。 */
+        default void onMediaSeek(KeyEvent event, boolean forward) {
         }
     }
 

@@ -9,7 +9,6 @@ import android.view.MotionEvent;
 import androidx.annotation.NonNull;
 
 import com.fongmi.android.tv.App;
-import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.utils.KeyUtil;
 
 public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
@@ -83,31 +82,42 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
     }
 
     /**
-     * QBox 1.9.10：快进改成阶梯加速；1.9.20 起改为按「按住时长」分档（C9）。
-     * 旧版按 repeat 计数分档，但 repeat 事件约 50ms 一个、远快于 300ms 节流后的实际步进，
-     * 按住约 0.2s 就进入 20s 档，一松手飞过头。现按按住时长：
-     * 前 2.5s 每步 10s（细调窗口，GS-42 建议由 1.5s 延长）→ 4.5s 内 20s → 7s 内 30s → 10s 内 60s → 14s 内 120s → 18s 内 180s → 300s。
+     * QBox 1.9.10：快进改成阶梯加速；1.9.20 起按「按住时长」分档；第 20 轮重做斜坡（N 指标）：
+     * 起步必须是秒级细调——前 3 秒全程 ±1s（130ms 密节拍，按下即 +1s 而非 +10s），
+     * 3 秒后才逐步放大幅度（10s → 30s → 60s → 长片尾部 120s/180s/300s）。
+     * 档位表：{阶段上限 ms, 步长 ms, 最小节拍 ms}；节拍随档位放疏，防止大档连跳失控。
      */
+    private static final long[][] RAMP = {
+            {3_000, 1_000, 130},
+            {5_000, 10_000, 500},
+            {7_000, 30_000, 900},
+            {10_000, 60_000, 700},
+            {14_000, 120_000, 300},
+            {18_000, 180_000, 300},
+            {Long.MAX_VALUE, 300_000, 300},
+    };
+
     private void seek(KeyEvent event, boolean forward) {
         int repeat = event.getRepeatCount();
         long now = SystemClock.uptimeMillis();
         if (repeat == 0) holdStartTick = now;
-        // 长按的 repeat 事件来得很密：先 300ms 一步，别让第一次长按就飞过头。
-        if (repeat > 0 && now - lastSeekTick < 300) return;
+        long elapsed = now - holdStartTick;
+        if (repeat > 0 && now - lastSeekTick < rampAt(elapsed)[2]) return;
         lastSeekTick = now;
-        long step = stepFor(now - holdStartTick);
+        long step = rampAt(elapsed)[1];
         holdTime += forward ? step : -step;
         listener.onSeeking(holdTime);
     }
 
-    private long stepFor(long elapsedMs) {
-        if (elapsedMs < 2_500) return Constant.INTERVAL_SEEK;
-        if (elapsedMs < 4_500) return 20_000;
-        if (elapsedMs < 7_000) return 30_000;
-        if (elapsedMs < 10_000) return 60_000;
-        if (elapsedMs < 14_000) return 120_000;
-        if (elapsedMs < 18_000) return 180_000;
-        return 300_000;
+    /** 遥控器 FF/REW 由 PlaybackService 转发（媒体键被系统路由给 MediaSession，Activity 收不到 DOWN），与方向键共用同一斜坡。 */
+    public void onMediaKey(KeyEvent event, boolean forward) {
+        if (KeyUtil.isActionDown(event)) seek(event, forward);
+        else if (KeyUtil.isActionUp(event)) App.post(() -> listener.onSeekEnd(holdTime), 250);
+    }
+
+    private long[] rampAt(long elapsedMs) {
+        for (long[] stage : RAMP) if (elapsedMs < stage[0]) return stage;
+        return RAMP[RAMP.length - 1];
     }
 
     public void reset() {

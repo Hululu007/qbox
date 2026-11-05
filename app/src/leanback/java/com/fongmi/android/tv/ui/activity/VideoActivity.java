@@ -1454,11 +1454,11 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         setBackdrop(mHistory.getVodPic());
     }
 
-    /** 详情页氛围底图：源海报中心 16:9 横带截取，~12× 放大即柔和模糊（原 48px 方块 48× 放大只剩局部色块）。 */
+    /** 详情页氛围底图：源海报中心 16:9 横带，480×270 解码约 4× 放大（第 20 轮收敛分辨率与放大倍数，去马赛克）。 */
     private void setBackdrop(String url) {
         try {
             if (TextUtils.isEmpty(url)) return;
-            Glide.with(this).load(ImgUtil.getUrl(url)).override(160, 90).centerCrop()
+            Glide.with(this).load(ImgUtil.getUrl(url)).override(480, 270).centerCrop()
                     .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(700))
                     .into(mBinding.backdrop);
         } catch (Throwable ignored) {
@@ -1522,6 +1522,14 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         @Override
         public void onReplay() {
             VideoActivity.this.onReplay();
+        }
+
+        @Override
+        public void onMediaSeek(KeyEvent event, boolean forward) {
+            // FF/REW 与左右键同一套斜坡 + 同一条 seek UI；只在全屏播放时响应。
+            if (!isFullscreen() || service() == null) return;
+            if (isGone(mBinding.control.getRoot())) enterSeekMode();
+            mKeyDown.onMediaKey(event, forward);
         }
     };
 
