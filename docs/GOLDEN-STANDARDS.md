@@ -38,6 +38,7 @@
   反例：片头 `09:12` 撑宽按钮；个别源海报占位图被当内容（N-14）。｜验证：构造极端值逐项过。｜来源：N-14、GS-03
 - **GS-14｜顶栏槽位固定**：顶栏图标/胶囊聚焦展开不得推挤相邻元素（固定槽位或容器左对齐，二选一后全站统一）。
   来源：R25-01（方案待拍板，新改动不得再恶化）
+- **GS-33｜禁止单控件固定 dp 解决抖动**：行内按钮尺寸跳变的唯一合法解法是**整行等分**（`layout_width=0dp + layout_weight=1`，文字居中+tnum+ellipsize）；给单个控件定死 dp 宽度会把该行变成「有的宽有的窄」（反例：第 16 轮 Control.Value 76dp 使片头/片尾/倍速比邻键宽一圈，被用户打回）。数量变化由 GONE/权重天然自适应；放不下才收「更多」（恒为最后一个）。验证：改后量各按钮 bounds，宽度差 ≤1px、行右缘与进度条容器右缘对齐、无滚动。｜来源：第 16→17 轮返工
 - **GS-32｜弹层窗口防假安全区**：弹层窗口必须 `layoutInDisplayCutoutMode=ALWAYS`（与主窗口一致）；BottomSheet 另需吃掉 sheet 的 inset 分发并在每次布局强制 margin 归零（`BaseBottomSheetDialog.fixSheetFrame`，勿删）。
   反例：本机（IP810N）上报假左侧系统 inset 320px，Material `marginLeftSystemWindowInsets` 转成 sheet marginLeft → 面板偏右 ~400dp 宽、右缘被裁（sheet=[720..1520] vs 窗口=[400..1520]）。｜验证：弹层打开后 uiautomator dump，`design_bottom_sheet` bounds == 窗口 bounds；或截图像素扫描面板左右边。｜来源：第 16 轮面板化
 
@@ -83,6 +84,8 @@
   验证：force-stop 重启后状态保持（N-28 已实证）。｜来源：N-28，`aa566e8`
 - **GS-31｜异常流守卫（建议）**：ENDED/buffering 态下方向键与切线需有守卫或引导，不死停 00:00。
   来源：N-30（open，修复时按此验收）
+- **GS-34｜可调值/选择类两类交互 + 防串键**：可调值类（倍速/片头/片尾，CustomUpDownView）支持 **↑/↓ 就地调档（即时、不弹窗、不动焦点）+ OK 开面板**；选择类（缩放/解码/引擎/线路/章节/音轨/字幕/视轨）**只认点击，↑/↓ 一律消费且无副作用**。防串键必须在按键分发层 consume（`CustomUpDownView.dispatchKeyEvent` + Activity `onControlKey` 对非 UpDown 焦点直接 return true），不得依赖控件"看运气"没把事件传出去。例外：extra 行内 ↓ 回主行「更多」（纯导航，否则焦点困死）。
+  反例：旧实现 ↑ 从任意按钮跳进度条——焦点在音轨上按 ↑ 会进 scrub 态（误触源）；GS-33 教训同期。｜验证：暂停态聚焦倍速按 ↑/↓，position/exo position 纹丝不动仅档位变；焦点在音轨按 ↑/↓ 值不变、焦点不动。｜来源：第 17 轮
 
 ## 六、回归清单（提交前勾选）
 
@@ -107,9 +110,12 @@
 | 配置加载 | 默认源、失效源兜底、debug/release 差异 | N-46 |
 | 模糊底图/裁切 | 首页/分类/详情三处底图 | N-39 |
 | RecyclerView 结构 | 搜索页/分类页整页不空白（`setHeader`） | N-19/GS-08 |
+| 控制条布局/按键分发（onControlKey/CustomUpDownView/Control 样式） | 手势分档全曲线（QBoxSeek 日志）+ 等分行 bounds + 防串键（GS-34 两项验证） | 第 17 轮 |
+| SideSheet/BottomSheet 路由 | 五个设置弹窗（倍速/视频/字幕/音频/弹幕）面板形态一致 | 第 17 轮 |
 
 ## 七、变更记录
 
 - 2026-11-05：初版，GS-01～GS-31（Blocker 10 / 应当 20 / 建议 1），沉淀自第 1–15 轮（N-24~N-46、P1 族、D2、A2、P2）。
 - 2026-11-05：新增 GS-32（弹层防假安全区/inset margin，第 16 轮面板化）；GS-03「按钮定宽/定槽位」在本轮落地（Control.Value 76dp 槽位 + 三态 bounds 实证）。
+- 2026-11-05：新增 GS-33（禁单控件定宽、整行等分，16 轮 76dp 方案被用户打回返工）、GS-34（可调值/选择类两类交互 + 防串键）；GS-03 的定宽实现改以等分承载；回归映射新增「改控制条/按键分发 → 必复测手势分档」。
 - 规则回流要求：每次修复若产生新教训，新增/修改一条 GS-xx 并在此登记日期与编号；台账细节仍记 `uiux-review-log.md`，本文件只留规则。
