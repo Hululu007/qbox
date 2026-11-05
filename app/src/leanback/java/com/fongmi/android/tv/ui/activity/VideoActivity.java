@@ -1243,6 +1243,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
                 root.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 View focus = target != null && target.isShown() ? target : getFocus2();
                 if (focus == null || !focus.isShown()) focus = mBinding.control.action.more;
+                // 末位保险：more 也可能因行宽溢出等原因不可见，回到永远存在的播放键，保证控制条呼出必有焦点。
+                if (focus == null || !focus.isShown()) focus = mBinding.control.action.playPause;
                 if (focus != null && focus.isShown()) focus.requestFocus();
             }
         });

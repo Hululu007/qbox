@@ -48,13 +48,26 @@
     </style>
 
     <!-- 底部弹层（音轨/视轨/字幕/倍速设置等）：与面板对话框同一套 surface 与控件配色，
-         修「播放中菜单另起一套 UI」的问题。 -->
+         修「播放中菜单另起一套 UI」的问题。动画统一为面板淡入淡出（不再从底部滑入）。 -->
     <style name="ThemeOverlay.QBox.Sheet" parent="ThemeOverlay.Material3.BottomSheetDialog">
         <item name="colorSurface">@color/qbox_surface</item>
         <item name="colorSurfaceContainerHigh">@color/qbox_surface</item>
         <item name="colorSurfaceContainer">@color/qbox_surface</item>
         <item name="elevationOverlayEnabled">false</item>
+        <item name="bottomSheetStyle">@style/QBox.BottomSheet</item>
+        <item name="android:windowAnimationStyle">@style/QBox.PanelAnim</item>
     </style>
+
+    <!-- 关掉系统窗 inset 转 margin：本机上报假的左侧安全区（320px），
+         开着的话 sheet 会被向右推且右缘被裁（真机实测面板偏右 ~400dp 宽）。 -->
+    <style name="QBox.BottomSheet" parent="Widget.Material3.BottomSheet">
+        <item name="marginLeftSystemWindowInsets">false</item>
+        <item name="marginRightSystemWindowInsets">false</item>
+        <item name="marginTopSystemWindowInsets">false</item>
+    </style>
+
+    <!-- 面板动画：与系统对话框一致（淡入淡出）。 -->
+    <style name="QBox.PanelAnim" parent="android:Animation.Dialog" />
 
     <style name="HeroTab">
         <item name="android:layout_width">wrap_content</item>
@@ -137,12 +150,23 @@
         <item name="android:background">@drawable/selector_chip</item>
         <item name="android:focusable">true</item>
         <item name="android:focusableInTouchMode">true</item>
-        <item name="android:paddingStart">14dp</item>
-        <item name="android:paddingEnd">14dp</item>
+        <item name="android:paddingStart">11dp</item>
+        <item name="android:paddingEnd">11dp</item>
         <item name="android:paddingTop">8dp</item>
         <item name="android:paddingBottom">8dp</item>
         <item name="android:textColor">@color/text</item>
         <item name="android:textSize">16sp</item>
+    </style>
+
+    <!-- 取值型控制按钮（倍速/片头/片尾/缩放/解码/引擎/线路）：固定槽位宽度 76dp
+         （恰容纳 tnum「99:59」+ 内边距），内容从「片头」到「99:59」宽度都不变，
+         控制条不再因取值变化而跳动；与 11dp 内边距配合保证整行不溢出。 -->
+    <style name="Control.Value" parent="Control">
+        <item name="android:layout_width">76dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:fontFeatureSettings">tnum</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:ellipsize">end</item>
     </style>
 
 </resources>

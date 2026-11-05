@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- 统一面板背景：全部菜单/弹层共用（面板对话框与 TV 端面板化底部弹层）。
+         圆角与 MaterialAlertDialog 默认一致（28dp），色值走 surface token。 -->
+    <solid android:color="@color/qbox_surface" />
+
+    <corners android:radius="28dp" />
+
+</shape>

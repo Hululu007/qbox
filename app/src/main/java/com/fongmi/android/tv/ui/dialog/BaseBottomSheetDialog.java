@@ -1,20 +1,28 @@
 package com.fongmi.android.tv.ui.dialog;
 
 import android.app.Dialog;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 
 import androidx.activity.ComponentDialog;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -79,6 +87,52 @@ public abstract class BaseBottomSheetDialog extends BottomSheetDialogFragment {
         if (sheet == null) return;
         setHeight(sheet, getMaxHeight());
         setBehavior(sheet);
+        if (Util.isLeanback()) panelize(dialog, sheet);
+    }
+
+    /**
+     * TV 端把底部弹层面板化：居中、固定宽 560dp、四角圆角 28dp，与全站面板对话框
+     * 同一套外观（surface 色、圆角、居中、淡入淡出），消灭「播放中菜单另起一套 UI」。
+     * 仅 leanback 生效；手机端保留底部弹层惯用形态。BACK 关闭行为不受影响。
+     * 注意必须同时清掉 BottomSheetBehavior 的 maxWidth：Material 的 bottomSheetStyle
+     * 会给 sheet 一个内容相关宽度（真机实测 sheet 只占窗口右侧 ~400dp），
+     * 不清掉的话窗口虽是 560dp 居中，面板本身却偏右且宽度随内容跳。
+     */
+    private void panelize(BottomSheetDialog dialog, FrameLayout sheet) {
+        sheet.setBackgroundResource(R.drawable.shape_panel);
+        int width = ResUtil.dp2px(560);
+        BottomSheetBehavior<FrameLayout> behavior = BottomSheetBehavior.from(sheet);
+        behavior.setMaxWidth(width);
+        // 本机会上报假的左侧系统 inset（320px），Material 会把它转成 sheet 的 marginLeft，
+        // 面板偏右且右缘被裁（实测 sheet=[720..1520]，窗口=[400..1520]）。
+        // 吃掉 sheet 的 inset 分发；布局监听器常驻、每次布局强制归零 margin（inset 何时下发不确定，一次性清不掉）。
+        ViewCompat.setOnApplyWindowInsetsListener(sheet, (v, insets) -> WindowInsetsCompat.CONSUMED);
+        fixSheetFrame(sheet);
+        sheet.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                fixSheetFrame(sheet);
+                if (sheet.getLeft() > 0) android.util.Log.e("QBoxSheet", "sheet pushed right: left=" + sheet.getLeft() + " marginLeft=" + ((ViewGroup.MarginLayoutParams) sheet.getLayoutParams()).leftMargin);
+            }
+        });
+        Window window = dialog.getWindow();
+        if (window == null) return;
+        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        WindowManager.LayoutParams lp = window.getAttributes();
+        lp.width = width;
+        lp.gravity = Gravity.CENTER;
+        // 与主窗口一致：部分电视盒子上报假的刘海安全区（实测左侧 320px），
+        // 不设的话 Material 会把安全区转成 sheet 的 marginLeft，面板偏右且右侧被裁掉。
+        lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
+        window.setAttributes(lp);
+        window.setWindowAnimations(android.R.style.Animation_Dialog);
+    }
+
+    private void fixSheetFrame(FrameLayout sheet) {
+        ViewGroup.LayoutParams sp = sheet.getLayoutParams();
+        sp.width = ViewGroup.LayoutParams.MATCH_PARENT;
+        if (sp instanceof ViewGroup.MarginLayoutParams) ((ViewGroup.MarginLayoutParams) sp).setMargins(0, 0, 0, 0);
+        sheet.setLayoutParams(sp);
     }
 
     private void setHeight(FrameLayout sheet, int maxHeight) {
