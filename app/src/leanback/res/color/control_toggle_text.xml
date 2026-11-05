@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 切换类按钮文字色：选中（开）= accent 蓝（与描边同色，双通道表达）；
-     焦点+选中 = 白底上仍用 accent 蓝字保住状态可读；焦点 = 反色黑；普通 = 灰白。 -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:color="@color/qbox_accent" android:state_focused="true" android:state_selected="true" />
+    <!-- 切换类按钮文字色（白色系版本）：
+         焦点+开 = 实白底上的深色字；焦点 = 深色字；开·非焦点 = 白字（配白描边底衬）；关 = 灰白。 -->
+    <item android:color="@color/qbox_focus_text" android:state_focused="true" android:state_selected="true" />
     <item android:color="@color/qbox_focus_text" android:state_focused="true" />
-    <item android:color="@color/qbox_accent" android:state_selected="true" />
+    <item android:color="@color/qbox_text" android:state_selected="true" />
     <item android:color="#C9C9D1" />
 </selector>

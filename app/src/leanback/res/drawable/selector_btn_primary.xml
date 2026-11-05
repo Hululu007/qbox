@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 主按钮：常态实白药丸；焦点态实白 + 内侧深色描边（色彩收敛后不再用品牌蓝描边）。 -->
     <item android:state_focused="true">
         <shape android:shape="rectangle">
             <solid android:color="#FFFFFFFF" />
-            <stroke android:width="3dp" android:color="@color/qbox_accent" />
+            <stroke android:width="2dp" android:color="@color/qbox_focus_text" />
             <corners android:radius="999dp" />
         </shape>
     </item>

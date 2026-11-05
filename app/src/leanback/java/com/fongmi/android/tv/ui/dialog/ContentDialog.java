@@ -7,7 +7,6 @@ import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.databinding.DialogContentBinding;
 import com.fongmi.android.tv.ui.custom.CustomMovement;
-import com.github.bassaer.library.MDColor;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class ContentDialog extends BaseAlertDialog {
@@ -41,7 +40,8 @@ public class ContentDialog extends BaseAlertDialog {
     @Override
     protected void initView() {
         binding.text.setText(content, TextView.BufferType.SPANNABLE);
-        binding.text.setLinkTextColor(MDColor.YELLOW_500);
+        // 链接色收敛到语义蓝（与详情页链接一致），原为突兀的 MD 黄。
+        binding.text.setLinkTextColor(androidx.core.content.ContextCompat.getColor(requireContext(), com.fongmi.android.tv.R.color.qbox_accent));
         CustomMovement.bind(binding.text);
     }
 }

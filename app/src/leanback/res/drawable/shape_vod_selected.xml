@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
+    <!-- 选中描边：白色（原为品牌蓝，色彩收敛后交互态统一白/灰阶）。 -->
     <corners android:radius="10dp" />
     <stroke
         android:width="2dp"
-        android:color="@color/qbox_accent" />
+        android:color="@color/qbox_text" />
 </shape>

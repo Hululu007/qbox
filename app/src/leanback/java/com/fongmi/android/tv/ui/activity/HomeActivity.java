@@ -422,7 +422,9 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             }
             if (TextUtils.isEmpty(url) || url.equals(mBackdropUrl)) return;
             mBackdropUrl = url;
-            Glide.with(this).load(ImgUtil.getUrl(url)).override(40, 40).centerCrop()
+            // 氛围底图：从源海报中心截取 16:9 横带（不再取 40×40 中心方块），
+            // 放大倍数从 ~48× 降到 ~12×，保留更多画面信息、不再是局部色块。
+            Glide.with(this).load(ImgUtil.getUrl(url)).override(160, 90).centerCrop()
                     .transition(DrawableTransitionOptions.withCrossFade(600))
                     .into(mBinding.backdrop);
             mBinding.backdrop.setVisibility(View.VISIBLE);

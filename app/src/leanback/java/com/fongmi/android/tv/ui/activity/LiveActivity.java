@@ -157,8 +157,9 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mClock = Clock.create(mBinding.widget.clock);
         mKeyDown = CustomKeyDownLive.create(this);
         if (mBinding.control.seek.getTimeBar() instanceof androidx.media3.ui.DefaultTimeBar bar) {
-            bar.setPlayedColor(0xFF4C8DFF);
-            bar.setScrubberColor(0xFF4C8DFF);
+            // 色彩收敛（B6）：进度条白色系，不再用品牌蓝。
+            bar.setPlayedColor(0xFFFFFFFF);
+            bar.setScrubberColor(0xFFFFFFFF);
             bar.setBufferedColor(0x66FFFFFF);
             bar.setUnplayedColor(0x33FFFFFF);
         }

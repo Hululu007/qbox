@@ -145,6 +145,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private boolean seekFocus;
     private long seekBase;
     private long lastSeekKeyTick;
+    private long seekHoldStartTick;
     /**
      * 用户刚按下的播放意图。MediaController 的 playWhenReady 是跨进程异步回传的，
      * 点完立刻读会读到上一拍的状态 —— 按钮文字就会「慢一次」，暂停时仍写暂停、播放时仍写播放。
@@ -403,11 +404,11 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.quick.setAdapter(mQuickAdapter = new QuickAdapter(this));
     }
 
-    /** 进度条配色统一到品牌蓝，替代 media3 默认的灰色。 */
+    /** 进度条配色收敛为白色系（色彩收敛 B6：原品牌蓝 0xFF4C8DFF 在纯黑影院界面属突兀彩色）。 */
     private void styleSeekBar() {
         if (mBinding.control.seek.getTimeBar() instanceof androidx.media3.ui.DefaultTimeBar bar) {
-            bar.setPlayedColor(0xFF4C8DFF);
-            bar.setScrubberColor(0xFF4C8DFF);
+            bar.setPlayedColor(0xFFFFFFFF);
+            bar.setScrubberColor(0xFFFFFFFF);
             bar.setBufferedColor(0x66FFFFFF);
             bar.setUnplayedColor(0x33FFFFFF);
         }
@@ -1459,11 +1460,11 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         setBackdrop(mHistory.getVodPic());
     }
 
-    /** 详情页氛围底图：48px 缩略图放大到全屏，等于免费的高斯模糊。 */
+    /** 详情页氛围底图：源海报中心 16:9 横带截取，~12× 放大即柔和模糊（原 48px 方块 48× 放大只剩局部色块）。 */
     private void setBackdrop(String url) {
         try {
             if (TextUtils.isEmpty(url)) return;
-            Glide.with(this).load(ImgUtil.getUrl(url)).override(40, 40).centerCrop()
+            Glide.with(this).load(ImgUtil.getUrl(url)).override(160, 90).centerCrop()
                     .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(700))
                     .into(mBinding.backdrop);
         } catch (Throwable ignored) {
@@ -1879,22 +1880,25 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     /**
-     * 进度条焦点态也走阶梯加速：轻按 10s；按住后 20s / 30s / 60s / 120s / 180s / 300s。
+     * 进度条焦点态也走阶梯加速，1.9.20 起与视频面手势统一为「按按住时长分档」（C9）：
+     * 前 1.5s 每步 10s（秒级细调窗口）→ 20s → 30s → 60s → 120s → 180s → 300s。
      * repeat 事件间再加 300ms 节流，避免长按瞬间飞出很远。
      */
     private long seekStep(KeyEvent event) {
         int repeat = event.getRepeatCount();
+        long now = SystemClock.uptimeMillis();
+        if (repeat == 0) seekHoldStartTick = now;
         if (repeat > 0) {
-            long now = SystemClock.uptimeMillis();
             if (now - lastSeekKeyTick < 300) return 0;
             lastSeekKeyTick = now;
         }
-        if (repeat <= 4) return SEEK_STEP_MS;
-        if (repeat <= 9) return 20_000;
-        if (repeat <= 19) return 30_000;
-        if (repeat <= 44) return 60_000;
-        if (repeat <= 69) return 120_000;
-        if (repeat <= 99) return 180_000;
+        long elapsed = now - seekHoldStartTick;
+        if (elapsed < 1_500) return SEEK_STEP_MS;
+        if (elapsed < 3_500) return 20_000;
+        if (elapsed < 6_000) return 30_000;
+        if (elapsed < 9_000) return 60_000;
+        if (elapsed < 13_000) return 120_000;
+        if (elapsed < 17_000) return 180_000;
         return 300_000;
     }
 

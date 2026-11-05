@@ -1,16 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 切换类按钮「开」态（非焦点）：深蓝底衬 + accent 描边。
-     与焦点态（实心白药丸）形态上明确区分：描边=状态，白底=焦点。 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="@color/qbox_accent_soft" />
+
+    <!-- 切换类按钮「开」态（非焦点）：白描边 + 15% 白底衬 + 白字。
+         色彩收敛后激活态只用白/灰阶，不再用品牌蓝（B7：亮色不协调，改用白色相对色）。 -->
+    <corners android:radius="16dp" />
+
+    <solid android:color="#26FFFFFF" />
+
     <stroke
         android:width="1dp"
-        android:color="@color/qbox_accent" />
-    <corners android:radius="16dp" />
+        android:color="@color/qbox_text" />
+
     <padding
         android:bottom="8dp"
         android:left="14dp"
         android:right="14dp"
         android:top="8dp" />
+
 </shape>

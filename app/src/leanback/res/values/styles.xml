@@ -1,10 +1,13 @@
 <resources>
 
     <style name="Theme.Base" parent="Theme.Material3.Dark.NoActionBar">
-        <item name="colorPrimary">@color/qbox_accent</item>
+        <!-- 色彩收敛（B6/B7）：交互高亮统一白/灰阶，品牌蓝只留品牌位（logo/竖条锚点）。
+             colorPrimary 驱动滑杆/勾选框/开关等 Material 控件，原先的蓝在纯黑界面上显得杂乱。 -->
+        <item name="colorPrimary">@color/qbox_text</item>
         <item name="colorSurface">@color/qbox_surface</item>
         <item name="colorOnSurface">@color/qbox_text</item>
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.QBox.Dialog</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.QBox.Sheet</item>
         <item name="android:colorBackground">@color/qbox_bg</item>
         <item name="android:windowBackground">@color/qbox_bg</item>
         <item name="android:windowFullscreen">true</item>
@@ -38,6 +41,15 @@
 
     <!-- 对话框：Material3 默认会按 elevation 给 surface 叠加一层紫灰，和纯黑界面不搭，这里关掉叠色。 -->
     <style name="ThemeOverlay.QBox.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorSurface">@color/qbox_surface</item>
+        <item name="colorSurfaceContainerHigh">@color/qbox_surface</item>
+        <item name="colorSurfaceContainer">@color/qbox_surface</item>
+        <item name="elevationOverlayEnabled">false</item>
+    </style>
+
+    <!-- 底部弹层（音轨/视轨/字幕/倍速设置等）：与面板对话框同一套 surface 与控件配色，
+         修「播放中菜单另起一套 UI」的问题。 -->
+    <style name="ThemeOverlay.QBox.Sheet" parent="ThemeOverlay.Material3.BottomSheetDialog">
         <item name="colorSurface">@color/qbox_surface</item>
         <item name="colorSurfaceContainerHigh">@color/qbox_surface</item>
         <item name="colorSurfaceContainer">@color/qbox_surface</item>

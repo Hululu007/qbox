@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 切换类按钮「开 + 焦点」组合态：白底（焦点）+ accent 描边（状态）。
-     两者同时出现时互不吞掉：焦点看白底，开关看描边与蓝字。 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
+
+    <!-- 切换类按钮「开 + 焦点」态：实白药丸 + 内侧细深色描边。
+         与「纯焦点」（实白无描边）、「开·非焦点」（白描边透明底）三态可两两区分。 -->
+    <corners android:radius="16dp" />
+
     <solid android:color="@color/qbox_text" />
+
     <stroke
         android:width="1.5dp"
-        android:color="@color/qbox_accent" />
-    <corners android:radius="16dp" />
-    <padding
-        android:bottom="8dp"
-        android:left="14dp"
-        android:right="14dp"
-        android:top="8dp" />
+        android:color="@color/qbox_focus_text" />
+
 </shape>

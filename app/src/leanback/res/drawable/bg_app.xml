@@ -12,7 +12,8 @@
         </shape>
     </item>
 
-    <!-- 左上角冷色柔光，制造体积感。 -->
+    <!-- 左上角柔光制造体积感。色彩收敛后改为中性灰白微光（原为 #332B4A74 蓝紫光，
+         是界面里「奇怪蓝色」的来源之一）。 -->
     <item>
         <shape android:shape="rectangle">
             <gradient
@@ -20,7 +21,7 @@
                 android:centerY="0.02"
                 android:endColor="#00000000"
                 android:gradientRadius="620dp"
-                android:startColor="#332B4A74"
+                android:startColor="#26FFFFFF"
                 android:type="radial" />
         </shape>
     </item>
