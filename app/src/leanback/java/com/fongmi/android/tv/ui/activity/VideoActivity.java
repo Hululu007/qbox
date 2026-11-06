@@ -311,7 +311,10 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mVideoBg = mBinding.video.getBackground();
         mClock = Clock.create(mBinding.widget.clock);
         mKeyDown = CustomKeyDownVod.create(this);
-        if (com.fongmi.android.tv.BuildConfig.DEBUG) androidx.core.content.ContextCompat.registerReceiver(this, mBackdropVariantReceiver, new android.content.IntentFilter("com.qbox.app.DEBUG_BACKDROP"), androidx.core.content.ContextCompat.RECEIVER_EXPORTED);
+        if (com.fongmi.android.tv.BuildConfig.DEBUG) {
+            androidx.core.content.ContextCompat.registerReceiver(this, mBackdropVariantReceiver, new android.content.IntentFilter("com.qbox.app.DEBUG_BACKDROP"), androidx.core.content.ContextCompat.RECEIVER_EXPORTED);
+            applyBackdropVariant(com.github.catvod.utils.Prefers.getInt("debug_backdrop_variant", BACKDROP_VARIANT_DEFAULT));
+        }
         styleSeekBar();
         mR1 = this::hideControl;
         mR2 = this::updateFocus;
@@ -2039,15 +2042,17 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         }
     }
 
-    /** 详情页底图变体（DEBUG 对比用）：`adb shell am broadcast -a com.qbox.app.DEBUG_BACKDROP --ei v <0|1|2>` 运行时切换。 */
-    private static final int[] BACKDROP_SCRIM_VARIANTS = {R.drawable.shape_backdrop_scrim_a, R.drawable.shape_backdrop_scrim_b, R.drawable.shape_backdrop_scrim_c};
-    private static final int[] DETAIL_SCRIM_VARIANTS = {R.drawable.shape_detail_scrim, R.drawable.shape_detail_scrim, R.drawable.shape_detail_scrim_light};
-    private static final float[] BACKDROP_ALPHA_VARIANTS = {0.80f, 0.72f, 0.85f};
+    /** 详情页底图变体（DEBUG 对比用）：`adb shell am broadcast -a com.qbox.app.DEBUG_BACKDROP --ei v <0|1|2|3>` 运行时切换并持久化（Prefers），重启/重建详情页不丢。 */
+    private static final int[] BACKDROP_SCRIM_VARIANTS = {R.drawable.shape_backdrop_scrim_a, R.drawable.shape_backdrop_scrim_b, R.drawable.shape_backdrop_scrim_c, R.drawable.shape_backdrop_scrim_d};
+    private static final int[] DETAIL_SCRIM_VARIANTS = {R.drawable.shape_detail_scrim, R.drawable.shape_detail_scrim, R.drawable.shape_detail_scrim_light, R.drawable.shape_detail_scrim_d};
+    private static final float[] BACKDROP_ALPHA_VARIANTS = {0.80f, 0.72f, 0.85f, 0.85f};
+    /** 默认 C 版（第 22 轮用户指令）；改默认只动这里与 layout 三处引用。 */
+    private static final int BACKDROP_VARIANT_DEFAULT = 2;
 
     private final android.content.BroadcastReceiver mBackdropVariantReceiver = new android.content.BroadcastReceiver() {
         @Override
         public void onReceive(android.content.Context context, android.content.Intent intent) {
-            applyBackdropVariant(intent.getIntExtra("v", 0));
+            applyBackdropVariant(intent.getIntExtra("v", BACKDROP_VARIANT_DEFAULT));
         }
     };
 
@@ -2056,6 +2061,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.backdropScrim.setBackgroundResource(BACKDROP_SCRIM_VARIANTS[v]);
         mBinding.detailScrim.setBackgroundResource(DETAIL_SCRIM_VARIANTS[v]);
         mBinding.backdrop.setAlpha(BACKDROP_ALPHA_VARIANTS[v]);
+        if (com.fongmi.android.tv.BuildConfig.DEBUG) com.github.catvod.utils.Prefers.put("debug_backdrop_variant", v);
     }
 
     @Override

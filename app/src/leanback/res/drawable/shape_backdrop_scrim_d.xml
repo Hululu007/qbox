@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 变体 D（铺满海报 + 四边轻收边）：海报直接铺满，导航浮在其上；
+         不做顶部导航黑带、不做整屏压暗，只在四边各 56dp 内做 ≤24% 的轻渐隐，
+         让画面边缘和电视物理边框自然融合，不做可见暗角。 -->
+    <item
+        android:gravity="top"
+        android:height="56dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:endColor="#00090A0D"
+                android:startColor="#3D090A0D"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <!-- 底边局部加强（实测亮海报上选集行被洗白后的取舍）：120dp 内最高 40%，
+         仍是边缘收边而非底栏黑带，不到 C 版整屏 75% 底渐的一半。 -->
+    <item
+        android:gravity="bottom"
+        android:height="120dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="90"
+                android:endColor="#00090A0D"
+                android:startColor="#66090A0D"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <item
+        android:gravity="start"
+        android:width="56dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="0"
+                android:endColor="#00090A0D"
+                android:startColor="#3D090A0D"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <item
+        android:gravity="end"
+        android:width="56dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="180"
+                android:endColor="#00090A0D"
+                android:startColor="#3D090A0D"
+                android:type="linear" />
+        </shape>
+    </item>
+
+</layer-list>

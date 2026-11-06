@@ -12,22 +12,23 @@
         android:id="@+id/backdrop"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:alpha="0.72"
+        android:alpha="0.85"
         android:importantForAccessibility="no"
         android:scaleType="centerCrop" />
 
+    <!-- 静态默认 = C 版（与 VideoActivity.BACKDROP_VARIANT_DEFAULT 一致）；A/B/D 运行时广播切换。 -->
     <View
         android:id="@+id/backdrop_scrim"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/shape_backdrop_scrim_a" />
+        android:background="@drawable/shape_backdrop_scrim_c" />
 
     <!-- 右侧信息区再压一层横向渐变，文字不压在亮色剧照上。 -->
     <View
         android:id="@+id/detail_scrim"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/shape_detail_scrim" />
+        android:background="@drawable/shape_detail_scrim_light" />
 
     <FrameLayout
         android:id="@+id/video"
