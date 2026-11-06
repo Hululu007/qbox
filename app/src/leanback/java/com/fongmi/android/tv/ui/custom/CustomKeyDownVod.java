@@ -82,29 +82,40 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
     }
 
     /**
-     * QBox 1.9.10：快进改成阶梯加速；1.9.20 起按「按住时长」分档；第 20 轮重做斜坡（N 指标）：
-     * 起步必须是秒级细调——前 3 秒全程 ±1s（130ms 密节拍，按下即 +1s 而非 +10s），
-     * 3 秒后才逐步放大幅度（10s → 30s → 60s → 长片尾部 120s/180s/300s）。
-     * 档位表：{阶段上限 ms, 步长 ms, 最小节拍 ms}；节拍随档位放疏，防止大档连跳失控。
+     * QBox 1.9.10：快进改成阶梯加速；1.9.20 起按「按住时长」分档；第 20 轮重做斜坡；第 23 轮放缓后档：
+     * 起步不变——前 3 秒全程 ±1s（130ms 节拍，GS-42）；3 秒后步子整体放缓（5s→10s→25s→50s→100s→180s），
+     * 每次跨档后 BLEND_MS 内按「速率」线性爬升（上一档速率→本档速率），过渡窗内 150ms 密集采样，
+     * 手感是平滑加速而非台阶式突变；过渡窗外回到固定步长 + 随档放疏的节拍，防止大档连跳失控。
+     * 档位表：{阶段上限 ms, 步长 ms, 最小节拍 ms}；档速率 = 步长/节拍。
      */
+    private static final long BLEND_MS = 800;
+    private static final long BLEND_TICK = 150;
     private static final long[][] RAMP = {
             {3_000, 1_000, 130},
-            {5_000, 10_000, 500},
-            {7_000, 30_000, 900},
-            {10_000, 60_000, 700},
-            {14_000, 120_000, 300},
-            {18_000, 180_000, 300},
-            {Long.MAX_VALUE, 300_000, 300},
+            {5_000, 5_000, 600},
+            {7_000, 10_000, 700},
+            {10_000, 25_000, 800},
+            {14_000, 50_000, 700},
+            {18_000, 100_000, 500},
+            {Long.MAX_VALUE, 180_000, 400},
     };
 
     private void seek(KeyEvent event, boolean forward) {
-        int repeat = event.getRepeatCount();
         long now = SystemClock.uptimeMillis();
-        if (repeat == 0) holdStartTick = now;
+        if (event.getRepeatCount() == 0) {
+            // 按下首 tick 即 ±1s（GS-42 细调起步，第 23 轮不动）。
+            holdStartTick = now;
+            lastSeekTick = now;
+            holdTime += forward ? 1_000 : -1_000;
+            listener.onSeeking(holdTime);
+            return;
+        }
         long elapsed = now - holdStartTick;
-        if (repeat > 0 && now - lastSeekTick < rampAt(elapsed)[2]) return;
+        int stage = stageAt(elapsed);
+        if (now - lastSeekTick < tickAt(stage, elapsed)) return;
+        long dt = now - lastSeekTick;
         lastSeekTick = now;
-        long step = rampAt(elapsed)[1];
+        long step = stepAt(stage, elapsed, dt);
         holdTime += forward ? step : -step;
         listener.onSeeking(holdTime);
     }
@@ -115,9 +126,28 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
         else if (KeyUtil.isActionUp(event)) App.post(() -> listener.onSeekEnd(holdTime), 250);
     }
 
-    private long[] rampAt(long elapsedMs) {
-        for (long[] stage : RAMP) if (elapsedMs < stage[0]) return stage;
-        return RAMP[RAMP.length - 1];
+    private int stageAt(long elapsedMs) {
+        for (int i = 0; i < RAMP.length; i++) if (elapsedMs < RAMP[i][0]) return i;
+        return RAMP.length - 1;
+    }
+
+    private double rateOf(int stage) {
+        return RAMP[stage][1] / (double) RAMP[stage][2];
+    }
+
+    /** 跨档后 BLEND_MS 内按速率线性爬升（速率×实际间隔），窗外用本档固定步长。 */
+    private long stepAt(int stage, long elapsedMs, long dtMs) {
+        if (stage == 0) return RAMP[0][1];
+        long tIn = elapsedMs - RAMP[stage - 1][0];
+        if (tIn >= BLEND_MS) return RAMP[stage][1];
+        double rate = rateOf(stage - 1) + (rateOf(stage) - rateOf(stage - 1)) * tIn / (double) BLEND_MS;
+        return Math.max(1, (long) (rate * dtMs));
+    }
+
+    /** 过渡窗内 150ms 密集采样（速率爬升被真实采到），窗外用本档节拍。 */
+    private long tickAt(int stage, long elapsedMs) {
+        if (stage > 0 && elapsedMs - RAMP[stage - 1][0] < BLEND_MS) return BLEND_TICK;
+        return RAMP[stage][2];
     }
 
     public void reset() {
