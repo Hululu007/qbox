@@ -101,6 +101,11 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
         mBinding.back.setOnClickListener(v -> finish());
         mBinding.name.setText(VodConfig.get().getHome().getName());
         com.fongmi.android.tv.utils.Clock.create(mBinding.clock).start();
+        setNavScrim();
+        if (com.fongmi.android.tv.BuildConfig.DEBUG) {
+            com.fongmi.android.tv.utils.EdgeTiers.apply(mBinding.backdropScrim, com.fongmi.android.tv.utils.EdgeTiers.get());
+            androidx.core.content.ContextCompat.registerReceiver(this, mEdgeTierReceiver, new android.content.IntentFilter("com.qbox.app.DEBUG_BACKDROP"), androidx.core.content.ContextCompat.RECEIVER_EXPORTED);
+        }
         setRecyclerView();
         setTypes();
         setPager();
@@ -115,6 +120,33 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
         updateBackdrop();
     }
 
+    /** DEBUG 收边力度档切换（第 30 轮）：--ei t 0/1/2。 */
+    private final android.content.BroadcastReceiver mEdgeTierReceiver = new android.content.BroadcastReceiver() {
+        @Override
+        public void onReceive(android.content.Context context, android.content.Intent intent) {
+            if (intent.hasExtra("t")) com.fongmi.android.tv.utils.EdgeTiers.apply(mBinding.backdropScrim, intent.getIntExtra("t", 0));
+        }
+    };
+
+    /** 按需导航带（第 29 轮，Netflix 式）：焦点进顶栏/分类条（顶部 124dp 内）淡入短软渐变带，离开淡出恢复满屏。 */
+    private boolean navScrimOn;
+
+    private void setNavScrim() {
+        getWindow().getDecorView().getViewTreeObserver().addOnGlobalFocusChangeListener((o, f) -> updateNavScrim(f));
+    }
+
+    private void updateNavScrim(View focus) {
+        boolean inNav = false;
+        if (focus != null) {
+            android.graphics.Rect r = new android.graphics.Rect();
+            inNav = focus.getGlobalVisibleRect(r) && r.top < ResUtil.dp2px(124);
+        }
+        if (inNav == navScrimOn) return;
+        navScrimOn = inNav;
+        mBinding.navScrim.animate().cancel();
+        mBinding.navScrim.animate().alpha(inNav ? 1f : 0f).setDuration(220).start();
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -125,6 +157,12 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
     protected void onPause() {
         super.onPause();
         App.removeCallbacks(mBackdropTask);
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (com.fongmi.android.tv.BuildConfig.DEBUG) unregisterReceiver(mEdgeTierReceiver);
+        super.onDestroy();
     }
 
     private static String firstPic(Result result) {

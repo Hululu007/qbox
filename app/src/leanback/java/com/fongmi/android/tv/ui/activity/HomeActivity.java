@@ -150,6 +150,11 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         mResult = Result.empty();
         mClock = Clock.create(mBinding.clock).format("HH:mm  MM/dd EEE");
         mBinding.progressLayout.showProgress();
+        setNavScrim();
+        if (com.fongmi.android.tv.BuildConfig.DEBUG) {
+            com.fongmi.android.tv.utils.EdgeTiers.apply(mBinding.backdropScrim, com.fongmi.android.tv.utils.EdgeTiers.get());
+            androidx.core.content.ContextCompat.registerReceiver(this, mEdgeTierReceiver, new android.content.IntentFilter("com.qbox.app.DEBUG_BACKDROP"), androidx.core.content.ContextCompat.RECEIVER_EXPORTED);
+        }
         PermissionUtil.requestNotify(this);
         DLNARendererService.start(this);
         Updater.create().start(this);
@@ -431,6 +436,33 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             mBinding.backdrop.setVisibility(View.VISIBLE);
         } catch (Throwable ignored) {
         }
+    }
+
+    /** DEBUG 收边力度档切换（第 30 轮）：--ei t 0/1/2。 */
+    private final android.content.BroadcastReceiver mEdgeTierReceiver = new android.content.BroadcastReceiver() {
+        @Override
+        public void onReceive(android.content.Context context, android.content.Intent intent) {
+            if (intent.hasExtra("t")) com.fongmi.android.tv.utils.EdgeTiers.apply(mBinding.backdropScrim, intent.getIntExtra("t", 0));
+        }
+    };
+
+    /** 按需导航带（第 29 轮，Netflix 式）：焦点进顶栏/分类条（顶部 124dp 内）淡入短软渐变带，离开淡出恢复满屏。 */
+    private boolean navScrimOn;
+
+    private void setNavScrim() {
+        getWindow().getDecorView().getViewTreeObserver().addOnGlobalFocusChangeListener((o, f) -> updateNavScrim(f));
+    }
+
+    private void updateNavScrim(View focus) {
+        boolean inNav = false;
+        if (focus != null) {
+            android.graphics.Rect r = new android.graphics.Rect();
+            inNav = focus.getGlobalVisibleRect(r) && r.top < ResUtil.dp2px(124);
+        }
+        if (inNav == navScrimOn) return;
+        navScrimOn = inNav;
+        mBinding.navScrim.animate().cancel();
+        mBinding.navScrim.animate().alpha(inNav ? 1f : 0f).setDuration(220).start();
     }
 
     private void getVideo() {
@@ -781,8 +813,11 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                 // 有「最近观看」时它是第 0 行，「更新推荐」首行是第 1 行：
                 // 从推荐首行按 ↑ 必须先回到最近观看，而不是直接跳到分类条（用户实测的跳级）。
                 if (pos == 1 && historyShown) {
+                    // 第 30 轮：回到最近观看要按列落位（x 最近），不再落行首。
+                    View target = mBinding.recycler.nearestColumnInRow(0, getCurrentFocus());
                     mBinding.recycler.setSelectedPosition(0);
-                    mBinding.recycler.requestFocus();
+                    if (target != null) target.requestFocus();
+                    else mBinding.recycler.requestFocus();
                     return true;
                 }
                 // 真正在内容区最上面一行时，才把焦点交给分类条。
@@ -884,6 +919,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     protected void onDestroy() {
+        if (com.fongmi.android.tv.BuildConfig.DEBUG) unregisterReceiver(mEdgeTierReceiver);
         DLNARendererService.stop(this);
         LiveConfig.get().clear();
         VodConfig.get().clear();

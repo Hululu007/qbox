@@ -124,11 +124,12 @@ public class CustomVerticalGridView extends VerticalGridView {
     /**
      * 临时压低内容区起点（筛选面板展开时用）：让第一排筛选项贴近 tab，
      * 不用改全局 144dp 的内容基线。传负数恢复。
+     * 垫层固定 4dp：不能用海报行的 zoomPad（筛选 chip 不放大，zoomPad 会把间距撑大 2-3 倍）。
      */
     public void setContentTopTemp(int topPx) {
         if (topPx < 0) return;
         this.contentTop = topPx;
-        setPadding(getPaddingLeft(), topPx + zoomPad, getPaddingRight(), getPaddingBottom());
+        setPadding(getPaddingLeft(), topPx + ResUtil.dp2px(4), getPaddingRight(), getPaddingBottom());
         applyBottomPadding();
         requestLayout();
         invalidate();
@@ -379,44 +380,114 @@ public class CustomVerticalGridView extends VerticalGridView {
     }
 
     /**
-     * 海报墙上下移动保持列对齐。
+     * 海报墙上下移动保持列对齐（第 30 轮：↑↓ 双向 + 按 x 坐标定向）。
      *
-     * <p>Leanback 默认把焦点交给下一行的「该行 selectedPosition」（未访问过的行是 0），
-     * 所以从第 3 列按 ↓ 会跳到下一行第 1 列。这里在焦点搜索阶段直接把目标改成
-     * 「下一行的同一列」，并返回那个子 View，由系统完成聚焦。
+     * <p>Leanback 默认把焦点交给相邻行的「该行 selectedPosition」（未访问过/被回收重绑的行是 0），
+     * 所以从第 3 列按 ↑/↓ 会跳到相邻行第 1 列（此前只修了 ↓，↑ 漏网——第 30 轮用户实机抓到）。
+     * 两条路径：① 目标行已布局——焦点搜索阶段直接返回 x 最近列的子项；② 目标行在屏外未布局——
+     * 记下 pending 列 x 交回 Leanback 滚动落焦，焦点落地瞬间由全局焦点监听器修正到最近列
+     * （同一 vsync 内完成，无可见跳动）。列宽不一致的行（16:9 历史卡 vs 竖版海报）按 x 最近而非下标对齐。
      */
+    private int mPendingColX = -1;
+    private boolean mCorrectingFocus;
+
     @Override
     public View focusSearch(View focused, int direction) {
-        if (direction == View.FOCUS_DOWN) {
-            View sameColumn = findSameColumnBelow(focused);
+        if (direction == View.FOCUS_UP || direction == View.FOCUS_DOWN) {
+            View sameColumn = findNearestColumn(focused, direction == View.FOCUS_DOWN ? 1 : -1);
             if (sameColumn != null) return sameColumn;
+            markPendingColumn(focused, direction == View.FOCUS_DOWN ? 1 : -1);
         }
         return super.focusSearch(focused, direction);
     }
 
-    private View findSameColumnBelow(View focused) {
+    /** 目标行未布局时记下当前列 x，等 Leanback 滚动落焦后由 onFocus 修正。 */
+    private void markPendingColumn(View focused, int rowDelta) {
+        mPendingColX = -1;
+        if (focused == null || !(focused.getParent() instanceof HorizontalGridView)) return;
+        View rowView = (View) focused.getParent().getParent();
+        if (rowView == null) return;
+        int rowPos = getChildAdapterPosition(rowView);
+        if (rowPos < 0 || getAdapter() == null) return;
+        int target = rowPos + rowDelta;
+        if (target < 0 || target >= getAdapter().getItemCount()) return;
+        android.graphics.Rect fr = new android.graphics.Rect();
+        if (focused.getGlobalVisibleRect(fr)) mPendingColX = fr.centerX();
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        getViewTreeObserver().addOnGlobalFocusChangeListener(mFocusListener);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        getViewTreeObserver().removeOnGlobalFocusChangeListener(mFocusListener);
+        super.onDetachedFromWindow();
+    }
+
+    private final android.view.ViewTreeObserver.OnGlobalFocusChangeListener mFocusListener = (o, f) -> {
+        if (mPendingColX < 0 || mCorrectingFocus || f == null) return;
+        if (!(f.getParent() instanceof HorizontalGridView)) return;
+        // 焦点刚落到目标行（Leanback 滚完后通常落在行首）：立刻修正到 pending 列 x 的最近项。
+        HorizontalGridView row = (HorizontalGridView) f.getParent();
+        View best = nearestChildByX(row, mPendingColX);
+        if (best == null || best == f) {
+            mPendingColX = -1;
+            return;
+        }
+        mCorrectingFocus = true;
+        mPendingColX = -1;
+        post(() -> {
+            best.requestFocus();
+            mCorrectingFocus = false;
+        });
+    };
+
+    private View findNearestColumn(View focused, int rowDelta) {
         if (focused == null) return null;
         View parent = (View) focused.getParent();
         if (!(parent instanceof HorizontalGridView)) return null;
-        HorizontalGridView grid = (HorizontalGridView) parent;
-        int column = grid.getChildAdapterPosition(focused);
-        if (column < 0) return null;
-        View rowView = (View) grid.getParent();
+        View rowView = (View) parent.getParent();
+        if (rowView == null) return null;
         int rowPos = getChildAdapterPosition(rowView);
         if (rowPos < 0) return null;
-        View nextRow = findChildByPosition(rowPos + 1);
-        if (nextRow == null) return null;
-        HorizontalGridView next = nextRow.findViewById(androidx.leanback.R.id.row_content);
-        if (next == null || next.getAdapter() == null) return null;
-        int count = next.getAdapter().getItemCount();
-        if (count == 0) return null;
-        int target = Math.min(column, count - 1);
-        for (int i = 0; i < next.getChildCount(); i++) {
-            View child = next.getChildAt(i);
-            if (child != null && next.getChildAdapterPosition(child) == target) return child;
+        View targetRow = findChildByPosition(rowPos + rowDelta);
+        if (targetRow == null) return null;
+        HorizontalGridView next = targetRow.findViewById(androidx.leanback.R.id.row_content);
+        if (next == null || next.getChildCount() == 0) return null;
+        android.graphics.Rect fr = new android.graphics.Rect();
+        if (!focused.getGlobalVisibleRect(fr)) return null;
+        return nearestChildByX(next, fr.centerX());
+    }
+
+    /** 供 Activity 层跨区移动用：在第 rowPos 行里找与 focused 同列（x 最近）的子项；行未布局或无可聚焦项时返回 null。 */
+    public View nearestColumnInRow(int rowPos, View focused) {
+        if (focused == null) return null;
+        android.graphics.Rect fr = new android.graphics.Rect();
+        if (!focused.getGlobalVisibleRect(fr)) return null;
+        View row = findChildByPosition(rowPos);
+        if (row == null) return null;
+        HorizontalGridView grid = row.findViewById(androidx.leanback.R.id.row_content);
+        if (grid == null) return null;
+        return nearestChildByX(grid, fr.centerX());
+    }
+
+    private View nearestChildByX(HorizontalGridView row, int fx) {
+        android.graphics.Rect cr = new android.graphics.Rect();
+        View best = null;
+        int bestDx = Integer.MAX_VALUE;
+        for (int i = 0; i < row.getChildCount(); i++) {
+            View child = row.getChildAt(i);
+            if (child == null || !child.isFocusable() || !child.getGlobalVisibleRect(cr)) continue;
+            int dx = Math.abs(cr.centerX() - fx);
+            if (dx < bestDx) {
+                bestDx = dx;
+                best = child;
+            }
         }
-        // 目标列还没布局出来时交回 Leanback，避免返回一个不在屏幕上的 View。
-        return null;
+        return best;
     }
 
     public boolean moveToTop() {

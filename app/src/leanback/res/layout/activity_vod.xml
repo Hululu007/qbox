@@ -17,6 +17,7 @@
 
     <!-- 第 28 轮：整屏压暗/200dp 顶栏渐变/96dp 左右渐隐全部撤掉，统一成详情页 D 版同款四边轻收边。 -->
     <View
+        android:id="@+id/backdrop_scrim"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/shape_backdrop_scrim_d" />
@@ -27,6 +28,14 @@
         android:id="@+id/pager"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
+    <!-- 按需导航带（第 29 轮）：静止 alpha=0 不可见；焦点进导航区时 VodActivity 淡入。 -->
+    <View
+        android:id="@+id/nav_scrim"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:alpha="0"
+        android:background="@drawable/shape_nav_scrim" />
 
     <!-- 第 28 轮：200dp 顶栏压暗渐变撤掉，与首页一致。 -->
     <androidx.appcompat.widget.LinearLayoutCompat

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 按需导航带（第 29 轮，Netflix 式）：静止态 alpha=0 不可见（保住铺满）；焦点进导航区时淡入。
+     两段式：0-118dp 覆盖顶栏+tab 文字区（80%→45%，白字对比 ≥4.5:1），118-150dp 羽化到 0。
+     选纯渐变而非 frosted：API 28 无轻量实时模糊路径（RenderEffect 需 31+），且与全站 scrim 语言一致；
+     带高 150dp ≈ 屏高 14%，比 Netflix 首屏导航带更短。 -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 实测校准（亮天空海报 tab 行 4.1:1 未达 4.5）：顶段提到 85%→55%。 -->
+    <item
+        android:gravity="top"
+        android:height="118dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:endColor="#8C090A0D"
+                android:startColor="#D9090A0D"
+                android:type="linear" />
+        </shape>
+    </item>
+    <item
+        android:gravity="top"
+        android:height="32dp"
+        android:top="118dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:endColor="#00090A0D"
+                android:startColor="#8C090A0D"
+                android:type="linear" />
+        </shape>
+    </item>
+</layer-list>

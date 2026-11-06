@@ -18,6 +18,7 @@
     <!-- 第 28 轮：整屏压暗/200dp 顶栏渐变/96dp 左右渐隐全部撤掉（用户实机仍看出黑带），
          统一成详情页 D 版同款四边轻收边（上/左右 40dp@12%，底 120dp@30%）。 -->
     <View
+        android:id="@+id/backdrop_scrim"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/shape_backdrop_scrim_d" />
@@ -44,6 +45,14 @@
             app:focusOutFront="true" />
 
     </com.fongmi.android.tv.ui.custom.ProgressLayout>
+
+    <!-- 按需导航带（第 29 轮）：静止 alpha=0 不可见；焦点进导航区时 HomeActivity 淡入。 -->
+    <View
+        android:id="@+id/nav_scrim"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:alpha="0"
+        android:background="@drawable/shape_nav_scrim" />
 
     <!-- 头部浮层：顶栏 + 分类条。位置与点播页逐 dp 相同，切页时整块框架不动。
          第 28 轮：200dp 顶栏压暗渐变撤掉（用户实机仍看出黑带），顶栏文字直接浮在氛围底图上。 -->

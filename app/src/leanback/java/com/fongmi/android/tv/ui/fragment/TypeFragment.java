@@ -295,7 +295,8 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         for (Filter filter : mFilters) rows.add(getRow(filter));
         // 先把内容起点压低，再插行：顺序反了会让列表先按 144dp 布局一次再重排，
         // 焦点在这两次布局之间容易被带到第二排去。
-        mBinding.recycler.setContentTopTemp(getHeaderBottomPx() + ResUtil.dp2px(8));
+        // 第 29 轮：子行与 tab 间距 28dp → ~10dp（约 1/3），贴近 tab 但留 4dp 固定垫层保住分组感。
+        mBinding.recycler.setContentTopTemp(getHeaderBottomPx());
         // 筛选行间距收紧：全局行距是为海报墙算的（≥24dp），chip 行沿用会显得稀疏。
         // 面板展开期间改 8dp（chip 34dp + 行间 16dp ≈ chip 半高，不拥挤的下限），
         // 收起时 applyRowMetrics 会恢复海报行距。

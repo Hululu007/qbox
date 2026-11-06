@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 四边收边·稍强档（第 30 轮对比档 t=2）：上/左右 96dp@30%，底 160dp@60%。 -->
+    <item
+        android:gravity="top"
+        android:height="96dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:endColor="#00090A0D"
+                android:startColor="#4D090A0D"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <item
+        android:gravity="bottom"
+        android:height="160dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="90"
+                android:endColor="#00090A0D"
+                android:startColor="#99090A0D"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <item
+        android:gravity="start"
+        android:width="96dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="0"
+                android:endColor="#00090A0D"
+                android:startColor="#4D090A0D"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <item
+        android:gravity="end"
+        android:width="96dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="180"
+                android:endColor="#00090A0D"
+                android:startColor="#4D090A0D"
+                android:type="linear" />
+        </shape>
+    </item>
+
+</layer-list>
