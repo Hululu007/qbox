@@ -55,7 +55,6 @@ public class ProgressLayout extends RelativeLayout {
         mEmptyView.setTag(TAG_PROGRESS);
         mEmptyView.setVisibility(GONE);
         mProgressBinding = ViewProgressBinding.inflate(LayoutInflater.from(getContext()));
-        mProgressBinding.hint.setVisibility(VISIBLE);
         mProgressView = mProgressBinding.getRoot();
         mProgressView.setTag(TAG_PROGRESS);
         mProgressView.setVisibility(GONE);

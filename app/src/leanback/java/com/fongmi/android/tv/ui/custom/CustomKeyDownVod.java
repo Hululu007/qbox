@@ -89,9 +89,8 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
      * 新模型：单一连续速率曲线 f(t)=R0+(cap−R0)·(1−e^(−(t−T0)/τ))——
      * 任意时刻只按一条曲线走，每 tick 位移 = 曲线定积分差值 cumAt(u2)−cumAt(u1)，中途无重置、无档位、无台阶。
      * 前 3 秒细调段保持不变（±1s @130ms，GS-42）；3 秒处曲线速率 R0=1000/130≈7.7x，与细调档标称速率连续衔接。
-     * cap 两套参数（DEBUG 广播 --ei s 0/1 切换，Prefers debug_seek_curve 持久化）：
-     *   A(s=0)：严格按用户数值 8x 封顶——注意细调档本身即 7.7x，A 实测≈3s 后近似匀速 8x；
-     *   B(s=1，默认)：cap=max(8x, 片长/180s)（顶速约 3 分钟横贯全片，片长由 setDuration 在按住首 tick 注入）。
+     * 第 35 轮定案 B（用户拍板）：cap=max(8x, 片长/180s)（顶速约 3 分钟横贯全片；片长由 setDuration 每 tick 注入，
+     * 无片长时 8x 兜底）。A 模式（8x 死封顶）与 --ei s 切换入口一并移除。
      * 快退与快进同一曲线对称（方向只取符号）。遥控器 FF/REW 媒体键与方向键共用本曲线。
      */
     private static final long FINE_MS = 3_000;      // 细调段时长（不变）
@@ -100,22 +99,16 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
     private static final long COARSE_TICK = 120;    // 粗调段最小节拍（防过密 seek）
     private static final double R0 = FINE_STEP / (double) FINE_TICK;   // ≈7.69x，3s 处连续
     private static final double TAU = 2_500.0;      // 爬升时间常数：t=5.5s 达 63% 爬升，t=9s 达 91%
-    private static final double CAP_A = 8.0;        // A：8x 封顶
+    private static final double CAP_MIN = 8.0;      // 定案 B 下限：无片长/短片兜底
 
     private long durationMs;
-    private int curveMode = 1;   // 默认 B（片长挂钩）
 
     public void setDuration(long ms) {
         durationMs = Math.max(0, ms);
     }
 
-    public void setCurveMode(int mode) {
-        curveMode = mode == 0 ? 0 : 1;
-    }
-
     private double cap() {
-        if (curveMode == 1 && durationMs > 0) return Math.max(CAP_A, durationMs / 180_000.0);
-        return CAP_A;
+        return durationMs > 0 ? Math.max(CAP_MIN, durationMs / 180_000.0) : CAP_MIN;
     }
 
     /** 粗调段累计位移的不定积分（u=elapsed−3000ms）：G(u)=R0·u+(cap−R0)·(u+τ·e^(−u/τ))−(cap−R0)·τ；G(0)=0。 */
@@ -137,7 +130,7 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
             lastSeekTick = now;
             holdTime += forward ? 1_000 : -1_000;
             if (com.fongmi.android.tv.BuildConfig.DEBUG) {
-                android.util.Log.d("QBoxSeek", "holdStart dur=" + durationMs + " cap=" + String.format(java.util.Locale.ROOT, "%.1f", cap()) + " mode=" + (curveMode == 0 ? "A" : "B"));
+                android.util.Log.d("QBoxSeek", "holdStart dur=" + durationMs + " cap=" + String.format(java.util.Locale.ROOT, "%.1f", cap()));
             }
             listener.onSeeking(holdTime);
             return;
@@ -159,7 +152,7 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
         holdTime += forward ? step : -step;
         if (com.fongmi.android.tv.BuildConfig.DEBUG) {
             long u = Math.max(0, elapsed - FINE_MS);
-            android.util.Log.d("QBoxSeek", "tick mode=" + (curveMode == 0 ? "A" : "B") + " elapsed=" + elapsed
+            android.util.Log.d("QBoxSeek", "tick elapsed=" + elapsed
                     + " rate=" + String.format(java.util.Locale.ROOT, "%.2f", elapsed < FINE_MS ? R0 : rateAt(u))
                     + " step=" + step + " cum=" + holdTime + " dir=" + (forward ? "FF" : "REW"));
         }

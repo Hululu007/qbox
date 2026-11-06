@@ -27,15 +27,5 @@
         tools:text="120 KB/s"
         tools:visibility="visible" />
 
-    <!-- 页面加载态文案：默认可见（ProgressLayout 与视频缓冲都适用），速度文本在它上方。 -->
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/hint"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginTop="112dp"
-        android:text="@string/qbox_loading"
-        android:textColor="#B3FFFFFF"
-        android:textSize="16sp" />
-
+    <!-- 第 35 轮：「正在加载…」文案移除——转圈本身已表达加载中；转圈保持居中，不留空白占位。 -->
 </FrameLayout>

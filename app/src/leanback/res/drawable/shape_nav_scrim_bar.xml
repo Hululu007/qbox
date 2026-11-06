@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 导航带变体 B（第 35 轮，Apple TV+ 式）：焦点进导航区时淡入一条「有明确下边界」的半透明深色栏。
+     栏体 0-134dp 均匀 60% 黑（#99），完整包裹 toolbar（22-68dp）与 tab 行（76-118dp），下余 16dp；
+     134-146dp 仅 12dp 极小收边（规范允许 6-16dp）——视觉上读作「一条栏」而非未收敛的渐变尾巴。
+     本机 API 28 无实时模糊（RenderEffect 需 31+），单层纯色半透明即可，不叠多层。
+     切换：DEBUG 广播 com.qbox.app.DEBUG_BACKDROP 加 extra m（0=二次曲线渐变带，1=本栏），Prefers debug_nav_variant 持久化。 -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:gravity="top" android:height="134dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#99090A0D" />
+        </shape>
+    </item>
+    <item android:gravity="top" android:height="12dp" android:top="134dp">
+        <shape android:shape="rectangle">
+            <gradient android:angle="270" android:startColor="#99090A0D" android:endColor="#00090A0D" android:type="linear" />
+        </shape>
+    </item>
+</layer-list>

@@ -311,7 +311,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mVideoBg = mBinding.video.getBackground();
         mClock = Clock.create(mBinding.widget.clock);
         mKeyDown = CustomKeyDownVod.create(this);
-        mKeyDown.setCurveMode(com.github.catvod.utils.Prefers.getInt("debug_seek_curve", 1));
+        // 第 35 轮定案 B：curveMode/setCurveMode 已删，无需再读 debug_seek_curve。
         if (com.fongmi.android.tv.BuildConfig.DEBUG) {
             androidx.core.content.ContextCompat.registerReceiver(this, mBackdropVariantReceiver, new android.content.IntentFilter("com.qbox.app.DEBUG_BACKDROP"), androidx.core.content.ContextCompat.RECEIVER_EXPORTED);
             applyBackdropVariant(com.github.catvod.utils.Prefers.getInt("debug_backdrop_variant", BACKDROP_VARIANT_DEFAULT));
@@ -2172,12 +2172,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         public void onReceive(android.content.Context context, android.content.Intent intent) {
             // --ei t 0/1/2：D 版四边收边力度档（第 30 轮对比用），只对 D 生效并持久化。
             if (intent.hasExtra("t")) com.github.catvod.utils.Prefers.put("debug_edge_tier", Math.max(0, Math.min(2, intent.getIntExtra("t", 0))));
-            // --ei s 0/1：快进曲线参数组（第 32 轮对比用，0=A 8x 封顶，1=B 片长挂钩），持久化。
-            if (intent.hasExtra("s")) {
-                int sm = intent.getIntExtra("s", 1) == 0 ? 0 : 1;
-                com.github.catvod.utils.Prefers.put("debug_seek_curve", sm);
-                mKeyDown.setCurveMode(sm);
-            }
+            // 第 35 轮：快进曲线定案 B（片长挂钩），A 模式与 --ei s 切换入口移除。
             applyBackdropVariant(intent.getIntExtra("v", com.github.catvod.utils.Prefers.getInt("debug_backdrop_variant", BACKDROP_VARIANT_DEFAULT)));
         }
     };

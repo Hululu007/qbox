@@ -438,11 +438,15 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         }
     }
 
-    /** DEBUG 收边力度档切换（第 30 轮）：--ei t 0/1/2。 */
+    /** DEBUG 收边力度档切换（第 30 轮）：--ei t 0/1/2。第 35 轮加 --ei m 0/1 切导航带变体。 */
     private final android.content.BroadcastReceiver mEdgeTierReceiver = new android.content.BroadcastReceiver() {
         @Override
         public void onReceive(android.content.Context context, android.content.Intent intent) {
             if (intent.hasExtra("t")) com.fongmi.android.tv.utils.EdgeTiers.apply(mBinding.backdropScrim, intent.getIntExtra("t", 0));
+            if (intent.hasExtra("m")) {
+                com.github.catvod.utils.Prefers.put("debug_nav_variant", intent.getIntExtra("m", 0));
+                applyNavVariant();
+            }
         }
     };
 
@@ -452,7 +456,18 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     private boolean navScrimOn;
 
     private void setNavScrim() {
+        applyNavVariant();
         getWindow().getDecorView().getViewTreeObserver().addOnGlobalFocusChangeListener((o, f) -> updateNavScrim(f));
+    }
+
+    /** 导航带变体（第 35 轮）：0=二次曲线渐变带（第 31 轮版延域 190dp，默认），1=Apple TV+ 式半透明栏。
+        DEBUG 广播 com.qbox.app.DEBUG_BACKDROP --ei m 0/1，Prefers debug_nav_variant 持久化。
+        最终默认值待用户实机对照两版后拍板。 */
+    private void applyNavVariant() {
+        int v = com.github.catvod.utils.Prefers.getInt("debug_nav_variant", 0);
+        mBinding.navScrim.setBackgroundResource(v == 1
+                ? com.fongmi.android.tv.R.drawable.shape_nav_scrim_bar
+                : com.fongmi.android.tv.R.drawable.shape_nav_scrim);
     }
 
     private void updateNavScrim(View focus) {

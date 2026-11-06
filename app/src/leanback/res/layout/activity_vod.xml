@@ -29,12 +29,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- 按需导航带（第 29 轮）：静止 alpha=0 不可见；焦点进导航区时 VodActivity 淡入。
-         第 34 轮：带高 150→180dp，余弦长尾巴（根治尾段俯冲硬线）。 -->
+    <!-- 按需导航带（第 29 轮起）：静止 alpha=0 不可见；焦点进导航区时 VodActivity 淡入。
+         第 35 轮：回退到第 31 轮二次曲线版（撤 34 轮余弦），同公式延域 150→190dp，tab 行完整落入覆盖区。 -->
     <View
         android:id="@+id/nav_scrim"
         android:layout_width="match_parent"
-        android:layout_height="180dp"
+        android:layout_height="190dp"
         android:alpha="0"
         android:background="@drawable/shape_nav_scrim" />
 
@@ -132,13 +132,7 @@
             android:layout_height="@dimen/qbox_tabs_height"
             android:layout_marginTop="@dimen/qbox_tabs_gap">
 
-            <!-- tab 文字底衬（第 34 轮）：与首页同一实现（shape_text_bed 柔光带）。 -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/shape_text_bed"
-                android:importantForAccessibility="no" />
-
+            <!-- 第 35 轮：tab 文字底衬（shape_text_bed 柔光斑）随首页一并移除。 -->
             <androidx.leanback.widget.HorizontalGridView
                 android:id="@+id/typeRecycler"
                 android:layout_width="match_parent"

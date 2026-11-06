@@ -72,9 +72,10 @@ public class CustomRowPresenter extends ListRowPresenter {
             // 行间 16dp 对大 chip 观感太松；收到各 4dp（行间 8dp，守 8dp 栅格）。
             if (focusZoomFactor == FocusHighlight.ZOOM_FACTOR_NONE) {
                 gridView.setPadding(gridView.getPaddingLeft(), ResUtil.dp2px(4), gridView.getPaddingRight(), ResUtil.dp2px(4));
-                // 第 34 轮：filter 子行 chip 静止态是透明底（selector_item_round normal=transparent），
-                // 文字直接坐在氛围底图上，亮海报上看不清——行底垫 tab 同款柔光文字底衬。
-                gridView.setBackgroundResource(com.fongmi.android.tv.R.drawable.shape_text_bed);
+                // 第 35 轮：filter 子行 chip 静止态是透明底，文字直接坐在氛围底图上，亮海报上看不清——
+                // 行底垫纯色半透明底（shape_filter_bed：均匀 #5E090A0D，无渐变边；色值=回退版导航带在
+                // filter 行高度的等效合成色）。取代第 34 轮被用户否决的 shape_text_bed 柔光斑。
+                gridView.setBackgroundResource(com.fongmi.android.tv.R.drawable.shape_filter_bed);
                 // 第 32 轮：filter 子行左右死端钳制——行首再按 ← / 行尾再按 →（含长按 repeat，每次 repeat
                 // 都是一次新的 ACTION_DOWN，同样被拦）焦点不飞出本行；换大 tab 只能走 tab 行。
                 // UP/DOWN 不拦截，仍按设计进入相邻行。实测旧行为：行尾长按 → 飞出→海报行→触发 ViewPager
