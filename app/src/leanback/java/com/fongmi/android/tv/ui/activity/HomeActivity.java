@@ -422,10 +422,11 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             }
             if (TextUtils.isEmpty(url) || url.equals(mBackdropUrl)) return;
             mBackdropUrl = url;
-            // 氛围底图（第 20 轮）：源海报中心 16:9 横带，480×270 解码、约 4× 放大。
-            // 旧值 160×90（~12× 放大）马赛克重、内容少——低分辨率+高倍放大是主因，本轮收敛两者。
-            Glide.with(this).load(ImgUtil.getUrl(url)).override(480, 270).centerCrop()
-                    .transition(DrawableTransitionOptions.withCrossFade(600))
+            // 氛围底图（第 28 轮统一详情页终态）：480×270 小解码 + BackdropBlur（降采 72×40→盒式×3→抖动），
+            // 焦点连续移动时每张新图 Glide 后台一次性 ~110-150ms 且磁盘缓存，渲染线程零开销。
+            Glide.with(this).asBitmap().load(ImgUtil.getUrl(url)).override(480, 270)
+                    .transform(new com.bumptech.glide.load.MultiTransformation<>(new com.bumptech.glide.load.resource.bitmap.CenterCrop(), new com.fongmi.android.tv.utils.BackdropBlur()))
+                    .transition(com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions.withCrossFade(600))
                     .into(mBinding.backdrop);
             mBinding.backdrop.setVisibility(View.VISIBLE);
         } catch (Throwable ignored) {

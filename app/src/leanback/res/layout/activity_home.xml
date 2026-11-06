@@ -6,32 +6,21 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_app">
 
-    <!-- 氛围底图：跟随焦点海报，整屏铺满（480×270 解码，约 4× 放大）。 -->
+    <!-- 氛围底图：跟随焦点海报，整屏铺满（第 28 轮统一详情页终态：BackdropBlur 氛围模糊 + alpha 0.85）。 -->
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/backdrop"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:alpha="0.72"
+        android:alpha="0.85"
         android:importantForAccessibility="no"
         android:scaleType="centerCrop" />
 
+    <!-- 第 28 轮：整屏压暗/200dp 顶栏渐变/96dp 左右渐隐全部撤掉（用户实机仍看出黑带），
+         统一成详情页 D 版同款四边轻收边（上/左右 40dp@12%，底 120dp@30%）。 -->
     <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/shape_backdrop_scrim" />
-
-    <!-- 左右缘渐隐到黑：海报不硬贴屏幕边界（第 20 轮）。 -->
-    <View
-        android:layout_width="96dp"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        android:background="@drawable/shape_edge_fade_start" />
-
-    <View
-        android:layout_width="96dp"
-        android:layout_height="match_parent"
-        android:layout_gravity="end"
-        android:background="@drawable/shape_edge_fade_end" />
+        android:background="@drawable/shape_backdrop_scrim_d" />
 
     <!-- 内容层：从屏幕最顶开始，靠 paddingTop 让出头部空间。
          绘制的硬裁切线在 124dp（CustomVerticalGridView.setClipTop），
@@ -56,13 +45,8 @@
 
     </com.fongmi.android.tv.ui.custom.ProgressLayout>
 
-    <!-- 顶栏压暗：40% → 0，保证文字可读，同时让模糊海报底图透出来。 -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/qbox_header_mask"
-        android:background="@drawable/shape_top_scrim" />
-
-    <!-- 头部浮层：顶栏 + 分类条。位置与点播页逐 dp 相同，切页时整块框架不动。 -->
+    <!-- 头部浮层：顶栏 + 分类条。位置与点播页逐 dp 相同，切页时整块框架不动。
+         第 28 轮：200dp 顶栏压暗渐变撤掉（用户实机仍看出黑带），顶栏文字直接浮在氛围底图上。 -->
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -160,6 +144,10 @@
                 android:layout_marginStart="20dp"
                 android:fontFeatureSettings="tnum"
                 android:letterSpacing="0.02"
+                android:shadowColor="#66000000"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="4"
                 android:textColor="@color/qbox_text_dim"
                 android:textSize="15sp"
                 tools:text="09:20  10/30 周三" />

@@ -163,9 +163,10 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
         }
         if (TextUtils.isEmpty(url) || url.equals(mBackdropUrl)) return;
         mBackdropUrl = url;
-        // 氛围底图（第 20 轮）：源海报中心 16:9 横带，480×270 解码约 4× 放大（去马赛克）。
-        Glide.with(this).load(ImgUtil.getUrl(url)).override(480, 270).centerCrop()
-                .transition(DrawableTransitionOptions.withCrossFade(500))
+        // 氛围底图（第 28 轮统一详情页终态）：480×270 小解码 + BackdropBlur 氛围模糊管线。
+        Glide.with(this).asBitmap().load(ImgUtil.getUrl(url)).override(480, 270)
+                .transform(new com.bumptech.glide.load.MultiTransformation<>(new com.bumptech.glide.load.resource.bitmap.CenterCrop(), new com.fongmi.android.tv.utils.BackdropBlur()))
+                .transition(com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions.withCrossFade(500))
                 .into(mBinding.backdrop);
     }
 

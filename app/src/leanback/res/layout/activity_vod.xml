@@ -6,32 +6,20 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_app">
 
-    <!-- 氛围底图：跟随当前聚焦海报，整屏铺满。 -->
+    <!-- 氛围底图：跟随当前聚焦海报，整屏铺满（第 28 轮统一详情页终态：BackdropBlur 氛围模糊 + alpha 0.85）。 -->
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/backdrop"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:alpha="0.72"
+        android:alpha="0.85"
         android:importantForAccessibility="no"
         android:scaleType="centerCrop" />
 
+    <!-- 第 28 轮：整屏压暗/200dp 顶栏渐变/96dp 左右渐隐全部撤掉，统一成详情页 D 版同款四边轻收边。 -->
     <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/shape_backdrop_scrim" />
-
-    <!-- 左右缘渐隐到黑（第 20 轮）。 -->
-    <View
-        android:layout_width="96dp"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        android:background="@drawable/shape_edge_fade_start" />
-
-    <View
-        android:layout_width="96dp"
-        android:layout_height="match_parent"
-        android:layout_gravity="end"
-        android:background="@drawable/shape_edge_fade_end" />
+        android:background="@drawable/shape_backdrop_scrim_d" />
 
     <!-- 内容层：pager 从屏幕最顶开始，分类页里的列表再让出 paddingTop。
          和首页完全同一套尺寸，点进来时上方模块不会缩进/上移。 -->
@@ -40,12 +28,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- 顶栏压暗：40% → 0，和首页同一套尺寸，模糊海报底图从顶栏后面透出来。 -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/qbox_header_mask"
-        android:background="@drawable/shape_top_scrim" />
-
+    <!-- 第 28 轮：200dp 顶栏压暗渐变撤掉，与首页一致。 -->
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -84,6 +67,10 @@
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:letterSpacing="0.01"
+                android:shadowColor="#66000000"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="4"
                 android:singleLine="true"
                 android:textColor="@color/qbox_text"
                 android:textSize="20sp"
@@ -117,6 +104,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="20dp"
                 android:fontFeatureSettings="tnum"
+                android:shadowColor="#66000000"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="4"
                 android:letterSpacing="0.02"
                 android:textColor="@color/qbox_text_dim"
                 android:textSize="15sp"
