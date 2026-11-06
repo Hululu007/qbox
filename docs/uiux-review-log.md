@@ -626,6 +626,54 @@ GS-35~GS-45 共 11 条并入 `docs/GOLDEN-STANDARDS.md`（引用 TV 编号，冲
 - **未套用的页（如实说明）**：收藏/搜索/聚合页没有海报底图机制（纯深色底），不属本次统一范围；若要给它们加氛围底是另一项工作，等用户拍板。首页 hero 即海报卡片区本身，无独立结构冲突。
 - 历史教训复核：本轮所有页面焦点导航仍以截图先确认再发键（聚合页焦点记忆坑未再踩）。
 
+### 第 29 轮（2026-11-06 傍晚）— 筛选子行间距收紧 + 按需导航带（Netflix 式）
+
+#### 29.1 filter 展开后与 tab 间距 → 约 1/3
+
+- 实测（uiautomator bounds，2px/dp）：改前 tab 底→筛选子行顶 = **28dp**（构成：headerBottom 118dp + setContentTopTemp 附加 8dp + 误用海报行 zoomPad ~13dp + 行内 padding）；改后 = **8dp**（28→8，29%≈1/3）。改法：`setContentTopTemp(getHeaderBottomPx())`（不再 +8dp）+ 垫层固定 4dp（筛选 chip 不放大，不能用海报行的 zoomPad）。
+- 分组感：tab（17sp 文字）与子行（小一号圆角 pill）样式本就不同层，8dp 间隔 + 行内 padding 实机截图确认分组清晰、不像同一层（`r29_vod2.png`）。
+
+#### 29.2 导航区按需渐变带（Netflix 式）
+
+- **选型：纯渐变，不用 frosted**——API 28 无轻量实时模糊（RenderEffect 需 31+；RenderScript 已废弃且对静态带无必要），渐变与全站 scrim 语言一致。
+- 实现：`shape_nav_scrim` 两段式（0-118dp 覆盖顶栏+tab 文字区，118-150dp 羽化到 0，带高 150dp≈屏高 14%）；HomeActivity/VodActivity 挂全局焦点监听，焦点进顶部 124dp 内 → 220ms 淡入，离开淡出；静止态 alpha=0 铺满保住。
+- **实测对比度**（亮蓝天海报）：静止态 3.0:1（无带，不变）；带 ON 初版 80%→45% 得 tab 区 4.1:1 未达标 → 校准 85%→55% 后 **tab 区 7.5:1、顶栏区 8.1:1**（白字）；dim 未选中 tab ≈4.3:1（GS-38：WCAG 值非 TV 官方，选中 tab 是白药丸黑字不受影响）。暗海报带 ON：tab 区 10.7:1（带对暗海报最多再压 ~55%→但暗海报该区本已 0.05 亮度，视觉无突兀）。
+- **时钟策略**：时钟是常显元素——静止态保持文字阴影（亮海报 3.0:1，可辨），焦点进导航区时被带覆盖（对比跳到 8.1:1）。不为它单独增强。
+- 与四边收边叠加：带（顶 150dp）与上边收边（40dp@12%）同向向下渐弱，交界连续无生硬；实机截图确认（`r29_navband_on.png` / `r29_sky_nav2.png` / `r29_navband_off.png`）。
+
+### 第 30 轮（2026-11-06 傍晚）— 焦点跳跃根治 + 全站焦点审计 + 四边收边三档
+
+#### 30.1 焦点跳行首 bug（根因与修复）
+
+- **根因（双路径证据）**：① `CustomVerticalGridView.focusSearch` 旧修只覆盖 ↓（`findSameColumnBelow`），↑ 漏网；② 更隐蔽的主因——`HomeActivity.dispatchKeyEvent` 对「推荐首行 ↑→最近观看」手写拦截 `setSelectedPosition(0)+requestFocus()`，直接落行首 0 列（跨区移动绕开焦点搜索）。行 rebound/未访问行 selectedPosition=0 是 Leanback 底层原因。
+- **修复**：`focusSearch` 改 **x 坐标最近列**双向定向（目标行已布局直接返回最近子项；未布局记 pending x，焦点落地瞬间由全局焦点监听器修正，同 vsync 完成无跳动）；Activity 层拦截路径改 `nearestColumnInRow(0, 当前焦点)` 按列落位。兜底：目标行无更近列时天然落最近列；行未布局且取不到子项回退 Leanback 默认。
+- 实测：海报 col3(x=775) ↑→最近观看落 col3（截图 `r29_fix_final.png`）；快按 5→+↑ 列不错位；历史行 col1 ← 停住不绕回。
+
+#### 30.2 全站焦点容器复核
+
+| 容器 | 机制 | 结论 |
+|---|---|---|
+| 首页主网格（最近观看/更新推荐） | CustomVerticalGridView | **已修**（列定向）✅实测 |
+| 分类/榜单（TypeFragment 同一 recycler） | 同上 | 同修复受益 ✅ |
+| 筛选子行 | ListRow in 同一 recycler | 同受益 ✅ |
+| 收藏页 | GridLayoutManager 单网格 | pass（单项实测：→ 停住不绕回；无行记忆跳变机制） |
+| 聚合页 | HorizontalGridView 单行 | pass（无垂直移动） |
+| 详情页选集行/选集面板 | HorizontalGridView 单行 / dialog GridLayoutManager | pass（同构，单列移动） |
+| 设置列表/站点对话框 | 垂直列表 / GridLayoutManager | pass-by-construction |
+| 行首/行尾绕回 | Leanback 默认不绕回 | ✅实测停住 |
+| 返回上一屏焦点还原 | Activity 栈焦点记忆 | ✅实测（详情返回回 col3） |
+| 快按竞态 | 5→+↑ 连按 | ✅列不错位 |
+
+#### 30.3 四边收边三档（用户对比选力度）
+
+- 档位（DEBUG 广播 `--ei t 0/1/2`，Prefers 持久化，首页/分类/详情 D 版同步生效）：
+  - **t0 极轻（现状默认）**：上/左右 40dp@12%、底 120dp@30%
+  - **t1 中**：上/左右 64dp@20%、底 140dp@45%
+  - **t2 稍强**：上/左右 96dp@30%、底 160dp@60%
+- 有效区域损失（渐变软化区非遮挡）：t0 顶缘 80px/底 240px/侧 80px；t1 128/280/128px；t2 192/320/192px——均为渐隐软化，内容仍可辨。
+- 截图：亮海报（蓝天）`sky_t0/1/2.png`、暗海报 `dark_t0/1/2.png`（shots/round-2604 收 r29_ 前缀）。设备已 reset t=0 待用户拍板。
+- 与导航带叠加：均同向渐弱，实机无生硬交界。
+
 ---
 
 ## 3. 历史遗留与易回归
