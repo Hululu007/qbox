@@ -558,6 +558,31 @@ GS-35~GS-45 共 11 条并入 `docs/GOLDEN-STANDARDS.md`（引用 TV 编号，冲
 - GS-42 已按新档位 + 爬升规则改写（前 3 秒段标记"定稿不得再动"）。
 - 注入模拟不到：FF/REW 媒体键长按 repeat（sendevent 不路由 MediaSession、input 无 repeat）——方向键与 FF/REW 共用 `seek()` 同一函数，构造同源；真机长按手感留待用户确认。
 
+### 第 24 轮（2026-11-06 中午）— seek 精简态 + 源质量标签 + 分段渐隐 + 默认 D + 取景实验
+
+**起因**：用户参照白果TV 提出：A. seek 时只显示「进度条 + 名称/信息行」，名称行加真实轨道小标签；B. 收起改分段渐隐；C. 详情页默认改 D（铺满），并问模糊海报能否取更多视场。
+
+#### 24-A 精简态 + 轨道标签
+
+- **实测可得字段清单**（当前测试源 嫁金钗/豆豆片单，EventLogger onTracksChanged 实抓）：视频 `mime=video/avc codecs=avc1.640020 res=1440x810 color=BT709/Limited/SDR`；音频 `mime=audio/mp4a-latm codecs=mp4a.40.2 ch=2 rate=44100`；元数据 `application/id3`。即本测试源可靠给出：810p / H.264 / AAC / 2.0，无 HDR 无 DV 无 Atmos（如实不显示）。
+- **判断依据与置信度**：分辨率=`Format.height`（高置信）；编码=`sampleMimeType` 容器级（高置信）；HDR 仅 `colorInfo.colorTransfer`（ST2084→HDR10、HLG→HLG，bitstream 级，拿不到不显示）；Dolby Vision 仅 `video/dolby-vision` mime（HLS/DASH 清单级可靠；TS 重封装的 DV 可能漏标——宁可不标）；Atmos 仅 `audio/eac3-joc`（JOC 码流级可靠）；TrueHD 的 Atmos 无法从 Format 判 → 只标 TrueHD 不标 Atmos。全部白名单映射，表外/缺失一律不显示（GS-47）。
+- 实现：`view_control_vod.xml` 标题行改 [标题 weight=1 省略] + [track_info 12sp mute]，行高由 18sp 标题决定，标签出现/消失不改行高不推挤标题与秒数；`enterSeekMode` 隐藏按钮列（精简态），`showControl` 恢复完整态并刷新标签。
+- 实证：`r24_compact.png`（折月亮第01集按住快进：只有 名称+`800p · H.264 · AAC · 2.0` + 进度条 02:37/45:53，无按钮列，面板只包两行）；`r24_full.png`（完整态按钮原位同尺寸，标签同行右侧）。
+- 取舍登记：面板底锚定 wrap_content，展开时名称/进度条整体上移一个按钮行高（按钮列两态位置/尺寸完全一致，符合约束；名称/进度条的模式间位移是 TV 展开的常见模式，已写入 GS-48 接受项）。若用户要求进度条也不动，只能固定面板高度留透明空区——待拍板。
+
+#### 24-B 分段渐隐
+
+- 实现：`hideControl` 改两段——按钮列 alpha→0（150ms），120ms 后整体（名称+进度条）alpha→0（180ms），结束才 GONE；代次守卫防「渐隐途中重新展开被旧回调 GONE」（`cancel()` 也会触发 `withEndAction` 的坑）。
+- 验证：300ms 渐隐窗短于 screencap 往返延迟，**中间帧截图抓不到**（如实标注）；做了竞态实证——渐隐开始 150ms 内重新呼出，面板完整不透明（`r24_race.png`）。渐隐手感留用户遥控器确认。
+
+#### 24-C 默认 D + 取景视场
+
+- 默认切 D：`BACKDROP_VARIANT_DEFAULT = 3`，layout 静态默认同步（scrim_d + detail_scrim_d + alpha 0.85）；全新 install 首开详情即 D（`r24_d_default.png`）。
+- **当前裁剪/放大**：Glide `override(480,270).centerCrop()` → 解码 480×270 后放大到 1920×1080（约 4×，氛围模糊的 softness 来源）。**视场**：16:9 横版剧照 ≈100% 显示（这类片源上「看不清」的主因是 4× 放大不是裁剪）；竖版 3:4 海报 centerCrop 只取中段 **42%** 高度（折月亮实测：整版书法/人物构图被切成中段横带）。
+- **三档取景对比**（折月亮竖版海报同页）：f=0 当前 `r24_zyl_f0.png`；f=1 满高完整海报叠模糊底 `r24_zyl_f1.png`（100% 内容，可直读「折月亮/敬请期待/爱奇艺」）；f=2 72% 高 `r24_zyl_f2.png`。切换 `--ei f 0/1/2`（Prefers 持久化）。**默认 f=0 等用户拍板**；设备上留了 f=1 便于实机直看。
+- 取舍：f=1 认出率最高，但完整海报会压在部分文字区下（演员行在亮肤色区对比度下降）；横版剧照源三档无差别。用户拍板后再把默认写死。
+- 教训：聚合页（CollectActivity）返回时焦点记忆在上次卡片，二次进入 ↓+OK 会落错源（本轮误入网盘源需扫码登录）；详情页 vod pic 多为 16:9 剧照，竖版海报取景对比必须挑 3:4 片源（折月亮）才有区分度。
+
 ---
 
 ## 3. 历史遗留与易回归
