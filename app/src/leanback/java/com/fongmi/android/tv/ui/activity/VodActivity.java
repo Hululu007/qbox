@@ -128,7 +128,9 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
         }
     };
 
-    /** 按需导航带（第 29 轮，Netflix 式）：焦点进顶栏/分类条（顶部 124dp 内）淡入短软渐变带，离开淡出恢复满屏。 */
+    /** 按需导航带（第 29 轮起，Netflix 式）：焦点真实位于导航区（顶栏/分类条容器内）时淡入短软渐变带，离开淡出恢复满屏。
+        第 31 轮判据改结构式：不再看焦点 bounds——滚动/落焦动画中 getGlobalVisibleRect 会瞬时说谎
+        （焦点还在内容区就误报 top<124dp，进「最近观看」偶发触发带子），改为焦点是否挂在 header 容器内。 */
     private boolean navScrimOn;
 
     private void setNavScrim() {
@@ -136,15 +138,27 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
     }
 
     private void updateNavScrim(View focus) {
-        boolean inNav = false;
-        if (focus != null) {
+        boolean inNav = focus != null && isInHeader(focus);
+        if (com.fongmi.android.tv.BuildConfig.DEBUG) {
             android.graphics.Rect r = new android.graphics.Rect();
-            inNav = focus.getGlobalVisibleRect(r) && r.top < ResUtil.dp2px(124);
+            boolean vis = focus != null && focus.getGlobalVisibleRect(r);
+            android.util.Log.d("QBoxNav", "focus=" + (focus == null ? "null" : focus.getClass().getSimpleName())
+                    + " vis=" + vis + " bounds=" + r.toShortString() + " inHeader=" + inNav + " bandOn=" + navScrimOn);
         }
         if (inNav == navScrimOn) return;
         navScrimOn = inNav;
         mBinding.navScrim.animate().cancel();
         mBinding.navScrim.animate().alpha(inNav ? 1f : 0f).setDuration(220).start();
+    }
+
+    /** 焦点是否位于导航区：沿父链找 header 容器（顶栏 + 分类条）。结构判据不受滚动/动画中的瞬时坐标影响。 */
+    private boolean isInHeader(View focus) {
+        for (View v = focus; v != null; ) {
+            if (v == mBinding.header) return true;
+            if (!(v.getParent() instanceof View)) return false;
+            v = (View) v.getParent();
+        }
+        return false;
     }
 
     @Override

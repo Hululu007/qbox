@@ -86,6 +86,20 @@
         <item name="android:gravity">center</item>
     </style>
 
+    <!-- 全站 tab 排版 token（第 31 轮）：首页分类条（FuncPresenter）与分类/榜单页分类条（TypeAdapter）
+         共用同一组参数——字号/字重/字距/颜色/阴影逐项一致，不许各页各写一份（命名不带点：带点又无 parent 会被 aapt 当父样式解析）。
+         颜色走 @color/tab_text（焦点反色黑 / 当前分类白 / 其余压暗）；选中与焦点药丸走 @drawable/selector_tab。 -->
+    <style name="QBoxTabText">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0.01</item>
+        <item name="android:textColor">@color/tab_text</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:shadowColor">#66000000</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">1</item>
+        <item name="android:shadowRadius">4</item>
+    </style>
+
     <!-- 设置页统一行样式：两列布局下每条不再是一条超长空条。 -->
     <style name="SettingRow">
         <item name="android:layout_width">match_parent</item>

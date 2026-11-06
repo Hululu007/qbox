@@ -55,8 +55,10 @@
         android:background="@drawable/shape_nav_scrim" />
 
     <!-- 头部浮层：顶栏 + 分类条。位置与点播页逐 dp 相同，切页时整块框架不动。
-         第 28 轮：200dp 顶栏压暗渐变撤掉（用户实机仍看出黑带），顶栏文字直接浮在氛围底图上。 -->
+         第 28 轮：200dp 顶栏压暗渐变撤掉（用户实机仍看出黑带），顶栏文字直接浮在氛围底图上。
+         id=header：导航带显示判据用的「导航区」结构边界（第 31 轮）。 -->
     <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">

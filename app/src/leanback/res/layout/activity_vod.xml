@@ -37,8 +37,10 @@
         android:alpha="0"
         android:background="@drawable/shape_nav_scrim" />
 
-    <!-- 第 28 轮：200dp 顶栏压暗渐变撤掉，与首页一致。 -->
+    <!-- 第 28 轮：200dp 顶栏压暗渐变撤掉，与首页一致。
+         id=header：导航带显示判据用的「导航区」结构边界（第 31 轮）。 -->
     <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
