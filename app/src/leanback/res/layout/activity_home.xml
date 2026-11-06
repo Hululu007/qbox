@@ -46,11 +46,12 @@
 
     </com.fongmi.android.tv.ui.custom.ProgressLayout>
 
-    <!-- 按需导航带（第 29 轮）：静止 alpha=0 不可见；焦点进导航区时 HomeActivity 淡入。 -->
+    <!-- 按需导航带（第 29 轮起）：静止 alpha=0 不可见；焦点进导航区时 HomeActivity 淡入。
+         第 34 轮：带高 150→180dp，余弦长尾巴（根治尾段俯冲硬线）。 -->
     <View
         android:id="@+id/nav_scrim"
         android:layout_width="match_parent"
-        android:layout_height="150dp"
+        android:layout_height="180dp"
         android:alpha="0"
         android:background="@drawable/shape_nav_scrim" />
 
@@ -170,6 +171,15 @@
             android:layout_width="match_parent"
             android:layout_height="@dimen/qbox_tabs_height"
             android:layout_marginTop="@dimen/qbox_tabs_gap">
+
+            <!-- tab 文字底衬（第 34 轮）：窄幅柔光带垫在分类条文字下——静止态导航带不亮时，
+                 未选中 tab 暗字在亮海报上看不清；中心 42% 深色斑四边软出，与全站 scrim 同族。
+                 焦点进导航区时按需导航带（更深的带）盖在它上面，两者同向渐弱不冲突。 -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/shape_text_bed"
+                android:importantForAccessibility="no" />
 
             <androidx.leanback.widget.HorizontalGridView
                 android:id="@+id/typeRecycler"

@@ -72,6 +72,24 @@ public class CustomRowPresenter extends ListRowPresenter {
             // 行间 16dp 对大 chip 观感太松；收到各 4dp（行间 8dp，守 8dp 栅格）。
             if (focusZoomFactor == FocusHighlight.ZOOM_FACTOR_NONE) {
                 gridView.setPadding(gridView.getPaddingLeft(), ResUtil.dp2px(4), gridView.getPaddingRight(), ResUtil.dp2px(4));
+                // 第 34 轮：filter 子行 chip 静止态是透明底（selector_item_round normal=transparent），
+                // 文字直接坐在氛围底图上，亮海报上看不清——行底垫 tab 同款柔光文字底衬。
+                gridView.setBackgroundResource(com.fongmi.android.tv.R.drawable.shape_text_bed);
+                // 第 32 轮：filter 子行左右死端钳制——行首再按 ← / 行尾再按 →（含长按 repeat，每次 repeat
+                // 都是一次新的 ACTION_DOWN，同样被拦）焦点不飞出本行；换大 tab 只能走 tab 行。
+                // UP/DOWN 不拦截，仍按设计进入相邻行。实测旧行为：行尾长按 → 飞出→海报行→触发 ViewPager
+                // 方向键翻页，连翻几个大 tab（第 32 轮改前证据 r32_esc2/esc3.png）。
+                gridView.setOnKeyInterceptListener(event -> {
+                    if (event.getAction() != android.view.KeyEvent.ACTION_DOWN) return false;
+                    int key = event.getKeyCode();
+                    if (key != android.view.KeyEvent.KEYCODE_DPAD_LEFT && key != android.view.KeyEvent.KEYCODE_DPAD_RIGHT) return false;
+                    android.view.View focusedChild = gridView.getFocusedChild();
+                    if (focusedChild == null) return false;
+                    int pos = gridView.getChildAdapterPosition(focusedChild);
+                    int count = gridView.getAdapter() == null ? 0 : gridView.getAdapter().getItemCount();
+                    if (key == android.view.KeyEvent.KEYCODE_DPAD_LEFT) return pos <= 0;
+                    return pos >= count - 1;
+                });
             }
         }
         View root = holder.view;

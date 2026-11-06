@@ -25,7 +25,9 @@ public class ProgressLayout extends RelativeLayout {
     private View mProgressView;
     private View mEmptyView;
     private ViewEmptyBinding mEmptyBinding;
+    private ViewProgressBinding mProgressBinding;
     private State mState;
+    private boolean mCubeLoaded;
 
     public ProgressLayout(Context context) {
         super(context);
@@ -52,9 +54,9 @@ public class ProgressLayout extends RelativeLayout {
         mEmptyView = mEmptyBinding.getRoot();
         mEmptyView.setTag(TAG_PROGRESS);
         mEmptyView.setVisibility(GONE);
-        ViewProgressBinding progress = ViewProgressBinding.inflate(LayoutInflater.from(getContext()));
-        progress.hint.setVisibility(VISIBLE);
-        mProgressView = progress.getRoot();
+        mProgressBinding = ViewProgressBinding.inflate(LayoutInflater.from(getContext()));
+        mProgressBinding.hint.setVisibility(VISIBLE);
+        mProgressView = mProgressBinding.getRoot();
         mProgressView.setTag(TAG_PROGRESS);
         mProgressView.setVisibility(GONE);
         LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -72,7 +74,30 @@ public class ProgressLayout extends RelativeLayout {
     }
 
     public void showProgress() {
+        // 立方体载入动画（第 33/34 轮）：首次进入加载态才解码，不进冷启动关键路径。
+        // API 28+ 用 ImageDecoder 原生解码透明动态 WebP（AnimatedImageDrawable 自播放，不加依赖）；
+        // API 24-27 无 ImageDecoder，退回静态立方体 logo。
+        if (!mCubeLoaded && mProgressBinding != null) {
+            mCubeLoaded = true;
+            try {
+                if (android.os.Build.VERSION.SDK_INT >= 28) {
+                    android.graphics.ImageDecoder.Source src = android.graphics.ImageDecoder.createSource(getResources(), com.fongmi.android.tv.R.raw.qbox_loading);
+                    android.graphics.drawable.Drawable d = android.graphics.ImageDecoder.decodeDrawable(src, (decoder, info, source) -> { int p = cubeTargetPx(); decoder.setTargetSize(p, p); });
+                    mProgressBinding.loadingCube.setImageDrawable(d);
+                    if (d instanceof android.graphics.drawable.AnimatedImageDrawable) ((android.graphics.drawable.AnimatedImageDrawable) d).start();
+                } else {
+                    mProgressBinding.loadingCube.setImageResource(com.fongmi.android.tv.R.drawable.ic_logo);
+                }
+            } catch (Throwable ignored) {
+                mProgressBinding.loadingCube.setImageResource(com.fongmi.android.tv.R.drawable.ic_logo);
+            }
+        }
         switchState(State.PROGRESS);
+    }
+
+    /** WebP 目标解码边长：112dp 视图 × 密度，解码期降采（38 帧 640² 全尺寸解码无必要）。 */
+    private int cubeTargetPx() {
+        return (int) (112 * getResources().getDisplayMetrics().density);
     }
 
     public void showEmpty() {

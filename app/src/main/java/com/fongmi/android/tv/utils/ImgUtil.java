@@ -42,7 +42,7 @@ public class ImgUtil {
     public static void logo(ImageView view) {
         try {
             String logo = VodConfig.get().getConfig().getLogo();
-            // 配置里没写 logo（或加载失败）时用 QBox 自己的 logo；不裁圆，六边形要保持完整。
+            // 配置里没写 logo（或加载失败）时用 QBox 自己的 logo；不裁圆，立方体要保持完整。
             view.setScaleType(FIT_CENTER);
             if (TextUtils.isEmpty(logo)) {
                 view.setImageResource(R.drawable.ic_logo);

@@ -311,6 +311,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mVideoBg = mBinding.video.getBackground();
         mClock = Clock.create(mBinding.widget.clock);
         mKeyDown = CustomKeyDownVod.create(this);
+        mKeyDown.setCurveMode(com.github.catvod.utils.Prefers.getInt("debug_seek_curve", 1));
         if (com.fongmi.android.tv.BuildConfig.DEBUG) {
             androidx.core.content.ContextCompat.registerReceiver(this, mBackdropVariantReceiver, new android.content.IntentFilter("com.qbox.app.DEBUG_BACKDROP"), androidx.core.content.ContextCompat.RECEIVER_EXPORTED);
             applyBackdropVariant(com.github.catvod.utils.Prefers.getInt("debug_backdrop_variant", BACKDROP_VARIANT_DEFAULT));
@@ -1966,6 +1967,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
             seeking = true;
             seekBase = player().getPosition();
         }
+        // 第 32 轮：曲线 cap 片长挂钩（模式 B），每 tick 都注入（duration 就绪时序不定，只首 tick 注入实测会拿到 0）。
+        mKeyDown.setDuration(Math.max(0, player().getDuration()));
         long duration = Math.max(0, player().getDuration());
         long target = Math.max(0, seekBase + time);
         if (duration > 0) target = Math.min(duration, target);
@@ -2167,13 +2170,21 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private final android.content.BroadcastReceiver mBackdropVariantReceiver = new android.content.BroadcastReceiver() {
         @Override
         public void onReceive(android.content.Context context, android.content.Intent intent) {
+            // --ei t 0/1/2：D 版四边收边力度档（第 30 轮对比用），只对 D 生效并持久化。
+            if (intent.hasExtra("t")) com.github.catvod.utils.Prefers.put("debug_edge_tier", Math.max(0, Math.min(2, intent.getIntExtra("t", 0))));
+            // --ei s 0/1：快进曲线参数组（第 32 轮对比用，0=A 8x 封顶，1=B 片长挂钩），持久化。
+            if (intent.hasExtra("s")) {
+                int sm = intent.getIntExtra("s", 1) == 0 ? 0 : 1;
+                com.github.catvod.utils.Prefers.put("debug_seek_curve", sm);
+                mKeyDown.setCurveMode(sm);
+            }
             applyBackdropVariant(intent.getIntExtra("v", com.github.catvod.utils.Prefers.getInt("debug_backdrop_variant", BACKDROP_VARIANT_DEFAULT)));
         }
     };
 
     private void applyBackdropVariant(int variant) {
         int v = Math.max(0, Math.min(BACKDROP_SCRIM_VARIANTS.length - 1, variant));
-        mBinding.backdropScrim.setBackgroundResource(BACKDROP_SCRIM_VARIANTS[v]);
+        mBinding.backdropScrim.setBackgroundResource(v == 3 ? com.fongmi.android.tv.utils.EdgeTiers.TIERS[com.fongmi.android.tv.utils.EdgeTiers.get()] : BACKDROP_SCRIM_VARIANTS[v]);
         mBinding.detailScrim.setBackgroundResource(DETAIL_SCRIM_VARIANTS[v]);
         mBinding.backdrop.setAlpha(BACKDROP_ALPHA_VARIANTS[v]);
         if (com.fongmi.android.tv.BuildConfig.DEBUG) com.github.catvod.utils.Prefers.put("debug_backdrop_variant", v);

@@ -82,41 +82,87 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
     }
 
     /**
-     * QBox 1.9.10：快进改成阶梯加速；1.9.20 起按「按住时长」分档；第 20 轮重做斜坡；第 23 轮放缓后档：
-     * 起步不变——前 3 秒全程 ±1s（130ms 节拍，GS-42）；3 秒后步子整体放缓（5s→10s→25s→50s→100s→180s），
-     * 每次跨档后 BLEND_MS 内按「速率」线性爬升（上一档速率→本档速率），过渡窗内 150ms 密集采样，
-     * 手感是平滑加速而非台阶式突变；过渡窗外回到固定步长 + 随档放疏的节拍，防止大档连跳失控。
-     * 档位表：{阶段上限 ms, 步长 ms, 最小节拍 ms}；档速率 = 步长/节拍。
+     * QBox 1.9.10：快进改成阶梯加速；1.9.20 起按「按住时长」分档；第 20/23 轮斜坡放缓；第 32 轮废弃分档。
+     * 旧模型实测（QBoxSeek 逐 tick 日志）：档间 BLEND 窗结束后的固定步长段速率反而低于窗内峰值
+     * （如 14s 档窗内爬到 ~165x，窗外固定 100s/700ms≈143x），形成「高速段中夹低速段」的碎裂手感。
+     *
+     * 新模型：单一连续速率曲线 f(t)=R0+(cap−R0)·(1−e^(−(t−T0)/τ))——
+     * 任意时刻只按一条曲线走，每 tick 位移 = 曲线定积分差值 cumAt(u2)−cumAt(u1)，中途无重置、无档位、无台阶。
+     * 前 3 秒细调段保持不变（±1s @130ms，GS-42）；3 秒处曲线速率 R0=1000/130≈7.7x，与细调档标称速率连续衔接。
+     * cap 两套参数（DEBUG 广播 --ei s 0/1 切换，Prefers debug_seek_curve 持久化）：
+     *   A(s=0)：严格按用户数值 8x 封顶——注意细调档本身即 7.7x，A 实测≈3s 后近似匀速 8x；
+     *   B(s=1，默认)：cap=max(8x, 片长/180s)（顶速约 3 分钟横贯全片，片长由 setDuration 在按住首 tick 注入）。
+     * 快退与快进同一曲线对称（方向只取符号）。遥控器 FF/REW 媒体键与方向键共用本曲线。
      */
-    private static final long BLEND_MS = 800;
-    private static final long BLEND_TICK = 150;
-    private static final long[][] RAMP = {
-            {3_000, 1_000, 130},
-            {5_000, 5_000, 600},
-            {7_000, 10_000, 700},
-            {10_000, 25_000, 800},
-            {14_000, 50_000, 700},
-            {18_000, 100_000, 500},
-            {Long.MAX_VALUE, 180_000, 400},
-    };
+    private static final long FINE_MS = 3_000;      // 细调段时长（不变）
+    private static final long FINE_STEP = 1_000;    // 细调步长（不变）
+    private static final long FINE_TICK = 130;      // 细调节拍（不变）
+    private static final long COARSE_TICK = 120;    // 粗调段最小节拍（防过密 seek）
+    private static final double R0 = FINE_STEP / (double) FINE_TICK;   // ≈7.69x，3s 处连续
+    private static final double TAU = 2_500.0;      // 爬升时间常数：t=5.5s 达 63% 爬升，t=9s 达 91%
+    private static final double CAP_A = 8.0;        // A：8x 封顶
+
+    private long durationMs;
+    private int curveMode = 1;   // 默认 B（片长挂钩）
+
+    public void setDuration(long ms) {
+        durationMs = Math.max(0, ms);
+    }
+
+    public void setCurveMode(int mode) {
+        curveMode = mode == 0 ? 0 : 1;
+    }
+
+    private double cap() {
+        if (curveMode == 1 && durationMs > 0) return Math.max(CAP_A, durationMs / 180_000.0);
+        return CAP_A;
+    }
+
+    /** 粗调段累计位移的不定积分（u=elapsed−3000ms）：G(u)=R0·u+(cap−R0)·(u+τ·e^(−u/τ))−(cap−R0)·τ；G(0)=0。 */
+    private double cumAt(long u) {
+        double cap = cap();
+        return R0 * u + (cap - R0) * (u + TAU * Math.exp(-u / TAU)) - (cap - R0) * TAU;
+    }
+
+    private double rateAt(long u) {
+        double cap = cap();
+        return R0 + (cap - R0) * (1 - Math.exp(-u / TAU));
+    }
 
     private void seek(KeyEvent event, boolean forward) {
         long now = SystemClock.uptimeMillis();
         if (event.getRepeatCount() == 0) {
-            // 按下首 tick 即 ±1s（GS-42 细调起步，第 23 轮不动）。
+            // 按下首 tick 即 ±1s（GS-42 细调起步，不动）。
             holdStartTick = now;
             lastSeekTick = now;
             holdTime += forward ? 1_000 : -1_000;
+            if (com.fongmi.android.tv.BuildConfig.DEBUG) {
+                android.util.Log.d("QBoxSeek", "holdStart dur=" + durationMs + " cap=" + String.format(java.util.Locale.ROOT, "%.1f", cap()) + " mode=" + (curveMode == 0 ? "A" : "B"));
+            }
             listener.onSeeking(holdTime);
             return;
         }
         long elapsed = now - holdStartTick;
-        int stage = stageAt(elapsed);
-        if (now - lastSeekTick < tickAt(stage, elapsed)) return;
-        long dt = now - lastSeekTick;
-        lastSeekTick = now;
-        long step = stepAt(stage, elapsed, dt);
+        long step;
+        if (elapsed < FINE_MS) {
+            // 细调段：固定 ±1s 步长 + 130ms 节拍，与第 23 轮完全一致。
+            if (now - lastSeekTick < FINE_TICK) return;
+            lastSeekTick = now;
+            step = FINE_STEP;
+        } else {
+            if (now - lastSeekTick < COARSE_TICK) return;
+            long prevU = Math.max(0, lastSeekTick - holdStartTick - FINE_MS);
+            long curU = elapsed - FINE_MS;
+            lastSeekTick = now;
+            step = Math.max(1, (long) (cumAt(curU) - cumAt(prevU)));
+        }
         holdTime += forward ? step : -step;
+        if (com.fongmi.android.tv.BuildConfig.DEBUG) {
+            long u = Math.max(0, elapsed - FINE_MS);
+            android.util.Log.d("QBoxSeek", "tick mode=" + (curveMode == 0 ? "A" : "B") + " elapsed=" + elapsed
+                    + " rate=" + String.format(java.util.Locale.ROOT, "%.2f", elapsed < FINE_MS ? R0 : rateAt(u))
+                    + " step=" + step + " cum=" + holdTime + " dir=" + (forward ? "FF" : "REW"));
+        }
         listener.onSeeking(holdTime);
     }
 
@@ -124,30 +170,6 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
     public void onMediaKey(KeyEvent event, boolean forward) {
         if (KeyUtil.isActionDown(event)) seek(event, forward);
         else if (KeyUtil.isActionUp(event)) App.post(() -> listener.onSeekEnd(holdTime), 250);
-    }
-
-    private int stageAt(long elapsedMs) {
-        for (int i = 0; i < RAMP.length; i++) if (elapsedMs < RAMP[i][0]) return i;
-        return RAMP.length - 1;
-    }
-
-    private double rateOf(int stage) {
-        return RAMP[stage][1] / (double) RAMP[stage][2];
-    }
-
-    /** 跨档后 BLEND_MS 内按速率线性爬升（速率×实际间隔），窗外用本档固定步长。 */
-    private long stepAt(int stage, long elapsedMs, long dtMs) {
-        if (stage == 0) return RAMP[0][1];
-        long tIn = elapsedMs - RAMP[stage - 1][0];
-        if (tIn >= BLEND_MS) return RAMP[stage][1];
-        double rate = rateOf(stage - 1) + (rateOf(stage) - rateOf(stage - 1)) * tIn / (double) BLEND_MS;
-        return Math.max(1, (long) (rate * dtMs));
-    }
-
-    /** 过渡窗内 150ms 密集采样（速率爬升被真实采到），窗外用本档节拍。 */
-    private long tickAt(int stage, long elapsedMs) {
-        if (stage > 0 && elapsedMs - RAMP[stage - 1][0] < BLEND_MS) return BLEND_TICK;
-        return RAMP[stage][2];
     }
 
     public void reset() {
