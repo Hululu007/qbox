@@ -16,17 +16,6 @@
         android:importantForAccessibility="no"
         android:scaleType="centerCrop" />
 
-    <!-- 全幅海报取景层（fitCenter，完整海报叠在模糊底上）：
-         默认 GONE，DEBUG 广播 extra f=1/2 打开（1=满高，2=72% 高），见 VideoActivity.applyBackdropVariant。 -->
-    <androidx.appcompat.widget.AppCompatImageView
-        android:id="@+id/backdrop_full"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="center"
-        android:importantForAccessibility="no"
-        android:scaleType="fitCenter"
-        android:visibility="gone" />
-
     <!-- 静态默认 = D 版（与 VideoActivity.BACKDROP_VARIANT_DEFAULT 一致）；A/B/C 运行时广播切换。 -->
     <View
         android:id="@+id/backdrop_scrim"

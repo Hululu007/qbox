@@ -31,16 +31,46 @@
             android:textSize="18sp"
             tools:text="杯雪·一战成名：正片" />
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/track_info"
+        <!-- 源质量胶囊行（第 26 轮）：视频一枚、音频一枚，分组可分；缺哪类哪枚 GONE，不凑占位。
+             胶囊为不可点信息标签（与可点按钮的胶囊化禁令不冲突，见 GS-47/汇报区分说明）。 -->
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/track_row"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:layout_marginBottom="2dp"
-            android:singleLine="true"
-            android:textColor="@color/qbox_text_mute"
-            android:textSize="12sp"
-            tools:text="1080p · H.265 · HDR10 · DD+ · 5.1" />
+            android:orientation="horizontal">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/track_video"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/shape_track_chip"
+                android:paddingStart="7dp"
+                android:paddingTop="2dp"
+                android:paddingEnd="7dp"
+                android:paddingBottom="2dp"
+                android:singleLine="true"
+                android:textColor="@color/qbox_text_dim"
+                android:textSize="11sp"
+                tools:text="1080p · H.265 · HDR10" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/track_audio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/shape_track_chip"
+                android:paddingStart="7dp"
+                android:paddingTop="2dp"
+                android:paddingEnd="7dp"
+                android:paddingBottom="2dp"
+                android:singleLine="true"
+                android:textColor="@color/qbox_text_dim"
+                android:textSize="11sp"
+                tools:text="DD+ · 5.1" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
