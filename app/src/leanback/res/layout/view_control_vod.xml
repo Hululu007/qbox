@@ -11,16 +11,38 @@
     android:paddingEnd="24dp"
     android:paddingBottom="16dp">
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/title"
+    <!-- 名称行：标题（weight=1，超长省略）+ 右侧源质量小标签。
+         标签行高由 18sp 标题决定，12sp 标签的出现/消失不改变行高，不推挤标题与秒数。 -->
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
-        android:ellipsize="marquee"
-        android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="18sp"
-        tools:text="杯雪·一战成名：正片" />
+        android:gravity="bottom"
+        android:orientation="horizontal">
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="marquee"
+            android:singleLine="true"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            tools:text="杯雪·一战成名：正片" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/track_info"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginBottom="2dp"
+            android:singleLine="true"
+            android:textColor="@color/qbox_text_mute"
+            android:textSize="12sp"
+            tools:text="1080p · H.265 · HDR10 · DD+ · 5.1" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
     <!-- 进度条焦点框：遥控器按「上」可以进到这里，左右逐 10s 拖拽。
          PlayerSeekView 自己不拿焦点（播放器 buffering 时会丢焦点），焦点固定在外层。 -->

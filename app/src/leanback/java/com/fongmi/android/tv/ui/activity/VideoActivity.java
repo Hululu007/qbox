@@ -1213,14 +1213,27 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.widget.center.setVisibility(View.GONE);
     }
 
+    /** 收起动画代次：hideControl 的分段渐隐结束后才 GONE；期间重新展开时用代次使旧的结束回调失效。 */
+    private int mControlAnimSeq;
+
     private void showControl(View view) {
         seeking = false;
         seekFocus = false;
         App.removeCallbacks(mHideControl);
-        mBinding.control.getRoot().setVisibility(View.VISIBLE);
+        // 展开即恢复完整态：按钮列可见（seek 精简态把它 GONE 了），并清掉进行中的收起动画。
+        ++mControlAnimSeq;
+        View root = mBinding.control.getRoot();
+        View action = mBinding.control.action.getRoot();
+        root.animate().cancel();
+        action.animate().cancel();
+        root.setAlpha(1f);
+        action.setAlpha(1f);
+        action.setVisibility(View.VISIBLE);
+        root.setVisibility(View.VISIBLE);
         setExtra(view != null && isInExtra(view));
         updatePlayPause();
         updateSpeedButton();
+        updateTrackLabels();
         // 等控制条真正布局完再要焦点：setVisibility(VISIBLE) 只触发 requestLayout，
         // 单次 post 时按钮往往还没 measure/layout，isShown() 仍为 false，焦点就留在画面上，
         // →/← 被当成快进（用户反馈"按钮完全无法聚焦"的真正原因）。
@@ -1250,9 +1263,24 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         seeking = false;
         seekFocus = false;
         App.removeCallbacks(mHideControl);
-        mBinding.control.getRoot().setVisibility(View.GONE);
-        setExtra(false);
-        setSubtitleLift(false);
+        final View root = mBinding.control.getRoot();
+        if (root.getVisibility() != View.VISIBLE) return;
+        final View action = mBinding.control.action.getRoot();
+        final int seq = ++mControlAnimSeq;
+        root.animate().cancel();
+        action.animate().cancel();
+        // 分段渐隐（第 24 轮）：先收下面按钮列，再整体（标题 + 进度条）渐隐，不一次性整块消失。
+        // 结束回调带代次守卫：渐隐途中重新展开时旧回调不得把面板 GONE 掉（cancel 也会触发 withEndAction）。
+        if (action.getVisibility() == View.VISIBLE) action.animate().alpha(0f).setDuration(150).start();
+        root.animate().alpha(0f).setStartDelay(action.getVisibility() == View.VISIBLE ? 120 : 0).setDuration(180).withEndAction(() -> {
+            if (seq != mControlAnimSeq) return;
+            root.setVisibility(View.GONE);
+            root.setAlpha(1f);
+            action.setAlpha(1f);
+            action.setVisibility(View.VISIBLE);
+            setExtra(false);
+            setSubtitleLift(false);
+        }).start();
         App.removeCallbacks(mR1);
     }
 
@@ -1458,13 +1486,17 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         setBackdrop(mHistory.getVodPic());
     }
 
-    /** 详情页氛围底图：源海报中心 16:9 横带，480×270 解码约 4× 放大（第 20 轮收敛分辨率与放大倍数，去马赛克）。 */
+    /** 详情页氛围底图：源海报中心 16:9 横带，480×270 解码约 4× 放大（第 20 轮收敛分辨率与放大倍数，去马赛克）。
+     *  backdrop_full 是同一海报的 fitCenter 完整取景层（第 24 轮取景对比用，默认 GONE）。 */
     private void setBackdrop(String url) {
         try {
             if (TextUtils.isEmpty(url)) return;
             Glide.with(this).load(ImgUtil.getUrl(url)).override(480, 270).centerCrop()
                     .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(700))
                     .into(mBinding.backdrop);
+            Glide.with(this).load(ImgUtil.getUrl(url)).override(480, 640).fitCenter()
+                    .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(700))
+                    .into(mBinding.backdropFull);
         } catch (Throwable ignored) {
         }
     }
@@ -1943,17 +1975,97 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         hideProgress();
     }
 
-    /** 左右快进时把控制条「借」出来显示进度，但不抢焦点，方向键继续走快进。 */
+    /** 左右快进时把控制条「借」出来显示进度，但不抢焦点，方向键继续走快进。
+     *  第 24 轮：seek 触发的是精简态——只留「名称/信息行 + 进度条」，整排按钮 GONE，不占屏幕。 */
     private void enterSeekMode() {
         if (isVisible(mBinding.control.getRoot())) return;
         seeking = true;
         seekBase = player().getPosition();
         App.removeCallbacks(mHideControl);
         App.removeCallbacks(mR1);
-        mBinding.control.getRoot().setVisibility(View.VISIBLE);
-        mBinding.control.action.extra.setVisibility(View.GONE);
+        ++mControlAnimSeq;
+        View root = mBinding.control.getRoot();
+        root.animate().cancel();
+        root.setAlpha(1f);
+        mBinding.control.action.getRoot().setVisibility(View.GONE);
+        root.setVisibility(View.VISIBLE);
         updatePlayPause();
+        updateTrackLabels();
         setSubtitleLift(true);
+    }
+
+    /** 名称行右侧的源质量小标签：分辨率/视频编码/HDR/音频编码/声道。
+     *  只显示能从 ExoPlayer Format 可靠拿到的项（sampleMimeType/height/channelCount/colorTransfer），
+     *  拿不到或映射表外的一律不显示，不猜写；Atmos 只在 E-AC-3 JOC（audio/eac3-joc）时标出（码流级可靠信号）。 */
+    private void updateTrackLabels() {
+        java.util.List<String> chips = new java.util.ArrayList<>();
+        try {
+            for (Tracks.Group group : player().getCurrentTracks().getGroups()) {
+                for (int i = 0; i < group.length; i++) {
+                    if (!group.isTrackSelected(i)) continue;
+                    Format f = group.getTrackFormat(i);
+                    if (group.getType() == C.TRACK_TYPE_VIDEO) {
+                        if (f.height > 0) chips.add(f.height + "p");
+                        String vc = videoCodecLabel(f.sampleMimeType);
+                        if (vc != null) chips.add(vc);
+                        String hdr = hdrLabel(f.colorInfo);
+                        if (hdr != null) chips.add(hdr);
+                    } else if (group.getType() == C.TRACK_TYPE_AUDIO) {
+                        String ac = audioCodecLabel(f.sampleMimeType);
+                        if (ac != null) chips.add(ac);
+                        String ch = channelLabel(f.channelCount);
+                        if (ch != null) chips.add(ch);
+                    }
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+        mBinding.control.trackInfo.setText(TextUtils.join(" · ", chips));
+        mBinding.control.trackInfo.setVisibility(chips.isEmpty() ? View.GONE : View.VISIBLE);
+    }
+
+    private String videoCodecLabel(String mime) {
+        if (MimeTypes.VIDEO_H264.equals(mime)) return "H.264";
+        if (MimeTypes.VIDEO_H265.equals(mime)) return "H.265";
+        if (MimeTypes.VIDEO_DOLBY_VISION.equals(mime)) return "Dolby Vision";
+        if (MimeTypes.VIDEO_AV1.equals(mime)) return "AV1";
+        if (MimeTypes.VIDEO_VP9.equals(mime)) return "VP9";
+        return null;
+    }
+
+    private String hdrLabel(@Nullable androidx.media3.common.ColorInfo color) {
+        if (color == null) return null;
+        if (color.colorTransfer == C.COLOR_TRANSFER_ST2084) return "HDR10";
+        if (color.colorTransfer == C.COLOR_TRANSFER_HLG) return "HLG";
+        return null;
+    }
+
+    /** 音频 mime 白名单（本 media3 分支 MimeTypes 音频常量不全，统一用字面量）。 */
+    private String audioCodecLabel(String mime) {
+        if (mime == null) return null;
+        switch (mime) {
+            case "audio/eac3-joc": return "Atmos";
+            case "audio/eac3": return "DD+";
+            case "audio/ac3": return "DD";
+            case "audio/mp4a-latm":
+            case "audio/mp4a.40.2": return "AAC";
+            case "audio/truehd": return "TrueHD";
+            case "audio/ac4": return "AC-4";
+            case "audio/vnd.dts.hd": return "DTS-HD";
+            case "audio/vnd.dts": return "DTS";
+            default: return null;
+        }
+    }
+
+    private String channelLabel(int count) {
+        switch (count) {
+            case 1: return "1.0";
+            case 2: return "2.0";
+            case 3: return "2.1";
+            case 6: return "5.1";
+            case 8: return "7.1";
+            default: return null;
+        }
     }
 
     @Override
@@ -2042,26 +2154,46 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         }
     }
 
-    /** 详情页底图变体（DEBUG 对比用）：`adb shell am broadcast -a com.qbox.app.DEBUG_BACKDROP --ei v <0|1|2|3>` 运行时切换并持久化（Prefers），重启/重建详情页不丢。 */
+    /** 详情页底图变体（DEBUG 对比用）：`adb shell am broadcast -a com.qbox.app.DEBUG_BACKDROP --ei v <0|1|2|3> [--ei f <0|1|2>]` 运行时切换并持久化（Prefers），重启/重建详情页不丢。f = 取景：0 只留模糊横带，1 叠完整海报（满高），2 叠完整海报（72% 高）。 */
     private static final int[] BACKDROP_SCRIM_VARIANTS = {R.drawable.shape_backdrop_scrim_a, R.drawable.shape_backdrop_scrim_b, R.drawable.shape_backdrop_scrim_c, R.drawable.shape_backdrop_scrim_d};
     private static final int[] DETAIL_SCRIM_VARIANTS = {R.drawable.shape_detail_scrim, R.drawable.shape_detail_scrim, R.drawable.shape_detail_scrim_light, R.drawable.shape_detail_scrim_d};
     private static final float[] BACKDROP_ALPHA_VARIANTS = {0.80f, 0.72f, 0.85f, 0.85f};
-    /** 默认 C 版（第 22 轮用户指令）；改默认只动这里与 layout 三处引用。 */
-    private static final int BACKDROP_VARIANT_DEFAULT = 2;
+    /** 默认 D 版（第 24 轮用户指令：铺满海报 + 四边轻收边）；改默认只动这里与 layout 三处引用。 */
+    private static final int BACKDROP_VARIANT_DEFAULT = 3;
+    private static final int BACKDROP_FRAME_DEFAULT = 0;
 
     private final android.content.BroadcastReceiver mBackdropVariantReceiver = new android.content.BroadcastReceiver() {
         @Override
         public void onReceive(android.content.Context context, android.content.Intent intent) {
-            applyBackdropVariant(intent.getIntExtra("v", BACKDROP_VARIANT_DEFAULT));
+            applyBackdropVariant(
+                    intent.getIntExtra("v", com.github.catvod.utils.Prefers.getInt("debug_backdrop_variant", BACKDROP_VARIANT_DEFAULT)),
+                    intent.getIntExtra("f", com.github.catvod.utils.Prefers.getInt("debug_backdrop_frame", BACKDROP_FRAME_DEFAULT)));
         }
     };
 
     private void applyBackdropVariant(int variant) {
+        applyBackdropVariant(variant, com.github.catvod.utils.Prefers.getInt("debug_backdrop_frame", BACKDROP_FRAME_DEFAULT));
+    }
+
+    private void applyBackdropVariant(int variant, int frame) {
         int v = Math.max(0, Math.min(BACKDROP_SCRIM_VARIANTS.length - 1, variant));
+        int f = Math.max(0, Math.min(2, frame));
         mBinding.backdropScrim.setBackgroundResource(BACKDROP_SCRIM_VARIANTS[v]);
         mBinding.detailScrim.setBackgroundResource(DETAIL_SCRIM_VARIANTS[v]);
         mBinding.backdrop.setAlpha(BACKDROP_ALPHA_VARIANTS[v]);
-        if (com.fongmi.android.tv.BuildConfig.DEBUG) com.github.catvod.utils.Prefers.put("debug_backdrop_variant", v);
+        mBinding.backdropFull.setVisibility(f == 0 ? View.GONE : View.VISIBLE);
+        if (mBinding.backdropFull.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
+            // f=2 时上下各收 14% 屏高，fitCenter 后完整海报约占 72% 高度（取景对比档）。
+            int m = f == 2 ? (int) (getResources().getDisplayMetrics().heightPixels * 0.14f) : 0;
+            ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) mBinding.backdropFull.getLayoutParams();
+            lp.topMargin = m;
+            lp.bottomMargin = m;
+            mBinding.backdropFull.setLayoutParams(lp);
+        }
+        if (com.fongmi.android.tv.BuildConfig.DEBUG) {
+            com.github.catvod.utils.Prefers.put("debug_backdrop_variant", v);
+            com.github.catvod.utils.Prefers.put("debug_backdrop_frame", f);
+        }
     }
 
     @Override
