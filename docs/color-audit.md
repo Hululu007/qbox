@@ -202,3 +202,17 @@ colors.xml 已有 black_05→black_90 阶梯。drawable 里的散值（`#0D/#1A/
 **导航带对齐判定标准**：带开/关双截图同机位反解 alpha 剖面，顶部实测 0.658 vs 设计 0.66；与播放菜单平均（70%）同底合成亮度差 ≤12% 判定观感一致。tab 行底缘 48% 处 L1 白对比度 5.0:1（亮海报 200 底）、时钟 30dp 处 L2 7.0:1，均过 4.5:1。
 
 品牌色总数仍 **17**（无新增；chip_bed/switch_thumb/switch_track/icon_tint 均复用既有 token）。
+
+---
+
+## 7. 第 41 轮修正（实机复核打回）
+
+| 项 | 改前 | 改后 | 依据 |
+|---|---|---|---|
+| shape_sheet（底浮层） | flat `@color/qbox_panel` 72% | **与播放菜单同一条 48→72→90 纵向渐变** | 用户实测「比菜单黑太多」；同帧反解顶部 α 0.42→0.52（设计 0.48→0.72）✓ |
+| 循环按钮 | 白丸/描边系（toggle 三 drawable） | **全删；变色+加粗** | 用户：「变色就足够了」 |
+| 弹窗按钮文字 | 3 处 `@color/white` 硬编码（crash/pass/update） | `@color/text`（聚焦深字） | 实测聚焦白底白字 |
+| slider halo | transparent（焦点不可见） | white_20 | 聚焦反馈 |
+| 章节弹窗 | 居中面板（shape_panel） | isSheet 底浮族（shape_sheet） | 与轨道选择同族 |
+
+无新增色值；删除 selector_chip_toggle / shape_chip_toggle_on / shape_chip_toggle_on_focused 三个文件。

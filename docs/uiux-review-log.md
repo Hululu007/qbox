@@ -965,6 +965,50 @@ GS-35~GS-45 共 11 条并入 `docs/GOLDEN-STANDARDS.md`（引用 TV 编号，冲
 - 进度条选中态标记色（`r40_scrub` 沿 39 轮路径复验）、循环蓝态跨帧保持、跨页同色未动、filter 层级/落点未动（本轮无相关代码变更）；导航带几何（190dp 尾归零、焦点进出显隐）实测未回归。
 - 备注：测试机装有 baiguotv 包（他项目），一次 BACK 链过长误入其前台已立即 am start 拉回，未做任何交互。
 
+### 第 41 轮（2026-11-08）— 实机复核打回修复：循环无圈 / 暂停留时钟 / sheet 渐变对齐 / 弹窗按钮白字 bug / 推送简体化
+
+#### 41.0 设备构建核对（用户要求先查证）
+- `.214` 装机 = 1.9.20/78，lastUpdateTime 23:21:04 = commit `6920237` 内容的 debug 包（APK 22:35:22 构建，aapt badging 复核）。用户复核机上的「没改」= 实现与用户预期有出入（见下），非装错包。
+
+#### 41.1 循环聚焦圈 ✅（最终形态）
+- 用户要的不是「去掉内圈描边」，是**全态无圈**：开关靠文字变色（OFF 白 / ON 标记色），聚焦靠**加粗字重**，双通道都不画圈。
+- 删 selector_chip_toggle/shape_chip_toggle_on(_focused) 三个 drawable；repeat 背景 transparent；control_toggle_text 简化为 selected→accent/默认 L1；VideoActivity 加 OnFocusChangeListener 切 BOLD。
+- 实测：OFF 聚焦 = 白粗体（`r41_t2`）、ON 聚焦 = 蓝粗体（`r41_f`）、OK 正常 toggle（prefs repeat_one 翻转 + state 不变）。
+
+#### 41.2 暂停去标题留时钟 ✅
+- 40 轮误删整条 widget.top（标题+时钟一锅端）。本轮：暂停 top 只亮时钟（title/size GONE），时钟样式降为 L2 #C9C9D1 16sp。实测 `r41_pause`：右上角 00:07:41 在、顶部无标题、底部精简态如常。
+
+#### 41.3 音轨/章节/视轨层「比菜单黑太多」✅
+- 根因：39 轮 shape_sheet 用 flat `qbox_panel` 72%，而菜单是 48→72→90 渐变、顶部视线区更透——同帧反解旧 sheet 顶部 α≈0.72。
+- 修：shape_sheet 直接套用菜单同款 48→72→90 纵向渐变（顶圆角 20dp）；ChapterDialog 并入 isSheet 底浮族。
+- 实测（`r41_sheet2` 同帧邻域反解）：sheet 顶部 α 0.42→0.52（设计 0.48→0.72 上行 ✓）；顶部合成亮度 73 vs 旧值 35（透一倍多）。
+
+#### 41.4 全局「未统一」盘点（实机核对版）
+| 面板/层 | 实现 | 实测证据 | 合规 |
+|---|---|---|---|
+| 播放控制条 | shape_controller 48/72/90 | 基准 | ✅ |
+| 底浮层（音/视/字轨、章节） | shape_sheet 同菜单渐变 | r41_sheet2 反解 | ✅ |
+| Alert 弹窗族（来源/更新/配置/UA/弹幕API/简介/密码/崩溃/MPV/Live） | BaseAlertDialog→shape_panel=qbox_panel | r41_cfg3/r40_site5 透视 | ✅ |
+| 面板化 sheet（倍速/音频/视频/字幕/弹幕设置、解析/版本/弹幕列表/投屏） | panelize→shape_panel | r40_speed2 | ✅ |
+| 导航带 | shape_nav_scrim 72→0 纯黑渐变 | r40 反解 0.658 | ✅ |
+| HUD（error/message/center）/stats/删除提示 | qbox_panel | 同 token | ✅ |
+| Notify toast | 系统 Toast | — | 豁免（非面板） |
+| 设置页等整页 | qbox_surface 实底 | — | 豁免（整页） |
+
+#### 41.5 扫码推送全简体 ✅
+- 繁体源 = 手机端网页资产（TV 侧 strings 本来就简体）：assets/index.html（lang zh-Hant、全篇繁体）+ js/script.js（7 处提示繁体）+ parse.html（lang zh-TW）。
+- index.html 全量重写简体（SVG 路径经 git 校验零漂移）；script.js 7 处替换；parse.html lang→zh-CN。
+- 实测：`curl http://192.168.2.214:9978/?tab=2` 返回 lang="zh-Hans"、全简体；TV 侧 push_info 简体（`r41_cfg3`）。
+
+#### 41.6 更新弹窗按钮白底白字 ✅ + 全局按钮聚焦排查
+- 根因：selector_button 聚焦=白药丸，而 activity_crash/dialog_pass/dialog_update 文字硬编码 `@color/white` → 聚焦白底白字。dialog_config/mpv_conf/ua 用的是 @color/text（state list）所以没事。
+- 修：3 处 5 个按钮改 @color/text。实测同构渲染：`r41_cfg3` 配置弹窗「确定」= 白丸深字清晰可读（同 selector_button+@color/text 组合）。
+- 排查清单（聚焦态表达，深/亮底各验过）：Control 菜单钮（白丸深字）、循环（变色+加粗）、QBoxDialogChip/Button（白丸深字）、selector_icon_btn 齿轮（白圆深 icon）、selector_action_icon 返回（白圆）、SettingRow 设置行（白丸）、来源/轨道/章节行（白丸）、详情页按钮（白丸）、filter/tab chip（白丸）、slider（本轮补 white_20 halo）、更新/崩溃/密码弹窗钮（本轮修复）。未发现其他白底白字或对比不足项。
+
+#### 41.7 备注
+- 过程发现一条操作纪律：菜单链内禁止插 screencap（约 1s 无键空窗会让 5s 自动收起抢跑，后续方向键变全局快进）——与 GS-09 同因，执行时再犯一次，已纠正并重测。
+- P0 行为（快进/焦点/栏随滚动/跨页同色）未触碰，无回归。
+
 ---
 
 ## 3. 历史遗留与易回归
