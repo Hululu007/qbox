@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 循环按钮背景（第 43 轮，纠正第 41 轮误改）：聚焦态与其它菜单按钮完全一致的白药丸
+     （同一块 shape_chip_focused）；开/关不再画任何底衬——selected 不画 12% 白丸
+     （shape_chip_activated 对循环不生效），开启只由文字变标记色表达。 -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/shape_chip_focused" android:state_focused="true" />
+    <item android:drawable="@color/transparent" />
+</selector>

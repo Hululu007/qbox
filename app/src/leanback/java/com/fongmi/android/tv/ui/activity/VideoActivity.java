@@ -349,8 +349,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.control.action.decode.setOnClickListener(view -> onDecode());
         mBinding.control.action.ending.setOnClickListener(view -> onEnding());
         mBinding.control.action.repeat.setOnClickListener(view -> onRepeat());
-        // 循环按钮（第 41 轮定稿）：全态无圈无衬——开关靠文字变色（白/标记色），聚焦靠加粗，两通道都不画圈。
-        mBinding.control.action.repeat.setOnFocusChangeListener((v, f) -> ((android.widget.TextView) v).setTypeface(null, f ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL));
         mBinding.control.action.danmaku.setOnClickListener(view -> onDanmaku());
         mBinding.control.action.edition.setOnClickListener(view -> onEdition());
         mBinding.control.action.chapter.setOnClickListener(view -> onChapter());
@@ -1805,7 +1803,10 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         switch (event.getKeyCode()) {
             case KeyEvent.KEYCODE_DPAD_LEFT:
             case KeyEvent.KEYCODE_DPAD_RIGHT: {
-                View target = findFocusable(mBinding.control.action.main, focus, event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT);
+                boolean forward = event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT;
+                View target = findFocusable(mBinding.control.action.main, focus, forward);
+                // 第 43 轮：行内巡回——最左再按左跳到最右，最右再按右回到最左（仅限本动作行，其它行边界行为不动）。
+                if (target == null) target = findEdgeFocusable(mBinding.control.action.main, forward);
                 if (target != null) target.requestFocus();
                 return true;
             }
@@ -1909,6 +1910,16 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
                 return null;
             }
             previous = child;
+        }
+        return null;
+    }
+
+    /** 巡回端点（第 43 轮）：forward=true 取行内第一个可见可聚焦（最右再按右回最左），否则取最后一个（最左再按左跳最右）。 */
+    private static View findEdgeFocusable(ViewGroup row, boolean forward) {
+        int count = row.getChildCount();
+        for (int k = 0; k < count; k++) {
+            View child = row.getChildAt(forward ? k : count - 1 - k);
+            if (child.isShown() && child.isFocusable()) return child;
         }
         return null;
     }

@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- 循环按钮文字色（第 41 轮定稿）：开 = 标记色，关 = L1 白；不再有任何底衬/描边/圈，
-         聚焦由代码加粗字重表达（变色 + 字重，两通道都不靠圈）。 -->
+    <!-- 循环按钮文字色（第 43 轮定稿，纠正 41 轮）：selected 最先判定——开+聚焦 = 白药丸上蓝字，
+         聚焦与开启双通道同时可读；关+聚焦 = 白丸深字（与其它按钮同 @color/text 行为）；
+         非聚焦：开 = 标记色 / 关 = L1 白。开启态不依赖任何底衬/描边/圈。 -->
     <item android:color="@color/qbox_accent" android:state_selected="true" />
+    <item android:color="@color/qbox_focus_text" android:state_focused="true" />
     <item android:color="@color/qbox_text" />
 </selector>

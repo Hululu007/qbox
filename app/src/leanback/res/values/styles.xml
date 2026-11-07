@@ -30,7 +30,7 @@
     <style name="SettingHeader">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginTop">18dp</item>
+        <item name="android:layout_marginTop">28dp</item>
         <item name="android:layout_marginBottom">6dp</item>
         <item name="android:drawableStart">@drawable/shape_setting_accent</item>
         <item name="android:drawablePadding">8dp</item>
@@ -101,6 +101,7 @@
     </style>
 
     <!-- 设置页统一行样式：两列布局下每条不再是一条超长空条。 -->
+    <!-- 第 43 轮：行高 8→12dp（Apple TV 设置式宽松行高，10-foot 更易扫读；A/B 方案共用）。 -->
     <style name="SettingRow">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
@@ -112,9 +113,9 @@
         <item name="android:gravity">center_vertical</item>
         <item name="android:orientation">horizontal</item>
         <item name="android:paddingStart">16dp</item>
-        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingTop">12dp</item>
         <item name="android:paddingEnd">16dp</item>
-        <item name="android:paddingBottom">8dp</item>
+        <item name="android:paddingBottom">12dp</item>
     </style>
 
     <style name="SettingLabel">
