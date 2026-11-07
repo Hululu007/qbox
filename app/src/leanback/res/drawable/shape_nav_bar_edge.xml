@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 导航「栏」底边极细收边（第 37 轮）：主体（nav_scrim 实色 View）底缘下 4dp 单调收敛到 0。
+     材质与控制条面板同 token（qbox_panel 中档）；用户要求「均匀干净收边、细细一润」——
+     不做多段渐变过渡，4dp 内线性单调归零，无 alpha 阶跃、无两道横条。 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:angle="270"
+        android:startColor="@color/qbox_panel"
+        android:endColor="#00000000"
+        android:type="linear" />
+</shape>

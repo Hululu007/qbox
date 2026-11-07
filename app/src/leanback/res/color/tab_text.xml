@@ -4,6 +4,6 @@
     <!-- 白药丸焦点上反色，当前分类保持白色，未选分类压低。 -->
     <item android:color="@color/qbox_focus_text" android:state_focused="true" />
     <item android:color="@color/qbox_text" android:state_selected="true" />
-    <item android:color="@color/qbox_text_dim" />
+    <item android:color="#C9C9D1" />
 
 </selector>

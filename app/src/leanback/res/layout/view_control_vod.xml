@@ -74,14 +74,14 @@
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
-    <!-- 进度条焦点框：遥控器按「上」可以进到这里，左右逐 10s 拖拽。
-         PlayerSeekView 自己不拿焦点（播放器 buffering 时会丢焦点），焦点固定在外层。 -->
+    <!-- 进度条焦点框（第 37 轮 P0-3 重做）：控制条里按「上」进入拖动选中态——只用标记色变色表达
+         （无白边框、不缩放）；按住左右走百分比爬升曲线（明显快于全局快进），单点 ±1% 片长（钳 5-30s），
+         ↓/BACK 回动作行。PlayerSeekView 自己不拿焦点（播放器 buffering 时会丢焦点），焦点固定在外层。 -->
     <FrameLayout
         android:id="@+id/seek_box"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
-        android:background="@drawable/selector_seek_focus"
         android:descendantFocusability="blocksDescendants"
         android:focusable="true"
         android:focusableInTouchMode="true"

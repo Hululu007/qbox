@@ -3,7 +3,7 @@
     android:shape="rectangle">
 
     <!-- 设置页两列内容的面板底色：比页面背景略亮一档，让设置项从纯黑里“浮”出来。 -->
-    <solid android:color="#12141B" />
+    <solid android:color="@color/qbox_surface" />
     <corners android:radius="20dp" />
     <stroke
         android:width="1dp"

@@ -22,21 +22,38 @@
         android:layout_height="match_parent"
         android:background="@drawable/shape_backdrop_scrim_d" />
 
+    <!-- 按需导航带（第 29 轮起）：静止 alpha=0 不可见；焦点进导航区时 VodActivity 淡入。
+         第 35 轮回退 31 轮二次曲线版并延域 190dp；第 37 轮拆「主体+4dp 收边」，材质=@color/qbox_panel。
+         第 38 轮层级修正：放在 pager 之下——栏是 tab/filter 文字「背后」的底，chip/tab 文字必须在其上，
+         不许盖住文字（P0 打回：filter 的字被盖在下面了）。 -->
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/nav_band"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:alpha="0"
+        android:orientation="vertical">
+
+        <View
+            android:id="@+id/nav_scrim"
+            android:layout_width="match_parent"
+            android:layout_height="190dp"
+            android:background="@drawable/shape_nav_scrim" />
+
+        <View
+            android:id="@+id/nav_scrim_edge"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:background="@drawable/shape_nav_bar_edge"
+            android:visibility="gone" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
     <!-- 内容层：pager 从屏幕最顶开始，分类页里的列表再让出 paddingTop。
          和首页完全同一套尺寸，点进来时上方模块不会缩进/上移。 -->
     <com.fongmi.android.tv.ui.custom.CustomViewPager
         android:id="@+id/pager"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-
-    <!-- 按需导航带（第 29 轮起）：静止 alpha=0 不可见；焦点进导航区时 VodActivity 淡入。
-         第 35 轮：回退到第 31 轮二次曲线版（撤 34 轮余弦），同公式延域 150→190dp，tab 行完整落入覆盖区。 -->
-    <View
-        android:id="@+id/nav_scrim"
-        android:layout_width="match_parent"
-        android:layout_height="190dp"
-        android:alpha="0"
-        android:background="@drawable/shape_nav_scrim" />
 
     <!-- 第 28 轮：200dp 顶栏压暗渐变撤掉，与首页一致。
          id=header：导航带显示判据用的「导航区」结构边界（第 31 轮）。 -->
@@ -121,8 +138,8 @@
                 android:shadowDy="1"
                 android:shadowRadius="4"
                 android:letterSpacing="0.02"
-                android:textColor="@color/qbox_text_dim"
-                android:textSize="15sp"
+                android:textColor="@color/white_50"
+                android:textSize="14sp"
                 tools:text="09:20:00" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>

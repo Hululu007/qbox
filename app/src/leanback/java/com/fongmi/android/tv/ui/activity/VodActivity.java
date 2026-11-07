@@ -142,27 +142,97 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
         getWindow().getDecorView().getViewTreeObserver().addOnGlobalFocusChangeListener((o, f) -> updateNavScrim(f));
     }
 
-    /** 导航带变体（第 35 轮）：0=二次曲线渐变带（默认），1=Apple TV+ 式半透明栏。
-        DEBUG 广播 com.qbox.app.DEBUG_BACKDROP --ei m 0/1，Prefers debug_nav_variant 持久化。 */
+    /** 导航带变体（第 35 轮起）：0=二次曲线渐变带（190dp），1=Apple TV+ 式「栏」。
+        第 37 轮：栏版改「实色主体（@color/qbox_panel，与控制条面板同材质）+ 4dp 极细收边」；
+        且在 filter 面板展开时主体向下延展到最后一行 chip（同一块连续表面），收起归位（240ms 过渡）。 */
     private void applyNavVariant() {
         int v = com.github.catvod.utils.Prefers.getInt("debug_nav_variant", 0);
-        mBinding.navScrim.setBackgroundResource(v == 1
-                ? com.fongmi.android.tv.R.drawable.shape_nav_scrim_bar
+        boolean bar = v == 1;
+        filterBandOpen = filterBandOpen && bar;
+        mBinding.navScrim.setBackgroundResource(bar
+                ? com.fongmi.android.tv.R.color.qbox_panel
                 : com.fongmi.android.tv.R.drawable.shape_nav_scrim);
+        android.view.ViewGroup.LayoutParams lp = mBinding.navScrim.getLayoutParams();
+        lp.height = com.fongmi.android.tv.utils.ResUtil.dp2px(bar ? NAV_BAR_SOLID_DP : 190);
+        mBinding.navScrim.setLayoutParams(lp);
+        mBinding.navScrimEdge.setVisibility(bar ? android.view.View.VISIBLE : android.view.View.GONE);
+        if (filterBandOpen) mBinding.getRoot().postDelayed(() -> animateBandToFilter(0), 120);
+    }
+
+    private static final int NAV_BAR_SOLID_DP = 136;   // 栏版主体高（tab 底 118dp + 18dp 余量）
+    /** filter 面板展开触发的主体延展标记（仅栏版）；为真时导航带常显（不等焦点进导航区）。 */
+    private boolean filterBandOpen;
+    private android.animation.ValueAnimator navBandAnim;
+
+    /** filter 面板开关（第 37 轮）：栏版下导航带主体延展/归位，并把它计入显隐判据。 */
+    private void setFilterBand(boolean open) {
+        boolean bar = com.github.catvod.utils.Prefers.getInt("debug_nav_variant", 0) == 1;
+        filterBandOpen = open && bar;
+        if (filterBandOpen) {
+            mBinding.getRoot().postDelayed(() -> animateBandToFilter(0), 120);
+        } else {
+            animateBandHeight(com.fongmi.android.tv.utils.ResUtil.dp2px(NAV_BAR_SOLID_DP));
+        }
+        updateNavScrim(getCurrentFocus());
+    }
+
+    /** 等 fragment 布局完成后量最后一行 chip 的屏幕底缘；没布局好重试（最多 3 次），量不到就不动。 */
+    private void animateBandToFilter(int retry) {
+        int bottom = getFragment() == null ? 0 : getFragment().getFilterBottomPx();
+        if (bottom <= 0 && retry < 3) {
+            mBinding.getRoot().postDelayed(() -> animateBandToFilter(retry + 1), 120);
+            return;
+        }
+        if (bottom <= 0) return;
+        animateBandHeight(bottom + com.fongmi.android.tv.utils.ResUtil.dp2px(8));
+    }
+
+    /** 主体高度 240ms 过渡（延展/归位同一条路径）；收边视图在容器内随主体下移。 */
+    private void animateBandHeight(int targetPx) {
+        android.view.View solid = mBinding.navScrim;
+        if (solid.getLayoutParams().height == targetPx) return;
+        if (navBandAnim != null) navBandAnim.cancel();
+        navBandAnim = android.animation.ValueAnimator.ofInt(solid.getLayoutParams().height, targetPx);
+        navBandAnim.setDuration(240);
+        navBandAnim.setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator());
+        navBandAnim.addUpdateListener(a -> {
+            android.view.ViewGroup.LayoutParams lp = solid.getLayoutParams();
+            lp.height = (Integer) a.getAnimatedValue();
+            solid.setLayoutParams(lp);
+        });
+        navBandAnim.start();
     }
 
     private void updateNavScrim(View focus) {
-        boolean inNav = focus != null && isInHeader(focus);
+        // 第 37 轮 P0-1：filter 展开时栏只在「焦点位于筛选 chip 行内」时显示；
+        // 焦点移出到海报区，栏与 filter 一起消失（不再留在屏幕上）。
+        boolean inFilter = filterBandOpen && focus != null && getFragment() != null && getFragment().isFilterRowFocus(focus);
+        boolean inNav = (focus != null && isInHeader(focus)) || inFilter;
         if (com.fongmi.android.tv.BuildConfig.DEBUG) {
             android.graphics.Rect r = new android.graphics.Rect();
             boolean vis = focus != null && focus.getGlobalVisibleRect(r);
             android.util.Log.d("QBoxNav", "focus=" + (focus == null ? "null" : focus.getClass().getSimpleName())
-                    + " vis=" + vis + " bounds=" + r.toShortString() + " inHeader=" + inNav + " bandOn=" + navScrimOn);
+                    + " vis=" + vis + " bounds=" + r.toShortString() + " inHeader=" + inNav + " inFilter=" + inFilter + " bandOn=" + navScrimOn);
         }
         if (inNav == navScrimOn) return;
         navScrimOn = inNav;
-        mBinding.navScrim.animate().cancel();
-        mBinding.navScrim.animate().alpha(inNav ? 1f : 0f).setDuration(220).start();
+        mBinding.navBand.animate().cancel();
+        mBinding.navBand.animate().alpha(inNav ? 1f : 0f).setDuration(220).start();
+    }
+
+    /** filter 内容滚动时（第 37 轮 P0-1，由 TypeFragment onScrolled 回调）：实色主体高度即时贴住
+        「当前可见最后一行」底沿——不跑动画、不盖屏幕固定区域，随内容一起走。 */
+    public void syncFilterBand() {
+        if (!filterBandOpen) return;
+        int bottom = getFragment() == null ? 0 : getFragment().getFilterBottomPx();
+        if (bottom <= 0) return;
+        if (navBandAnim != null) navBandAnim.cancel();
+        android.view.ViewGroup.LayoutParams lp = mBinding.navScrim.getLayoutParams();
+        int target = bottom + com.fongmi.android.tv.utils.ResUtil.dp2px(8);
+        if (lp.height != target) {
+            lp.height = target;
+            mBinding.navScrim.setLayoutParams(lp);
+        }
     }
 
     /** 焦点是否位于导航区：沿父链找 header 容器（顶栏 + 分类条）。结构判据不受滚动/动画中的瞬时坐标影响。 */
@@ -330,6 +400,7 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
         boolean open = !item.getFilter();
         item.setFilter(open);
         getFragment().toggleFilter(open);
+        setFilterBand(open);
         mAdapter.notifyItemRangeChanged(mAdapter.indexOf(item), 1);
         updateFilterState();
         if (open) App.post(this::focusGrid, 90);

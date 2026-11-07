@@ -81,6 +81,18 @@ public class FolderFragment extends BaseFragment {
         Optional.ofNullable(getChild()).ifPresent(f -> f.toggleFilter(visible));
     }
 
+    /** 筛选面板最后一行 chip 的屏幕底缘（第 37 轮栏版向下延展的停点），委托子分类页；未展开/未布局返回 0。 */
+    public int getFilterBottomPx() {
+        TypeFragment child = getChild();
+        return child == null ? 0 : child.getFilterBottomPx();
+    }
+
+    /** 焦点是否在筛选 chip 行内（第 37 轮 P0-1 栏显隐判据），委托子分类页。 */
+    public boolean isFilterRowFocus(android.view.View focus) {
+        TypeFragment child = getChild();
+        return child != null && child.isFilterRowFocus(focus);
+    }
+
     public void onRefresh() {
         Optional.ofNullable(getChild()).ifPresent(TypeFragment::onRefresh);
     }

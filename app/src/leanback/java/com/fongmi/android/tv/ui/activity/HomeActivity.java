@@ -460,14 +460,20 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         getWindow().getDecorView().getViewTreeObserver().addOnGlobalFocusChangeListener((o, f) -> updateNavScrim(f));
     }
 
-    /** 导航带变体（第 35 轮）：0=二次曲线渐变带（第 31 轮版延域 190dp，默认），1=Apple TV+ 式半透明栏。
-        DEBUG 广播 com.qbox.app.DEBUG_BACKDROP --ei m 0/1，Prefers debug_nav_variant 持久化。
-        最终默认值待用户实机对照两版后拍板。 */
+    /** 导航带变体（第 35 轮起）：0=二次曲线渐变带（190dp），1=Apple TV+ 式「栏」。
+        第 37 轮：栏版改「实色主体 136dp（@color/qbox_panel，与控制条面板同材质）+ 4dp 极细收边」，
+        不再用 134dp+12dp 渐变尾巴的 shape_nav_scrim_bar（用户：边缘不够柔和、不如均匀干净收边）。
+        DEBUG 广播 com.qbox.app.DEBUG_BACKDROP --ei m 0/1，Prefers debug_nav_variant 持久化。 */
     private void applyNavVariant() {
         int v = com.github.catvod.utils.Prefers.getInt("debug_nav_variant", 0);
-        mBinding.navScrim.setBackgroundResource(v == 1
-                ? com.fongmi.android.tv.R.drawable.shape_nav_scrim_bar
+        boolean bar = v == 1;
+        mBinding.navScrim.setBackgroundResource(bar
+                ? com.fongmi.android.tv.R.color.qbox_panel
                 : com.fongmi.android.tv.R.drawable.shape_nav_scrim);
+        android.view.ViewGroup.LayoutParams lp = mBinding.navScrim.getLayoutParams();
+        lp.height = com.fongmi.android.tv.utils.ResUtil.dp2px(bar ? 136 : 190);
+        mBinding.navScrim.setLayoutParams(lp);
+        mBinding.navScrimEdge.setVisibility(bar ? android.view.View.VISIBLE : android.view.View.GONE);
     }
 
     private void updateNavScrim(View focus) {
@@ -480,8 +486,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         }
         if (inNav == navScrimOn) return;
         navScrimOn = inNav;
-        mBinding.navScrim.animate().cancel();
-        mBinding.navScrim.animate().alpha(inNav ? 1f : 0f).setDuration(220).start();
+        mBinding.navBand.animate().cancel();
+        mBinding.navBand.animate().alpha(inNav ? 1f : 0f).setDuration(220).start();
     }
 
     /** 焦点是否位于导航区：沿父链找 header 容器（顶栏 + 分类条）。结构判据不受滚动/动画中的瞬时坐标影响。 */

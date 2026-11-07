@@ -119,7 +119,7 @@
         android:shadowDy="1"
         android:shadowRadius="4"
         android:singleLine="true"
-        android:textColor="#E8E8EC"
+        android:textColor="#FFFFFF"
         android:textSize="15sp"
         tools:text="蜘蛛侠" />
 

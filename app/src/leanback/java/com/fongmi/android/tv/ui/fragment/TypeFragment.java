@@ -130,6 +130,13 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     protected void initEvent() {
         mBinding.swipeLayout.setOnRefreshListener(this);
         mBinding.recycler.addOnScrollListener(mScroller);
+        // 第 37 轮 P0-1：filter 面板可见时，内容滚动要同步导航栏实色主体高度（贴住可见最后一行底沿）。
+        mBinding.recycler.addOnScrollListener(new androidx.recyclerview.widget.RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@androidx.annotation.NonNull androidx.recyclerview.widget.RecyclerView recyclerView, int dx, int dy) {
+                if (filterVisible && getActivity() instanceof VodActivity) ((VodActivity) getActivity()).syncFilterBand();
+            }
+        });
     }
 
     @SuppressLint("RestrictedApi")
@@ -140,6 +147,14 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         selector.addPresenter(ListRow.class, new CustomRowPresenter(8, FocusHighlight.ZOOM_FACTOR_NONE), FilterPresenter.class);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
         applyRowMetrics(Style.rect());
+        // 第 38 轮：持续跟踪焦点所在的 chip 行——mLastFilterRow 原来只在「点击」时记，
+        // 光移动焦点不点击就记不到，从海报按 ↑ 回 filter 才会总跳第一行。
+        mBinding.recycler.addOnChildViewHolderSelectedListener(new androidx.leanback.widget.OnChildViewHolderSelectedListener() {
+            @Override
+            public void onChildViewHolderSelected(@androidx.annotation.NonNull androidx.recyclerview.widget.RecyclerView parent, androidx.recyclerview.widget.RecyclerView.ViewHolder child, int position, int subposition) {
+                if (filterVisible && position >= 0 && position < mFilters.size()) mLastFilterRow = position;
+            }
+        });
     }
 
     /**
@@ -336,6 +351,34 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         return null;
     }
 
+    /** 筛选面板「当前可见最后一行」的屏幕底缘（px）：第 37 轮栏版向下延展的停点。
+        只统计已布局的可见行（滚动中始终贴住可见最后一行）；一行都量不到/未展开返回 0。 */
+    public int getFilterBottomPx() {
+        if (!filterVisible || mBinding == null || mFilters == null || mFilters.isEmpty()) return 0;
+        androidx.recyclerview.widget.RecyclerView rv = mBinding.recycler;
+        int bottom = 0;
+        for (int i = 0; i < rv.getChildCount(); i++) {
+            android.view.View child = rv.getChildAt(i);
+            int pos = rv.getChildAdapterPosition(child);
+            if (pos >= 0 && pos < mFilters.size()) {
+                int[] loc = new int[2];
+                child.getLocationOnScreen(loc);
+                bottom = Math.max(bottom, loc[1] + child.getHeight());
+            }
+        }
+        return bottom;
+    }
+
+    /** 焦点是否落在筛选面板的 chip 行内（第 37 轮 P0-1）：导航栏显隐判据之一——
+        焦点进海报区时栏必须随 filter 一起消失，不能留在屏幕上。 */
+    public boolean isFilterRowFocus(android.view.View focus) {
+        if (!filterVisible || mBinding == null || focus == null) return false;
+        androidx.recyclerview.widget.RecyclerView.ViewHolder vh = mBinding.recycler.findContainingViewHolder(focus);
+        if (vh == null) return false;
+        int pos = vh.getBindingAdapterPosition();
+        return pos >= 0 && pos < mFilters.size();
+    }
+
     private void hideFilter() {
         mAdapter.removeItems(0, mFilters.size());
         mBinding.recycler.setSnapStartIndex(0);
@@ -381,10 +424,34 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         App.post(() -> {
             if (mBinding == null) return;
             androidx.recyclerview.widget.RecyclerView.ViewHolder holder = mBinding.recycler.findViewHolderForAdapterPosition(row);
-            View target = holder == null ? null : firstFocusable(holder.itemView);
+            // 第 38 轮：行内列位置也还给用户离开时的那枚 chip——HorizontalGridView 自己记着选中位，
+            // 不再 firstFocusable 一律落行首；找不到该行再退回行首。
+            View target = null;
+            if (holder != null) {
+                androidx.leanback.widget.HorizontalGridView gv = findGridView(holder.itemView);
+                if (gv != null) {
+                    target = gv.getLayoutManager().findViewByPosition(gv.getSelectedPosition());
+                    if (target == null) target = gv;
+                } else {
+                    target = firstFocusable(holder.itemView);
+                }
+            }
             if (target != null) target.requestFocus();
         });
         return true;
+    }
+
+    /** 行视图里找到横向 chip/卡片网格（桥接 ViewHolder 不是 ListRowPresenter 类型，不能强转，走视图树找）。 */
+    private androidx.leanback.widget.HorizontalGridView findGridView(View v) {
+        if (v instanceof androidx.leanback.widget.HorizontalGridView) return (androidx.leanback.widget.HorizontalGridView) v;
+        if (v instanceof ViewGroup) {
+            ViewGroup g = (ViewGroup) v;
+            for (int i = 0; i < g.getChildCount(); i++) {
+                androidx.leanback.widget.HorizontalGridView r = findGridView(g.getChildAt(i));
+                if (r != null) return r;
+            }
+        }
+        return null;
     }
 
     /** 内容区是否已经滚到第一行：决定「上」是回顶栏，还是继续在网格里换行。 */

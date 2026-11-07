@@ -19,6 +19,10 @@
     <!-- 顶栏实底（1.9.7 起改由 shape_top_scrim 承担，保留 token 给后续实底栏用）。 -->
     <color name="qbox_header_scrim">#F0090A0D</color>
 
+    <!-- 面板材质主体中档（第 37 轮抽取自播放控制条 shape_controller 的 48%→72%→90% 黑渐变中档）：
+         导航「栏」（bar 变体）与控制条面板共用同一材质——均匀实色打底，不在栏上另起色值。 -->
+    <color name="qbox_panel">#B8000000</color>
+
     <color name="transparent">#00000000</color>
     <color name="black">#000000</color>
     <color name="black_05">#0D000000</color>

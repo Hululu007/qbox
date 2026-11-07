@@ -30,7 +30,7 @@
             android:focusableInTouchMode="true"
             android:padding="12dp"
             android:src="@drawable/ic_back"
-            app:tint="#9A9AA6" />
+            app:tint="#8C8C98" />
 
         <com.google.android.material.textview.MaterialTextView
             android:layout_width="0dp"
@@ -114,7 +114,7 @@
                         android:focusableInTouchMode="true"
                         android:padding="8dp"
                         android:src="@drawable/ic_setting_home"
-                        app:tint="#9A9AA6" />
+                        app:tint="#8C8C98" />
 
                     <androidx.appcompat.widget.AppCompatImageView
                         android:id="@+id/vodHistory"
@@ -127,7 +127,7 @@
                         android:focusableInTouchMode="true"
                         android:padding="8dp"
                         android:src="@drawable/ic_setting_history"
-                        app:tint="#9A9AA6" />
+                        app:tint="#8C8C98" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -155,7 +155,7 @@
                         android:focusableInTouchMode="true"
                         android:padding="8dp"
                         android:src="@drawable/ic_setting_home"
-                        app:tint="#9A9AA6" />
+                        app:tint="#8C8C98" />
 
                     <androidx.appcompat.widget.AppCompatImageView
                         android:id="@+id/liveHistory"
@@ -168,7 +168,7 @@
                         android:focusableInTouchMode="true"
                         android:padding="8dp"
                         android:src="@drawable/ic_setting_history"
-                        app:tint="#9A9AA6" />
+                        app:tint="#8C8C98" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -196,7 +196,7 @@
                         android:focusableInTouchMode="true"
                         android:padding="8dp"
                         android:src="@drawable/ic_setting_home"
-                        app:tint="#9A9AA6" />
+                        app:tint="#8C8C98" />
 
                     <androidx.appcompat.widget.AppCompatImageView
                         android:id="@+id/wallRefresh"
@@ -209,7 +209,7 @@
                         android:focusableInTouchMode="true"
                         android:padding="8dp"
                         android:src="@drawable/ic_setting_refresh"
-                        app:tint="#9A9AA6" />
+                        app:tint="#8C8C98" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
 

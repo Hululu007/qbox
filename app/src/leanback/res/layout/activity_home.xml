@@ -23,6 +23,31 @@
         android:layout_height="match_parent"
         android:background="@drawable/shape_backdrop_scrim_d" />
 
+    <!-- 按需导航带（第 29 轮起）：静止 alpha=0 不可见；焦点进导航区时 HomeActivity 淡入。
+         第 35 轮回退 31 轮二次曲线版并延域 190dp；第 37 轮拆「主体+4dp 收边」，材质=@color/qbox_panel。
+         第 38 轮层级修正：放在内容层之下——栏是文字「背后」的底，不许盖住文字（同 vod 页修正）。 -->
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/nav_band"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:alpha="0"
+        android:orientation="vertical">
+
+        <View
+            android:id="@+id/nav_scrim"
+            android:layout_width="match_parent"
+            android:layout_height="190dp"
+            android:background="@drawable/shape_nav_scrim" />
+
+        <View
+            android:id="@+id/nav_scrim_edge"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:background="@drawable/shape_nav_bar_edge"
+            android:visibility="gone" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
     <!-- 内容层：从屏幕最顶开始，靠 paddingTop 让出头部空间。
          绘制的硬裁切线在 124dp（CustomVerticalGridView.setClipTop），
          卡片不会从分类条下面穿出来；clipToPadding=false 保证聚焦放大不被裁。 -->
@@ -45,15 +70,6 @@
             app:focusOutFront="true" />
 
     </com.fongmi.android.tv.ui.custom.ProgressLayout>
-
-    <!-- 按需导航带（第 29 轮起）：静止 alpha=0 不可见；焦点进导航区时 HomeActivity 淡入。
-         第 35 轮：回退到第 31 轮二次曲线版（撤 34 轮余弦），同公式延域 150→190dp，tab 行完整落入覆盖区。 -->
-    <View
-        android:id="@+id/nav_scrim"
-        android:layout_width="match_parent"
-        android:layout_height="190dp"
-        android:alpha="0"
-        android:background="@drawable/shape_nav_scrim" />
 
     <!-- 头部浮层：顶栏 + 分类条。位置与点播页逐 dp 相同，切页时整块框架不动。
          第 28 轮：200dp 顶栏压暗渐变撤掉（用户实机仍看出黑带），顶栏文字直接浮在氛围底图上。
@@ -160,8 +176,8 @@
                 android:shadowDx="0"
                 android:shadowDy="1"
                 android:shadowRadius="4"
-                android:textColor="@color/qbox_text_dim"
-                android:textSize="15sp"
+                android:textColor="@color/white_50"
+                android:textSize="14sp"
                 tools:text="09:20  10/30 周三" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>

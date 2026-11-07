@@ -138,14 +138,13 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private History mHistory;
     private boolean fullscreen;
     private boolean useParse;
-    /** 快进复用的控制条：一次 10s，停手 1.8s 自动收起。 */
-    private static final long SEEK_STEP_MS = 10000;
 
     private boolean seeking;
     private boolean seekFocus;
     private long seekBase;
-    private long lastSeekKeyTick;
-    private long seekHoldStartTick;
+    /** 进度条拖动：进入拖动前的按钮（退出时归还焦点）；本次 DOWN 链的 repeat 计数（0=单点）。 */
+    private View mScrubReturn;
+    private int scrubRepeats;
     /**
      * 用户刚按下的播放意图。MediaController 的 playWhenReady 是跨进程异步回传的，
      * 点完立刻读会读到上一拍的状态 —— 按钮文字就会「慢一次」，暂停时仍写暂停、播放时仍写播放。
@@ -426,6 +425,16 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         PlayerEngineDialog.setText(mBinding.control.action.player);
         // QBox: 不提供弹幕入口。
         mBinding.control.action.danmaku.setVisibility(View.GONE);
+        // 进度条拖动选中态（第 37 轮 P0-3 重做）：只用颜色表达——已播放段与圆球变标记色（qbox_accent），
+        // 圆球保持原尺寸；禁缩放整个控件（会把文字/圆球拉变形）、禁白边框（P0 用户打回）。
+        mBinding.control.seekBox.setOnFocusChangeListener((v, hasFocus) -> {
+            if (mBinding.control.seek.getTimeBar() instanceof androidx.media3.ui.DefaultTimeBar bar) {
+                int marker = getColor(com.fongmi.android.tv.R.color.qbox_accent);
+                bar.setPlayedColor(hasFocus ? marker : 0xFFFFFFFF);
+                bar.setScrubberColor(hasFocus ? marker : 0xFFFFFFFF);
+            }
+            if (!hasFocus) mKeyDown.setScrubMode(false);
+        });
     }
 
     private void setPlaybackMode() {
@@ -1176,11 +1185,35 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void showProgress() {
+        // 第 38 轮：补上转圈——include 进来的 view_progress 的立方体从没被喂过图
+        // （WebP 解码发生在 ProgressLayout 自己的 mProgressBinding 上，这份 include 是另一实例），
+        // 所以此前只剩 KB/s。转圈与速度文字垂直叠放（view_progress 布局原位），互不挤压。
+        if (!mCubeLoaded) {
+            mCubeLoaded = true;
+            try {
+                if (android.os.Build.VERSION.SDK_INT >= 28) {
+                    android.graphics.ImageDecoder.Source src = android.graphics.ImageDecoder.createSource(getResources(), com.fongmi.android.tv.R.raw.qbox_loading);
+                    android.graphics.drawable.Drawable d = android.graphics.ImageDecoder.decodeDrawable(src, (decoder, info, source) -> {
+                        int p = (int) (112 * getResources().getDisplayMetrics().density);
+                        decoder.setTargetSize(p, p);
+                    });
+                    mBinding.progress.loadingCube.setImageDrawable(d);
+                    if (d instanceof android.graphics.drawable.AnimatedImageDrawable) ((android.graphics.drawable.AnimatedImageDrawable) d).start();
+                } else {
+                    mBinding.progress.loadingCube.setImageResource(com.fongmi.android.tv.R.drawable.ic_logo);
+                }
+            } catch (Throwable ignored) {
+                mBinding.progress.loadingCube.setImageResource(com.fongmi.android.tv.R.drawable.ic_logo);
+            }
+        }
         mBinding.progress.getRoot().setVisibility(View.VISIBLE);
         App.post(mR3, 0);
         hideCenter();
         hideError();
     }
+
+    /** 播放器转圈 WebP 是否已解码（惰性一次）。 */
+    private boolean mCubeLoaded;
 
     private void hideProgress() {
         mBinding.progress.getRoot().setVisibility(View.GONE);
@@ -1785,7 +1818,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
             setR1Callback();
             // 只在焦点确实落在控制条内时才记 mFocus2，否则会把 video 记进去，
             // 之后 getFocus2() 一直接到 video，控制条按钮永远拿不到焦点。
-            if (panelFocused) mFocus2 = focus;
+            // seekBox 不记：它是拖动选中态的临时焦点位，归还焦点走 exitScrubFocus 的 mScrubReturn。
+            if (panelFocused && !isInside(mBinding.control.seekBox, focus)) mFocus2 = focus;
         }
         // 详情页（非全屏）的纵向焦点链在 Activity 层显式路由。
         // 之前靠 nextFocusDown 指向 HorizontalGridView 的 id，而网格本身不可聚焦，
@@ -1840,14 +1874,14 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     /**
-     * 控制栏焦点闭环：左右到行尾不丢焦点；上键进入进度条，下键回到动作行。
+     * 控制栏焦点闭环：左右到行尾不丢焦点；上键进入进度条（第 37 轮恢复并升级为可拖动选中态），下键回到动作行。
      * CustomUpDownView（倍速/字幕/片头片尾）自己要吃上下键调值，这里直接放行。
      */
     private boolean onControlKey(KeyEvent event) {
-        if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
         View focus = getCurrentFocus();
         if (focus == null) return false;
         if (isInside(mBinding.control.seekBox, focus)) return onSeekBarKey(event);
+        if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
         boolean inExtra = isInExtra(focus);
         boolean inMain = isInside(mBinding.control.action.main, focus);
         if (!inExtra && !inMain) return false;
@@ -1861,8 +1895,10 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
             }
             case KeyEvent.KEYCODE_DPAD_UP:
                 // 可调值类（倍速/片头/片尾，CustomUpDownView）：↑ 放行给控件就地调档（其 dispatch 消费，不串键）。
-                // 选择类：↑ 一律消费且无副作用——不再跳进度条、不改值、防误触（GS 防串键规则）。
-                return !(focus instanceof CustomUpDownView);
+                // 其余按钮：↑ 进进度条拖动选中态（第 37 轮：从功能列表按上聚焦到进度条）。
+                if (focus instanceof CustomUpDownView) return false;
+                enterScrubFocus(focus);
+                return true;
             case KeyEvent.KEYCODE_DPAD_DOWN:
                 if (focus instanceof CustomUpDownView) return false;
                 // 唯一例外：extra 行里按 ↓ 回主行「更多」——纯行内焦点导航（无值/seek 副作用），否则焦点会被困在 extra 行。
@@ -1873,53 +1909,64 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         }
     }
 
-    /** 进度条聚焦后的按键：左右 ±10s（立即 seek，进度条跟着走），下键回动作行。 */
+    /** 控制条「上」进进度条（第 37 轮）：记住来处按钮，进入拖动选中态（变色 + 圆球放大由 focus 监听统一施加）。 */
+    private void enterScrubFocus(View from) {
+        mScrubReturn = from;
+        seekFocus = true;
+        mKeyDown.setScrubMode(true);
+        mBinding.control.seekBox.requestFocus();
+    }
+
+    /** 退出拖动：焦点归还进入前按钮（不丢焦点）；选中态视觉由 focus 监听自动还原。 */
+    private void exitScrubFocus() {
+        seekFocus = false;
+        mKeyDown.setScrubMode(false);
+        View target = (mScrubReturn != null && mScrubReturn.isShown()) ? mScrubReturn : mBinding.control.action.playPause;
+        target.requestFocus();
+        mScrubReturn = null;
+    }
+
+    /** 进度条聚焦后的按键（第 37 轮重做）：
+        按住左右 = 与全局快进同一条阻尼曲线（CustomKeyDownVod 拖动模式，逐 tick 落位、progress 实时跟随）；
+        单点（DOWN→UP 无 repeat）= 固定百分比步长：±1% 片长，钳 5-30s（依据见 uiux-review-log 36/37 业内对照与选型）；
+        ↓/BACK 退出并回到进入前按钮；OK=播放/暂停；左右被消费不脱离进度条焦点。 */
     private boolean onSeekBarKey(KeyEvent event) {
         switch (event.getKeyCode()) {
-            case KeyEvent.KEYCODE_DPAD_LEFT: {
-                long step = seekStep(event);
-                if (step > 0) seekBy(-step);
-                return true;
-            }
+            case KeyEvent.KEYCODE_DPAD_LEFT:
             case KeyEvent.KEYCODE_DPAD_RIGHT: {
-                long step = seekStep(event);
-                if (step > 0) seekBy(step);
+                boolean forward = event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT;
+                if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                    if (event.getRepeatCount() == 0) scrubRepeats = 0;
+                    else scrubRepeats++;
+                    mKeyDown.onKeyDown(event);
+                } else if (event.getAction() == KeyEvent.ACTION_UP) {
+                    if (scrubRepeats == 0) {
+                        // 单点：固定百分比步长（±1% 片长，钳 5s-30s）。
+                        long duration = Math.max(0, player().getDuration());
+                        long step = duration > 0 ? Math.max(5_000, Math.min(30_000, duration / 100)) : 5_000;
+                        seekBy(forward ? step : -step);
+                        mKeyDown.reset();
+                        if (com.fongmi.android.tv.BuildConfig.DEBUG) {
+                            android.util.Log.d("QBoxSeek", "scrubTap step=" + step + " dur=" + duration);
+                        }
+                    } else {
+                        // 按住释放：交还曲线链路（onSeekEnd 落位稳定）。
+                        mKeyDown.onKeyDown(event);
+                    }
+                }
                 return true;
             }
             case KeyEvent.KEYCODE_DPAD_DOWN:
-                seekFocus = false;
-                mBinding.control.action.playPause.requestFocus();
+            case KeyEvent.KEYCODE_BACK:
+                if (event.getAction() == KeyEvent.ACTION_DOWN) exitScrubFocus();
                 return true;
             case KeyEvent.KEYCODE_DPAD_CENTER:
             case KeyEvent.KEYCODE_ENTER:
-                onPlayPause();
+                if (event.getAction() == KeyEvent.ACTION_UP) onPlayPause();
                 return true;
             default:
                 return true;
         }
-    }
-
-    /**
-     * 进度条焦点态也走阶梯加速，1.9.20 起与视频面手势统一为「按按住时长分档」（C9）：
-     * 前 1.5s 每步 10s（秒级细调窗口）→ 20s → 30s → 60s → 120s → 180s → 300s。
-     * repeat 事件间再加 300ms 节流，避免长按瞬间飞出很远。
-     */
-    private long seekStep(KeyEvent event) {
-        int repeat = event.getRepeatCount();
-        long now = SystemClock.uptimeMillis();
-        if (repeat == 0) seekHoldStartTick = now;
-        if (repeat > 0) {
-            if (now - lastSeekKeyTick < 300) return 0;
-            lastSeekKeyTick = now;
-        }
-        long elapsed = now - seekHoldStartTick;
-        if (elapsed < 1_500) return SEEK_STEP_MS;
-        if (elapsed < 3_500) return 20_000;
-        if (elapsed < 6_000) return 30_000;
-        if (elapsed < 9_000) return 60_000;
-        if (elapsed < 13_000) return 120_000;
-        if (elapsed < 17_000) return 180_000;
-        return 300_000;
     }
 
     private void seekBy(long delta) {
@@ -2079,7 +2126,9 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         seeking = false;
         mKeyDown.reset();
         App.removeCallbacks(mHideControl);
-        App.post(mHideControl, 1800);
+        // 进度条拖动释放：控制条是用户显式呼出的，回常规 5s 计时，不按「借出显示」1.8s 收起。
+        if (seekFocus) setR1Callback();
+        else App.post(mHideControl, 1800);
     }
 
     @Override
