@@ -120,3 +120,61 @@ colors.xml 已有 black_05→black_90 阶梯。drawable 里的散值（`#0D/#1A/
 | 进度条已播放/圆球（选中态） | `#5B8CFF` 标记色 | VideoActivity styleSeekBar/focus 监听 | ✅ 已落地（P0-3） |
 
 替换后验证：首页（`r38_home.png`）、分类筛选页（`r38_filter_open.png`）实测无掉对比度、无死白色块；tab 两档白（选中 L1/未选 L2）在实色栏上清晰。
+
+---
+
+## 5. 第 39 轮：颜色分层硬规则 + 跨页一致性核对
+
+### 5.1 分层硬规则（用户拍板，覆盖 §1.1 的「近似即并」弹性）
+
+| 档位 | 色值 | 只许用在 |
+|---|---|---|
+| **L1** | `#FFFFFF`（qbox_text） | 一切标题性/交互文字：tab、页标题、栏目标题（豆豆/片单/最近观看）、卡片标题、按钮文字、chip、详情标题 |
+| **L2** | `#C9C9D1`（qbox_text_dim） | **只有副标题与时钟**（详情 remark、历史卡进度「第01集」、各页时钟） |
+| **L3** | `#8C8C98`（qbox_text_mute） | 备注/说明/hint：卡片备注角文（已完结/更新至HD）、导演演员/年份行、搜索 hint |
+| 焦点反色 | `#0B0B0F`（qbox_focus_text） | 白药丸上的文字 |
+| 标记色 | `#5B8CFF`（qbox_accent） | 进度条选中、轨道选中、开关型按钮 ON 态（GS-01 登记） |
+
+注意「副标题 L2」与「备注 L3」是两种角色：页级副标题（详情页 remark、历史卡进度行）= L2；卡片右下角文/列表脚注（collect/vod 卡 remark、详情 meta）= L3。**同角色跨页必须同档。**
+
+### 5.2 跨页逐元素取色核对（1920×1080 截图，区域最亮 10% 像素中位法）
+
+| 语义元素 | 首页 | 分类页 | 聚合页 | 详情页 | 一致？ | 目标 token |
+|---|---|---|---|---|---|---|
+| 页头标题（豆豆\|片单） | `#FFFFFF` | `#FFFFFF` | `#FFFFFF` | — | ✅ | L1 |
+| tab 文字（热播电影等，非焦点） | `#FFFFFF` | `#FFFFFF` | `#FFFFFF` | — | ✅ | L1（选中/未选区分走底衬 15%/8% 白，不再走字色） |
+| 时钟 | `#C9C9D1` | `#C9C9D1` | `#C9C9D1` | — | ✅ | L2 |
+| 栏目标题（最近观看/更新推荐） | `#FFFFFF` | — | — | — | ✅ | L1 |
+| 卡片标题 | `#FFFFFF` | `#FFFFFF` | `#FFFFFF` | — | ✅ | L1 |
+| 卡片副标题（历史卡进度「第01集」） | `#C9C9D1` | — | — | — | ✅ | L2 |
+| 卡片备注角文（已完结/更新至HD） | — | — | `#8C8C98` | — | ✅ | L3（角色=备注，非副标题） |
+| 筛选 chip（收起/热度/全部…） | — | `#FFFFFF` | — | — | ✅ | L1 |
+| 详情标题 | — | — | — | `@color/qbox_text`（token 核对） | ✅ | L1 |
+| 详情副标题（更新至HD） | — | — | — | `@color/qbox_text_dim`（token 核对） | ✅ | L2 |
+| 详情 meta（导演/演员/年份） | — | — | — | `@color/qbox_text_mute`（token 核对） | ✅ | L3 |
+| 播放菜单按钮文字 | — | — | — | L1（menu 截图目验） | ✅ | L1 |
+| 轨道层选中项文字 | — | — | — | 蓝（`#5B8CFF` 系，目验） | ✅ | qbox_accent |
+
+详情页实测值受亮底图 AA 污染（#F1F1F1/#B1AFB0 等），改用 token 直查（activity_video.xml）为准；其余页暗底均匀，像素值即 token 值。
+
+**第 38 轮「已落地」项实机回验（取色非 diff）**：
+- 首页 tab 灰白问题根因 = FuncPresenter 不设 selected（TypeAdapter 有）→ 本轮改「tab 一律 L1、区分走底衬」，跨页实测同源同值 ✅
+- `adapter_history`/`adapter_vod`/`adapter_vod_rect` 卡片标题硬编码 `#FFFFFF`、`view_stats` `#E6FFFFFF` 四处漏改（38 轮表标 ✅ 但实际是硬编码值非 token）→ 本轮全部收口 `@color/qbox_text` ✅
+- `adapter_history` remark `#C9C9D1` 硬编码 → `@color/qbox_text_dim` ✅
+- 上轮其余项（text_dim/text.xml/styles/chip 档）抽验像素与 token 一致 ✅
+
+### 5.3 第 39 轮变更清单
+
+| 项 | 变更 | 说明 |
+|---|---|---|
+| `qbox_text_dim` | `#A6A6B0`→`#C9C9D1`（38 轮已换引用，39 轮定角色注释：只给副标题+时钟） | 分层定档 |
+| hero_tab_text / tab_text / text.xml | 统一为「焦点反色，其余 L1」 | 选中区分移交底衬 |
+| selector_hero_tab | 重写：focused 白药丸 / selected 15% 白 / normal 8% 白 | 底衬承担区分 |
+| activity_home / activity_vod 时钟 | `@color/qbox_text_dim` 14sp | L2 |
+| **track_text.xml（新）** | 轨道行文字：焦点反色 / **选中=qbox_accent** / 其余 L1 | P1-3 轨道选中颜色标志 |
+| **shape_sheet.xml（新）** | 底浮设置层背景 = `@color/qbox_panel`（72% 黑，顶圆角 20dp） | P1-3 层材质与播放菜单同 token |
+| shape_chip_toggle_on / control_toggle_text | ON 态：白描边/白字 → **qbox_accent 描边+accent 字**；OFF 态 #C9C9D1→L1 | 「循环点击变色表示开关」 |
+| 硬编码收口 ×5 | adapter_history×2 / adapter_vod / adapter_vod_rect / view_stats → token | 消灭绕过 token 的同值硬编码 |
+| 废串清理 | setting_ok_action/menu/pause、play_speed_setting 三处 strings 删除 | OK 直接暂停后设置项作废 |
+
+品牌色总数维持 **17**（无新增色值：shape_sheet 复用 qbox_panel，track_text/toggle 复用 L1/accent/反色）。

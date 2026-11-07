@@ -908,6 +908,33 @@ GS-35~GS-45 共 11 条并入 `docs/GOLDEN-STANDARDS.md`（引用 TV 编号，冲
 
 收尾：GS 更新（GS-01 标记色登记、GS-34 ↑出口修订、GS-42 原生重写、新增 GS-61/62）；color-audit.md 进度表。两仓本地 commit（不 push）。P1-2（播放菜单重排）/P1-3（轨道层半透明+底浮选择 UI）排入下一轮。
 
+### 第 39 轮（2026-11-07）— 颜色分层硬规则 + 跨页一致性 / 播放菜单 fongmi 化 / 轨道选择底浮式
+
+> 设备 1920×1080 截图（密度 2.0，960dp 宽）；取色 = 区域最亮 10% 像素中位法（.tmp/colorsample.py）。
+
+#### 39.1 颜色分层 + 跨页同色 ✅
+- 硬规则落地：标题性/交互文字一律 L1 `#FFFFFF`；**L2 `#C9C9D1` 只给副标题+时钟**；L3 只给备注/hint。tab 三份 color state list（hero_tab_text/tab_text/text.xml）统一为「焦点反色、其余 L1」，选中/未选区分移交底衬（selector_hero_tab：focused 白药丸 / selected 15% 白 / normal 8% 白）；时钟两布局 `@color/qbox_text_dim` 14sp。
+- 跨页根因：首页 tab 灰白 = FuncPresenter 不设 selected（TypeAdapter 有）→ 同一 tab 两页两色；本轮改「一律 L1」从根上消灭对 selected 的依赖。
+- **跨页逐元素取色核对表**（color-audit.md §5.2，11 行）：首页/分类页/聚合页实测全一致（标题/tab/卡片标题 `#FFFFFF`，时钟/历史卡副标题 `#C9C9D1`，聚合卡备注 `#8C8C98`=L3 备注角色）；详情页亮底图 AA 污染读数，改 token 直查（name=qbox_text / remark=qbox_text_dim / meta=qbox_text_mute）。
+- 38 轮「已落地」回验抓出 5 处漏改：adapter_history 标题+备注、adapter_vod、adapter_vod_rect、view_stats 硬编码 `#FFFFFF/#E6FFFFFF/#C9C9D1` → 全部收口 token。教训写入 GS-63（回验必须实机取色不看 diff；同值硬编码视同漏改）。
+- 品牌色总数维持 17：shape_sheet 复用 qbox_panel，track_text/toggle 复用 L1/accent/反色，无新增色值。
+
+#### 39.2 播放菜单 fongmi 化（P1-2）✅
+- 对照 stock `ab17e53`：原生控制条**本来就没有播放/暂停按钮**（OK 直接暂停 + hideControl）。布局重写为 fongmi 单行序列：下集/上集/[解析 gone]/EXO/硬解/刷新/重播/循环/倍速/比例/字幕/音轨/视轨/[弹幕/版本 gone]/章节/片头/片尾/**详情**（行尾，顶替上游「指令」位）；等宽权重铺满不滚动（GS-33 机制天然满足）。「更多」二级行、speedExtra、播放键设置项（PlayerSetting.isOkMenu + SettingActivity 行 + 三处 strings）全删——fongmi 没有的一律不留。
+- VideoActivity：`onKeyCenter` = `wasPlaying = !isEnded() && isPlayWhenReady()` → onPlayPause → 暂停则 `enterSeekMode()`（GS-48 精简态：名称/质量胶囊/进度条/时间，按钮行 GONE），恢复则 hideControl；mPlayIntent/showPlayIntent/updatePlayPause 整套按钮文字机制随按钮删除（12 处调用点清理）；getFocus2/showControl/exitScrubFocus/requestControlFocus 兜底全部改「下集」（fongmi 默认落点）。
+- 实测（r39_*）：OK 暂停 state=2 出精简时间状态（顶部标题条+底部时间/进度，无菜单）；OK 恢复 state=3 即收；菜单 16 键（本片有章节）铺满无滚动；循环 ON = 标记色描边+蓝字（OFF 回 L1），toast「循环：开」；倍速 ↑ 就地 1.0→1.2x（按钮即时显示 1.2x），OK 开倍速设置面板（slider 带入 1.2x）。
+
+#### 39.3 轨道选择底浮式（P1-3）✅
+- `BaseBottomSheetDialog` 加 `isSheet()` 分支：TrackDialog 回 fongmi 底浮式（底部浮起、全宽、高度随内容上限 85%），其余设置弹窗保持居中面板不动。层背景新 shape_sheet = `@color/qbox_panel`（72% 黑，顶圆角 20dp，GS-62 同 token 不另起色值）；假 inset 防御（consume + 常驻 margin 归零）与面板化同套。
+- 选中轨道颜色标志：新 track_text.xml（焦点反色 / **选中=qbox_accent** / 其余 L1），实测音轨层「0.19 Mbps, AAC-LC」非焦点态蓝字+浅底衬（`r39_track3`）。字幕/视轨同一 TrackDialog 类同码路径，一并生效。
+- GS 更新：GS-01 登记扩展（开关型 ON 态）、GS-34 删 extra 例外、GS-48 扩暂停复用、新增 GS-63（分层+跨页同色）、GS-64（播放流程完全对齐 fongmi）。
+
+#### 39.4 P0 回归 ✅
+- 进度条选中态：菜单 ↑ 进 scrub，已播段+圆球标记色，无变形无白框（`r39_scrub`）；循环蓝态在多帧间保持。
+- filter 层级：filter 展开后栏延展覆盖到最后一行底沿，chip 文字完整在栏上（`r39_filter2`）；焦点记忆：华语→海报→↑ 回「华语」行列双还原（`r39_fmem`）。
+- 历史行新增「不存在的罪人」带进度条卡片（播放位置记忆正常）。
+- 已知未验项（如实标注）：视轨/字幕层仅同码路径推断未逐页截图（音轨层已验）；seek 后缓冲帧本机 CDN 过快仍未捕到（沿 38 轮标注）。
+
 ---
 
 ## 3. 历史遗留与易回归
