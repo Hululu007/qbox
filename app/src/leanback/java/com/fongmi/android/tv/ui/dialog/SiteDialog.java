@@ -62,6 +62,12 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
         return 0.4f + (getCount() - 1) * 0.2f;
     }
 
+    /** 来源选择回退紧凑形态（第 40 轮）：列表 0.4 屏宽、网格 0.6/0.8 屏宽，不套 560dp 统一面板。 */
+    @Override
+    protected boolean isCompact() {
+        return true;
+    }
+
     @Override
     protected ViewBinding getBinding() {
         return binding = DialogSiteBinding.inflate(getLayoutInflater());

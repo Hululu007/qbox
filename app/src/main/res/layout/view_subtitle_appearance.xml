@@ -25,21 +25,21 @@
 
         <com.google.android.material.chip.Chip
             android:id="@+id/styleOriginal"
-            style="@style/Widget.Material3.Chip.Filter"
+            style="@style/QBoxDialogChip"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/subtitle_style_original" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/styleSystem"
-            style="@style/Widget.Material3.Chip.Filter"
+            style="@style/QBoxDialogChip"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/subtitle_style_system" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/styleCustom"
-            style="@style/Widget.Material3.Chip.Filter"
+            style="@style/QBoxDialogChip"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/subtitle_style_custom" />
@@ -48,7 +48,7 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/systemSetting"
-        style="@style/Widget.Material3.Button.TonalButton"
+        style="@style/QBoxDialogButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
@@ -86,56 +86,56 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/textWhite"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/QBoxDialogChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/subtitle_color_white" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/textYellow"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/QBoxDialogChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/subtitle_color_yellow" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/textCyan"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/QBoxDialogChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/subtitle_color_cyan" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/textGreen"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/QBoxDialogChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/subtitle_color_green" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/textOrange"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/QBoxDialogChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/subtitle_color_orange" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/textPink"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/QBoxDialogChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/subtitle_color_pink" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/textRed"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/QBoxDialogChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/subtitle_color_red" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/textBlue"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/QBoxDialogChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/subtitle_color_blue" />
@@ -173,21 +173,21 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/edgeNone"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/QBoxDialogChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/subtitle_edge_none" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/edgeOutline"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/QBoxDialogChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/subtitle_edge_outline" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/edgeShadow"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/QBoxDialogChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/subtitle_edge_shadow" />
@@ -221,28 +221,28 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/edgeBlack"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/QBoxDialogChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/subtitle_color_black" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/edgeWhite"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/QBoxDialogChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/subtitle_color_white" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/edgeGray"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/QBoxDialogChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/subtitle_color_gray" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/edgeYellow"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/QBoxDialogChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/subtitle_color_yellow" />
@@ -288,28 +288,28 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/backgroundTransparent"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/QBoxDialogChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/subtitle_color_transparent" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/backgroundDim"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/QBoxDialogChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/subtitle_background_dim" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/backgroundBlack"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/QBoxDialogChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/subtitle_color_black" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/backgroundGray"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/QBoxDialogChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/subtitle_color_gray" />

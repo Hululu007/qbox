@@ -49,16 +49,21 @@ public abstract class BaseAlertDialog extends DialogFragment {
     }
 
     /**
-     * 面板宽度策略统一（菜单统一组件）：TV 端所有 Alert 面板固定 560dp，
+     * 面板宽度策略统一（菜单统一组件）：TV 端 Alert 面板默认固定 560dp，
      * 与 BottomSheet 面板（BaseBottomSheetDialog.panelize）同宽、同圆角、同动画；
-     * 不再各处按 0.4/0.55/0.6 屏幕比例取宽导致一屏一个样。手机端仍按比例。
+     * 列表/内容本身就少的紧凑弹窗（isCompact，如来源选择）回退到按屏幕比例取宽。
      * cutout 标志与主窗口一致：部分电视盒子上报假刘海安全区（实测左侧 320px），
      * 不设则面板内容被向右推且右缘被裁。
      */
+    /** 紧凑弹窗：不套 560dp 统一宽，按 factor 取屏幕比例（第 40 轮，来源选择回退紧凑形态）。 */
+    protected boolean isCompact() {
+        return false;
+    }
+
     protected void setWidth(float factor) {
         if (getDialog() == null || getDialog().getWindow() == null) return;
         WindowManager.LayoutParams params = getDialog().getWindow().getAttributes();
-        params.width = Util.isLeanback() ? ResUtil.dp2px(560) : (int) (ResUtil.getScreenWidth() * factor);
+        params.width = Util.isLeanback() && !isCompact() ? ResUtil.dp2px(560) : (int) (ResUtil.getScreenWidth() * factor);
         params.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
         getDialog().getWindow().setAttributes(params);
         if (!Util.isLeanback()) return;

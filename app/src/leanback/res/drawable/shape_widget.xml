@@ -2,7 +2,8 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
 
-    <solid android:color="@color/black_40" />
+    <!-- 第 40 轮：HUD 覆盖层材质并入 qbox_panel（原 black_40 偏透，与面板规格不一致）。 -->
+    <solid android:color="@color/qbox_panel" />
 
     <corners android:radius="8dp" />
 

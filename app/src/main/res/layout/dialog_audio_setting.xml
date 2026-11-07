@@ -25,7 +25,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/compare"
-            style="@style/Widget.Material3.Button.TonalButton"
+            style="@style/QBoxDialogButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
@@ -34,7 +34,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/reset"
-            style="@style/Widget.Material3.Button.TonalButton"
+            style="@style/QBoxDialogButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/audio_effect_reset"
@@ -135,14 +135,14 @@
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetOriginal"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/setting_preset_original" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetNatural"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/audio_effect_natural" />
@@ -167,28 +167,28 @@
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetVocal"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/audio_effect_vocal" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetCinema"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/audio_effect_cinema" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetBass"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/audio_effect_bass" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetTreble"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/audio_effect_treble" />
@@ -213,49 +213,49 @@
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetPop"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/audio_effect_pop" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetRock"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/audio_effect_rock" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetDance"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/audio_effect_dance" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetElectronic"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/audio_effect_electronic" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetHipHop"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/audio_effect_hiphop" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetJazz"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/audio_effect_jazz" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetClassical"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/audio_effect_classical" />
@@ -280,7 +280,7 @@
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetCustom"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/audio_effect_custom" />
@@ -331,6 +331,7 @@
                     android:orientation="vertical">
 
                     <com.google.android.material.materialswitch.MaterialSwitch
+        app:thumbTint="@color/switch_thumb" app:trackTint="@color/switch_track"
                         android:id="@+id/loudness"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -398,28 +399,28 @@
 
                             <com.google.android.material.chip.Chip
                                 android:id="@+id/channelAuto"
-                                style="@style/Widget.Material3.Chip.Filter"
+                                style="@style/QBoxDialogChip"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/audio_channel_auto" />
 
                             <com.google.android.material.chip.Chip
                                 android:id="@+id/channelStereo"
-                                style="@style/Widget.Material3.Chip.Filter"
+                                style="@style/QBoxDialogChip"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/audio_channel_stereo" />
 
                             <com.google.android.material.chip.Chip
                                 android:id="@+id/channelMono"
-                                style="@style/Widget.Material3.Chip.Filter"
+                                style="@style/QBoxDialogChip"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/audio_channel_mono" />
 
                             <com.google.android.material.chip.Chip
                                 android:id="@+id/channelReverse"
-                                style="@style/Widget.Material3.Chip.Filter"
+                                style="@style/QBoxDialogChip"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/audio_channel_reverse" />

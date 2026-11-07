@@ -30,21 +30,21 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/secondaryOff"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/QBoxDialogChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/subtitle_secondary_off" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/secondaryAuto"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/QBoxDialogChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/subtitle_secondary_auto" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/secondarySelect"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/QBoxDialogChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/subtitle_secondary_select" />

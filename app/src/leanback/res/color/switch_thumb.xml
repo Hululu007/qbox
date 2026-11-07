@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 弹窗开关 thumb（第 40 轮品牌化）：开 = 标记色，关 = 60% 白（亮度层级表达关态）。 -->
+    <item android:color="@color/qbox_accent" android:state_checked="true" />
+    <item android:color="@color/white_60" />
+</selector>

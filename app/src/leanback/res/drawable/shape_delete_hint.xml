@@ -2,7 +2,8 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
 
-    <solid android:color="#CC000000" />
+    <!-- 第 40 轮：删除提示遮罩并入 qbox_panel（原 80% 实黑）。 -->
+    <solid android:color="@color/qbox_panel" />
     <corners android:radius="20dp" />
     <stroke
         android:width="1dp"

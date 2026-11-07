@@ -25,7 +25,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/compare"
-            style="@style/Widget.Material3.Button.TonalButton"
+            style="@style/QBoxDialogButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
@@ -34,7 +34,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/reset"
-            style="@style/Widget.Material3.Button.TonalButton"
+            style="@style/QBoxDialogButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/video_effect_reset"
@@ -119,14 +119,14 @@
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetOriginal"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/setting_preset_original" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetNatural"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/video_effect_natural" />
@@ -151,21 +151,21 @@
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetVivid"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/video_effect_vivid" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetClear"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/video_effect_clear" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetBright"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/video_effect_bright" />
@@ -190,35 +190,35 @@
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetSoft"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/video_effect_soft" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetCinema"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/video_effect_cinema" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetWarm"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/video_effect_warm" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetCool"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/video_effect_cool" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetComfort"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/video_effect_comfort" />
@@ -243,21 +243,21 @@
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetAnime"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/video_effect_anime" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetSport"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/video_effect_sport" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetGame"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/video_effect_game" />
@@ -282,7 +282,7 @@
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/presetCustom"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/QBoxDialogChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/video_effect_custom" />

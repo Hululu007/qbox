@@ -179,4 +179,21 @@
         <item name="android:fontFeatureSettings">tnum</item>
     </style>
 
+    <!-- ===== 第 40 轮：高级设置弹窗品牌统一（克制、少描边、层级靠亮度差） ===== -->
+    <!-- 弹窗 chip：去 Material 描边；底衬只承担亮度层级（10% 白），焦点 = 白药丸反色字。 -->
+    <style name="QBoxDialogChip" parent="Widget.Material3.Chip.Filter">
+        <item name="chipStrokeWidth">0dp</item>
+        <item name="chipBackgroundColor">@color/chip_bed</item>
+        <item name="android:textColor">@color/text</item>
+        <item name="checkedIconVisible">false</item>
+        <item name="chipIconVisible">false</item>
+    </style>
+
+    <!-- 弹窗文字按钮（重置等）：无填充无描边，文字 L1，焦点白药丸反色字。 -->
+    <style name="QBoxDialogButton" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textColor">@color/text</item>
+        <item name="android:background">@drawable/selector_chip_round</item>
+        <item name="rippleColor">@color/transparent</item>
+    </style>
+
 </resources>

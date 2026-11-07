@@ -14,6 +14,10 @@
         android:stepSize="0.5"
         android:valueFrom="2"
         android:valueTo="5"
-        app:tickVisible="false" />
+        app:haloColor="@color/transparent"
+        app:thumbTint="@color/qbox_text"
+        app:tickVisible="false"
+        app:trackColorActive="@color/qbox_text"
+        app:trackColorInactive="@color/white_30" />
 
 </FrameLayout>

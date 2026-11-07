@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 弹窗 chip 底衬（第 40 轮）：焦点 = 实白（配深色字），普通 = 10% 白（亮度层级，无描边）。 -->
+    <item android:color="@color/qbox_text" android:state_focused="true" />
+    <item android:color="@color/white_10" />
+</selector>

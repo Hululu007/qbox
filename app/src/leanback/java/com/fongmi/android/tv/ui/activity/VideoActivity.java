@@ -1224,14 +1224,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.widget.text.setText("");
     }
 
-    private void showInfo() {
-        // QBox: 暂停/加载统一走底部控制条，中央大播放键不再出现（详情页也会残留巨幅图标）。
-        mBinding.widget.top.setVisibility(View.VISIBLE);
-        mBinding.widget.center.setVisibility(View.GONE);
-        mBinding.widget.duration.setText(player().getDurationTime());
-        mBinding.widget.position.setText(player().getPositionTime(0));
-    }
-
     private void hideInfo() {
         mBinding.widget.top.setVisibility(View.GONE);
         mBinding.widget.center.setVisibility(View.GONE);
@@ -1628,8 +1620,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
             mBinding.poster.setVisibility(View.GONE);
             hideCenter();
         } else if (isPaused()) {
-            if (isFullscreen()) showInfo();
-            else hideInfo();
+            // 第 40 轮：暂停不再弹顶部标题条——底部精简态已有标题/时间/进度，顶部重复是冗余。
+            hideInfo();
         }
     }
 

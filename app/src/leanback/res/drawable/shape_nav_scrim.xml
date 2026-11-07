@@ -1,105 +1,104 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 按需导航带（第 35 轮回退 + 覆盖修正）：静止态 alpha=0 不可见；焦点真实落在导航区（顶栏/分类条容器内）时淡入。
-     基线 = 第 31 轮用户认可的 15 段二次曲线版（commit 9eb31bf）：alpha 按 85%×(1-(y/H)^2) 连续衰减，
-     顶部近水平（toolbar/tab 文字区对比度稳定），尾部加速到 0。
-     第 35 轮修正：原 H=150dp 时 tab 行下缘（118dp）处 alpha 仅 32%，文字压在渐变尾端（用户判「横线切海报」）。
-     同一公式延域到 H=190dp：tab 行（76-118dp）全程 alpha 71%→52%，带下缘在 tab 行下方 72dp 处才归零。
-     采样点 alpha：0dp 85% / 40dp 81% / 80dp 70% / 120dp 51% / 160dp 25% / 190dp 0%。
+<!-- 按需导航带（第 35 轮回退 + 第 40 轮材质对齐）：静止态 alpha=0 不可见；焦点真实落在导航区（顶栏/分类条容器内）时淡入。
+     第 40 轮：与播放菜单面板同一设计逻辑（用户拍板「两个应该同样的设计逻辑 一致的颜色和透明度」）——
+     基色 #090A0D → 纯黑（与 shape_controller 同色）；峰值 85% → 72%（= qbox_panel，菜单渐变中档）；
+     文字区（0-118dp：顶栏+tab 行）缓降 72%→48%，与菜单文字区（48-72%）同档；尾部二次曲线归零（保留 35 轮「尾端不穿文字、无硬边」几何）。
+     对比度（亮海报 200/255 底）：tab 行底缘 48% 处 L1 白 5.0:1、时钟 30dp 处 L2 #C9C9D1 7.0:1，均过 4.5:1。
      Android 原生 gradient 只支持 3 个色标，故用 19 段 × 10dp layer-list 切片拼分段线性近似（相邻段端点同色，无接缝）。 -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:gravity="top" android:height="10dp">
         <shape android:shape="rectangle">
-            <gradient android:angle="270" android:startColor="#D9090A0D" android:endColor="#D8090A0D" android:type="linear" />
+            <gradient android:angle="270" android:startColor="#B8000000" android:endColor="#B3000000" android:type="linear" />
         </shape>
     </item>
     <item android:gravity="top" android:height="10dp" android:top="10dp">
         <shape android:shape="rectangle">
-            <gradient android:angle="270" android:startColor="#D8090A0D" android:endColor="#D6090A0D" android:type="linear" />
+            <gradient android:angle="270" android:startColor="#B3000000" android:endColor="#AD000000" android:type="linear" />
         </shape>
     </item>
     <item android:gravity="top" android:height="10dp" android:top="20dp">
         <shape android:shape="rectangle">
-            <gradient android:angle="270" android:startColor="#D6090A0D" android:endColor="#D3090A0D" android:type="linear" />
+            <gradient android:angle="270" android:startColor="#AD000000" android:endColor="#A8000000" android:type="linear" />
         </shape>
     </item>
     <item android:gravity="top" android:height="10dp" android:top="30dp">
         <shape android:shape="rectangle">
-            <gradient android:angle="270" android:startColor="#D3090A0D" android:endColor="#CF090A0D" android:type="linear" />
+            <gradient android:angle="270" android:startColor="#A8000000" android:endColor="#A3000000" android:type="linear" />
         </shape>
     </item>
     <item android:gravity="top" android:height="10dp" android:top="40dp">
         <shape android:shape="rectangle">
-            <gradient android:angle="270" android:startColor="#CF090A0D" android:endColor="#CA090A0D" android:type="linear" />
+            <gradient android:angle="270" android:startColor="#A3000000" android:endColor="#9E000000" android:type="linear" />
         </shape>
     </item>
     <item android:gravity="top" android:height="10dp" android:top="50dp">
         <shape android:shape="rectangle">
-            <gradient android:angle="270" android:startColor="#CA090A0D" android:endColor="#C3090A0D" android:type="linear" />
+            <gradient android:angle="270" android:startColor="#9E000000" android:endColor="#99000000" android:type="linear" />
         </shape>
     </item>
     <item android:gravity="top" android:height="10dp" android:top="60dp">
         <shape android:shape="rectangle">
-            <gradient android:angle="270" android:startColor="#C3090A0D" android:endColor="#BB090A0D" android:type="linear" />
+            <gradient android:angle="270" android:startColor="#99000000" android:endColor="#94000000" android:type="linear" />
         </shape>
     </item>
     <item android:gravity="top" android:height="10dp" android:top="70dp">
         <shape android:shape="rectangle">
-            <gradient android:angle="270" android:startColor="#BB090A0D" android:endColor="#B2090A0D" android:type="linear" />
+            <gradient android:angle="270" android:startColor="#94000000" android:endColor="#8F000000" android:type="linear" />
         </shape>
     </item>
     <item android:gravity="top" android:height="10dp" android:top="80dp">
         <shape android:shape="rectangle">
-            <gradient android:angle="270" android:startColor="#B2090A0D" android:endColor="#A8090A0D" android:type="linear" />
+            <gradient android:angle="270" android:startColor="#8F000000" android:endColor="#8A000000" android:type="linear" />
         </shape>
     </item>
     <item android:gravity="top" android:height="10dp" android:top="90dp">
         <shape android:shape="rectangle">
-            <gradient android:angle="270" android:startColor="#A8090A0D" android:endColor="#9D090A0D" android:type="linear" />
+            <gradient android:angle="270" android:startColor="#8A000000" android:endColor="#85000000" android:type="linear" />
         </shape>
     </item>
     <item android:gravity="top" android:height="10dp" android:top="100dp">
         <shape android:shape="rectangle">
-            <gradient android:angle="270" android:startColor="#9D090A0D" android:endColor="#90090A0D" android:type="linear" />
+            <gradient android:angle="270" android:startColor="#85000000" android:endColor="#80000000" android:type="linear" />
         </shape>
     </item>
     <item android:gravity="top" android:height="10dp" android:top="110dp">
         <shape android:shape="rectangle">
-            <gradient android:angle="270" android:startColor="#90090A0D" android:endColor="#82090A0D" android:type="linear" />
+            <gradient android:angle="270" android:startColor="#80000000" android:endColor="#7A000000" android:type="linear" />
         </shape>
     </item>
     <item android:gravity="top" android:height="10dp" android:top="120dp">
         <shape android:shape="rectangle">
-            <gradient android:angle="270" android:startColor="#82090A0D" android:endColor="#73090A0D" android:type="linear" />
+            <gradient android:angle="270" android:startColor="#7A000000" android:endColor="#78000000" android:type="linear" />
         </shape>
     </item>
     <item android:gravity="top" android:height="10dp" android:top="130dp">
         <shape android:shape="rectangle">
-            <gradient android:angle="270" android:startColor="#73090A0D" android:endColor="#63090A0D" android:type="linear" />
+            <gradient android:angle="270" android:startColor="#78000000" android:endColor="#70000000" android:type="linear" />
         </shape>
     </item>
     <item android:gravity="top" android:height="10dp" android:top="140dp">
         <shape android:shape="rectangle">
-            <gradient android:angle="270" android:startColor="#63090A0D" android:endColor="#52090A0D" android:type="linear" />
+            <gradient android:angle="270" android:startColor="#70000000" android:endColor="#63000000" android:type="linear" />
         </shape>
     </item>
     <item android:gravity="top" android:height="10dp" android:top="150dp">
         <shape android:shape="rectangle">
-            <gradient android:angle="270" android:startColor="#52090A0D" android:endColor="#3F090A0D" android:type="linear" />
+            <gradient android:angle="270" android:startColor="#63000000" android:endColor="#52000000" android:type="linear" />
         </shape>
     </item>
     <item android:gravity="top" android:height="10dp" android:top="160dp">
         <shape android:shape="rectangle">
-            <gradient android:angle="270" android:startColor="#3F090A0D" android:endColor="#2B090A0D" android:type="linear" />
+            <gradient android:angle="270" android:startColor="#52000000" android:endColor="#3B000000" android:type="linear" />
         </shape>
     </item>
     <item android:gravity="top" android:height="10dp" android:top="170dp">
         <shape android:shape="rectangle">
-            <gradient android:angle="270" android:startColor="#2B090A0D" android:endColor="#16090A0D" android:type="linear" />
+            <gradient android:angle="270" android:startColor="#3B000000" android:endColor="#1F000000" android:type="linear" />
         </shape>
     </item>
     <item android:gravity="top" android:height="10dp" android:top="180dp">
         <shape android:shape="rectangle">
-            <gradient android:angle="270" android:startColor="#16090A0D" android:endColor="#00090A0D" android:type="linear" />
+            <gradient android:angle="270" android:startColor="#1F000000" android:endColor="#00000000" android:type="linear" />
         </shape>
     </item>
 </layer-list>

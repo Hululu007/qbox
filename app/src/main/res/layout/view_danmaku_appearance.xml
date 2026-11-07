@@ -21,6 +21,7 @@
             android:textAppearance="?attr/textAppearanceBodyLarge" />
 
         <com.google.android.material.materialswitch.MaterialSwitch
+        app:thumbTint="@color/switch_thumb" app:trackTint="@color/switch_track"
             android:id="@+id/textBoldSwitch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
@@ -116,28 +117,28 @@
 
         <com.google.android.material.chip.Chip
             android:id="@+id/styleNone"
-            style="@style/Widget.Material3.Chip.Filter"
+            style="@style/QBoxDialogChip"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/danmaku_style_none" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/styleShadow"
-            style="@style/Widget.Material3.Chip.Filter"
+            style="@style/QBoxDialogChip"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/danmaku_style_shadow" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/styleStroke"
-            style="@style/Widget.Material3.Chip.Filter"
+            style="@style/QBoxDialogChip"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/danmaku_style_stroke" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/styleProjection"
-            style="@style/Widget.Material3.Chip.Filter"
+            style="@style/QBoxDialogChip"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/danmaku_style_projection" />
@@ -353,21 +354,21 @@
 
         <com.google.android.material.chip.Chip
             android:id="@+id/colorDefault"
-            style="@style/Widget.Material3.Chip.Filter"
+            style="@style/QBoxDialogChip"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/danmaku_color_default" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/colorColorful"
-            style="@style/Widget.Material3.Chip.Filter"
+            style="@style/QBoxDialogChip"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/danmaku_color_colorful" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/colorGradient"
-            style="@style/Widget.Material3.Chip.Filter"
+            style="@style/QBoxDialogChip"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/danmaku_color_gradient" />
