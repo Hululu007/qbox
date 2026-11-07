@@ -6,10 +6,10 @@
          标题/导演/演员在亮色剧照上也能读清。 -->
     <gradient
         android:angle="0"
-        android:centerColor="#B3090A0D"
+        android:centerColor="#B312141B"
         android:centerX="0.55"
-        android:endColor="#E6090A0D"
-        android:startColor="#00090A0D"
+        android:endColor="#E612141B"
+        android:startColor="#0012141B"
         android:type="linear" />
 
 </shape>

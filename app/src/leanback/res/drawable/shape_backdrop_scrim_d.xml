@@ -11,8 +11,8 @@
         <shape android:shape="rectangle">
             <gradient
                 android:angle="270"
-                android:endColor="#00090A0D"
-                android:startColor="#1F090A0D"
+                android:endColor="#0012141B"
+                android:startColor="#1F12141B"
                 android:type="linear" />
         </shape>
     </item>
@@ -25,8 +25,8 @@
         <shape android:shape="rectangle">
             <gradient
                 android:angle="90"
-                android:endColor="#00090A0D"
-                android:startColor="#4D090A0D"
+                android:endColor="#0012141B"
+                android:startColor="#4D12141B"
                 android:type="linear" />
         </shape>
     </item>
@@ -37,8 +37,8 @@
         <shape android:shape="rectangle">
             <gradient
                 android:angle="0"
-                android:endColor="#00090A0D"
-                android:startColor="#1F090A0D"
+                android:endColor="#0012141B"
+                android:startColor="#1F12141B"
                 android:type="linear" />
         </shape>
     </item>
@@ -49,8 +49,8 @@
         <shape android:shape="rectangle">
             <gradient
                 android:angle="180"
-                android:endColor="#00090A0D"
-                android:startColor="#1F090A0D"
+                android:endColor="#0012141B"
+                android:startColor="#1F12141B"
                 android:type="linear" />
         </shape>
     </item>

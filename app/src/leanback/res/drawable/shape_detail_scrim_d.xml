@@ -6,10 +6,10 @@
          比 C 版（55%/82%）轻一档，不上黑带；初版 30%/65% 在亮海报上演员行仅 ~1.6:1，不达标。 -->
     <gradient
         android:angle="0"
-        android:centerColor="#73090A0D"
+        android:centerColor="#7312141B"
         android:centerX="0.5"
-        android:endColor="#C0090A0D"
-        android:startColor="#1A090A0D"
+        android:endColor="#C012141B"
+        android:startColor="#1A12141B"
         android:type="linear" />
 
 </shape>

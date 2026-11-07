@@ -1,8 +1,10 @@
 <resources>
 
-    <!-- QBox「Cinema」设计 token：纯黑画布 + 单色文字 + 克制的蓝色点缀。
-         参考 Netflix 的影院感与 Infuse 的精致留白，避免大面积彩色块。 -->
-    <color name="qbox_bg">#000000</color>
+    <!-- QBox「Cinema」设计 token：浅黑灰画布 + 单色文字 + 克制的蓝色点缀。
+         第 42 轮：纯黑 → 浅黑灰（用户拍板：半透明黑面板叠在纯黑上糊成一块看不出层次，
+         靠底面明度差让面板自然浮出，不靠描边）。取 #12141B：冷调深灰，与标记蓝同族不打架；
+         L1 白文字对比仍 ~19:1，72% 黑面板合成后比底色暗 ~3 档，层次可读。 -->
+    <color name="qbox_bg">#12141B</color>
     <color name="qbox_icon_bg">#FFFFFF</color>
     <color name="qbox_bg_soft">#0B0B0E</color>
     <color name="qbox_surface">#17171C</color>
@@ -18,7 +20,7 @@
     <color name="qbox_focus_text">#0B0B0F</color>
 
     <!-- 顶栏实底（1.9.7 起改由 shape_top_scrim 承担，保留 token 给后续实底栏用）。 -->
-    <color name="qbox_header_scrim">#F0090A0D</color>
+    <color name="qbox_header_scrim">#F012141B</color>
 
     <!-- 面板材质主体中档（第 37 轮抽取自播放控制条 shape_controller 的 48%→72%→90% 黑渐变中档）：
          导航「栏」（bar 变体）与控制条面板共用同一材质——均匀实色打底，不在栏上另起色值。 -->

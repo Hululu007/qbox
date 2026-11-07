@@ -6,10 +6,10 @@
          55% 处 55%、右缘 82%——文字仍可读，但海报透得更多。 -->
     <gradient
         android:angle="0"
-        android:centerColor="#8C090A0D"
+        android:centerColor="#8C12141B"
         android:centerX="0.55"
-        android:endColor="#D1090A0D"
-        android:startColor="#00090A0D"
+        android:endColor="#D112141B"
+        android:startColor="#0012141B"
         android:type="linear" />
 
 </shape>

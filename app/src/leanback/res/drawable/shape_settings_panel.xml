@@ -2,11 +2,9 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
 
-    <!-- 设置页两列内容的面板底色：比页面背景略亮一档，让设置项从纯黑里“浮”出来。 -->
-    <solid android:color="@color/qbox_surface" />
+    <!-- 设置页分组背景块（第 42 轮，撤销「整页实底豁免」）：与全部面板同一套材质——
+         qbox_panel 72% 半透明黑，叠在浅黑灰页面底上靠明度差浮出；无描边（GS-65）。 -->
+    <solid android:color="@color/qbox_panel" />
     <corners android:radius="20dp" />
-    <stroke
-        android:width="1dp"
-        android:color="#1FFFFFFF" />
 
 </shape>
