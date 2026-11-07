@@ -86,12 +86,16 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
      * 旧模型实测（QBoxSeek 逐 tick 日志）：档间 BLEND 窗结束后的固定步长段速率反而低于窗内峰值
      * （如 14s 档窗内爬到 ~165x，窗外固定 100s/700ms≈143x），形成「高速段中夹低速段」的碎裂手感。
      *
-     * 新模型：单一连续速率曲线 f(t)=R0+(cap−R0)·(1−e^(−(t−T0)/τ))——
-     * 任意时刻只按一条曲线走，每 tick 位移 = 曲线定积分差值 cumAt(u2)−cumAt(u1)，中途无重置、无档位、无台阶。
+     * 新模型：单一连续速率曲线，每 tick 位移 = 曲线定积分差值 cumAt(u2)−cumAt(u1)，中途无重置、无档位、无台阶。
      * 前 3 秒细调段保持不变（±1s @130ms，GS-42）；3 秒处曲线速率 R0=1000/130≈7.7x，与细调档标称速率连续衔接。
-     * 第 35 轮定案 B（用户拍板）：cap=max(8x, 片长/180s)（顶速约 3 分钟横贯全片；片长由 setDuration 每 tick 注入，
-     * 无片长时 8x 兜底）。A 模式（8x 死封顶）与 --ei s 切换入口一并移除。
-     * 快退与快进同一曲线对称（方向只取符号）。遥控器 FF/REW 媒体键与方向键共用本曲线。
+     * 第 36 轮重写（用户拍板）：**ramp 曲线与片长解耦——所有片长共用同一条基础倍率曲线
+     * f(t)=R0+(BASE_MAX−R0)(1−e^(−(t−3s)/τ))（渐近 64x），片长只决定「截顶」位置**
+     * （旧 B 模型 rate 随 cap 整体缩放，短片整条曲线被压扁，即用户抱怨的成因）。
+     * cap = clamp(片长/60s, 8x, 60x)：设计目标「约 1 分钟按住可穿越全长」；
+     * 下限 8x 不得低于细调段速率 R0（否则曲线断裂）；上限 60x = 1 小时片 60s 整穿越，
+     * 再高时单 tick 位移 ≥7.2s，盲操过冲风险大于收益。
+     * 片长由 setDuration 每 tick 注入，无片长时按 8x 兜底。快退与快进同一曲线对称（方向只取符号）。
+     * 遥控器 FF/REW 媒体键与方向键共用本曲线。
      */
     private static final long FINE_MS = 3_000;      // 细调段时长（不变）
     private static final long FINE_STEP = 1_000;    // 细调步长（不变）
@@ -99,7 +103,9 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
     private static final long COARSE_TICK = 120;    // 粗调段最小节拍（防过密 seek）
     private static final double R0 = FINE_STEP / (double) FINE_TICK;   // ≈7.69x，3s 处连续
     private static final double TAU = 2_500.0;      // 爬升时间常数：t=5.5s 达 63% 爬升，t=9s 达 91%
-    private static final double CAP_MIN = 8.0;      // 定案 B 下限：无片长/短片兜底
+    private static final double BASE_MAX = 64.0;    // 统一基础曲线渐近顶速：所有片长同一条 ramp
+    private static final double CAP_MIN = 8.0;      // 片长封顶下限：不得低于 R0（保持连续）
+    private static final double CAP_MAX = 60.0;     // 片长封顶上限：1 小时片约 1 分钟穿越
 
     private long durationMs;
 
@@ -107,19 +113,34 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
         durationMs = Math.max(0, ms);
     }
 
+    /** 片长封顶：纯片长函数，只截顶、不改变 ramp 形状。 */
     private double cap() {
-        return durationMs > 0 ? Math.max(CAP_MIN, durationMs / 180_000.0) : CAP_MIN;
+        if (durationMs <= 0) return CAP_MIN;
+        return Math.max(CAP_MIN, Math.min(CAP_MAX, durationMs / 60_000.0));
     }
 
-    /** 粗调段累计位移的不定积分（u=elapsed−3000ms）：G(u)=R0·u+(cap−R0)·(u+τ·e^(−u/τ))−(cap−R0)·τ；G(0)=0。 */
+    /** 统一 ramp 爬到本片 cap 的时点 u*（ms，u=elapsed−3000）；cap≥BASE_MAX 时不发生截顶。 */
+    private double uStar(double cap) {
+        double f = (cap - R0) / (BASE_MAX - R0);
+        if (f >= 1.0) return Double.POSITIVE_INFINITY;
+        return -TAU * Math.log(1.0 - f);
+    }
+
+    /** 基础曲线（渐近 BASE_MAX）累计位移的不定积分 G(u)=64u+(BASE_MAX−R0)·τ·e^(−u/τ)−(BASE_MAX−R0)·τ；G(0)=0。 */
+    private double baseCum(double u) {
+        return R0 * u + (BASE_MAX - R0) * (u + TAU * Math.exp(-u / TAU)) - (BASE_MAX - R0) * TAU;
+    }
+
+    /** 粗调段累计位移：u≤u* 走统一曲线积分，u>u* 后按 cap 线性延伸（截顶段）。 */
     private double cumAt(long u) {
         double cap = cap();
-        return R0 * u + (cap - R0) * (u + TAU * Math.exp(-u / TAU)) - (cap - R0) * TAU;
+        double us = uStar(cap);
+        return u <= us ? baseCum(u) : baseCum(us) + cap * (u - us);
     }
 
     private double rateAt(long u) {
-        double cap = cap();
-        return R0 + (cap - R0) * (1 - Math.exp(-u / TAU));
+        double r = R0 + (BASE_MAX - R0) * (1 - Math.exp(-u / TAU));
+        return Math.min(r, cap());
     }
 
     private void seek(KeyEvent event, boolean forward) {
