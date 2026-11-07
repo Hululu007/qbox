@@ -145,13 +145,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     /** 进度条拖动：进入拖动前的按钮（退出时归还焦点）；本次 DOWN 链的 repeat 计数（0=单点）。 */
     private View mScrubReturn;
     private int scrubRepeats;
-    /**
-     * 用户刚按下的播放意图。MediaController 的 playWhenReady 是跨进程异步回传的，
-     * 点完立刻读会读到上一拍的状态 —— 按钮文字就会「慢一次」，暂停时仍写暂停、播放时仍写播放。
-     * 按下时先乐观地翻到目标状态，声音/画面状态回传（或 800ms 兜底）后再交还给真实状态。
-     */
-    private Boolean mPlayIntent;
-    private int mPlayIntentSeq;
     private final Runnable mHideControl = this::hideControl;
 
     /** 播放器 buffering/ready 时会把焦点甩回画面层，这里按需把焦点钉回进度条。 */
@@ -347,7 +340,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.control.action.speed.setDownListener(() -> stepSpeed(false));
         mBinding.control.action.next.setOnClickListener(view -> checkNext());
         mBinding.control.action.prev.setOnClickListener(view -> checkPrev());
-        mBinding.control.action.playPause.setOnClickListener(view -> onPlayPause());
         mBinding.control.action.scale.setOnClickListener(view -> onScale());
         mBinding.control.action.speed.setOnClickListener(view -> onSpeedSetting());
         mBinding.control.action.reset.setOnClickListener(view -> onReset());
@@ -361,10 +353,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.control.action.edition.setOnClickListener(view -> onEdition());
         mBinding.control.action.chapter.setOnClickListener(view -> onChapter());
         mBinding.control.action.opening.setOnClickListener(view -> onOpening());
-        mBinding.control.action.speedExtra.setOnClickListener(view -> onSpeedSetting());
         mBinding.control.action.ending.setOnLongClickListener(view -> onEndingReset());
         mBinding.control.action.opening.setOnLongClickListener(view -> onOpeningReset());
-        mBinding.control.action.more.setOnClickListener(view -> onMore());
         mBinding.control.action.statsButton.setOnClickListener(view -> onStats());
         mBinding.stats.getRoot().setOnClickListener(view -> onStats());
         mBinding.video.setOnTouchListener((view, event) -> mKeyDown.onTouchEvent(event));
@@ -1264,8 +1254,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         action.setAlpha(1f);
         action.setVisibility(View.VISIBLE);
         root.setVisibility(View.VISIBLE);
-        setExtra(view != null && isInExtra(view));
-        updatePlayPause();
         updateSpeedButton();
         updateTrackLabels();
         // 等控制条真正布局完再要焦点：setVisibility(VISIBLE) 只触发 requestLayout，
@@ -1285,10 +1273,9 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
             public void onGlobalLayout() {
                 root.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 View focus = target != null && target.isShown() ? target : getFocus2();
-                if (focus == null || !focus.isShown()) focus = mBinding.control.action.more;
-                // 末位保险：more 也可能因行宽溢出等原因不可见，回到永远存在的播放键，保证控制条呼出必有焦点。
-                if (focus == null || !focus.isShown()) focus = mBinding.control.action.playPause;
-                if (focus != null && focus.isShown()) focus.requestFocus();
+                // 末位保险：目标不可见时回到恒在的「下集」，保证控制条呼出必有焦点。
+                if (focus == null || !focus.isShown()) focus = mBinding.control.action.next;
+                focus.requestFocus();
             }
         });
     }
@@ -1312,7 +1299,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
             root.setAlpha(1f);
             action.setAlpha(1f);
             action.setVisibility(View.VISIBLE);
-            setExtra(false);
             setSubtitleLift(false);
         }).start();
         App.removeCallbacks(mR1);
@@ -1324,31 +1310,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
             if (mBinding.player.getSubtitleView() != null) mBinding.player.getSubtitleView().setBottomPaddingFraction(lift ? 0.2f : 0.08f);
         } catch (Throwable ignored) {
         }
-    }
-
-    /** 更多面板：非常用开关收在二级行，主行保持一屏放得下。 */
-    private void onMore() {
-        boolean show = mBinding.control.action.extra.getVisibility() != View.VISIBLE;
-        setExtra(show);
-        if (show) App.post(() -> mBinding.control.action.scale.requestFocus(), 50);
-        setR1Callback();
-    }
-
-    private void setExtra(boolean show) {
-        int visibility = show ? View.VISIBLE : View.GONE;
-        if (mBinding.control.action.extra.getVisibility() == visibility) return;
-        mBinding.control.action.extra.setVisibility(visibility);
-        mBinding.control.action.more.setText(show ? R.string.play_less : R.string.play_more);
-    }
-
-    private boolean isInExtra(View view) {
-        View extra = mBinding.control.action.extra;
-        while (view != null) {
-            if (view == extra) return true;
-            if (!(view.getParent() instanceof View)) return false;
-            view = (View) view.getParent();
-        }
-        return false;
     }
 
     private void hideCenter() {
@@ -1639,7 +1600,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     @Override
     protected void onStateChanged(int state) {
-        updatePlayPause();
         switch (state) {
             case Player.STATE_BUFFERING:
                 if (seekFocus) App.post(mRestoreSeekFocus, 150);
@@ -1664,7 +1624,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     @Override
     protected void onPlayingChanged(boolean isPlaying) {
-        updatePlayPause();
         if (isPlaying) {
             mBinding.poster.setVisibility(View.GONE);
             hideCenter();
@@ -1672,13 +1631,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
             if (isFullscreen()) showInfo();
             else hideInfo();
         }
-    }
-
-    /** 暂停/恢复的意图一变就刷新按钮，不再等 isPlaying 跟着变（缓冲时两者不同步）。 */
-    @Override
-    public void onPlayWhenReadyChanged(boolean playWhenReady, int reason) {
-        if (mPlayIntent != null && playWhenReady == mPlayIntent) mPlayIntent = null;
-        if (isOwner()) updatePlayPause();
     }
 
     @Override
@@ -1738,47 +1690,18 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         controller().play();
     }
 
-    /** 控制栏里的播放/暂停按钮：和 OK 键走同一套状态判断。 */
+    /** OK 键 = 暂停/播放（菜单不再有独立按钮，与 fongmi 一致）。 */
     private void onPlayPause() {
         if (service() == null) return;
         // 播完以后再按，用户想的是「重播」，不是「暂停一个已经停住的画面」。
         if (isEnded()) {
             onReplay();
-            showPlayIntent(true);
             return;
         }
         boolean playing = player().isPlayWhenReady();
         if (playing) onPaused();
         else if (player().isEmpty()) onRefresh();
         else onPlay();
-        showPlayIntent(!playing);
-    }
-
-    /** 先按用户意图刷新按钮，再在状态回传/超时后交还给真实状态。 */
-    private void showPlayIntent(boolean playing) {
-        mPlayIntent = playing;
-        final int seq = ++mPlayIntentSeq;
-        updatePlayPause();
-        App.post(() -> {
-            if (seq != mPlayIntentSeq) return;
-            mPlayIntent = null;
-            updatePlayPause();
-        }, 800);
-    }
-
-    /**
-     * 按钮文字跟随真实播放意图。
-     * 之前只看 isPlayWhenReady：播完（ENDED）时它仍是 true，按钮会停在「暂停」，
-     * 用户看到的是「已经播完了却写着暂停」。这里把 ENDED 也算成可播放态。
-     * 另外点按瞬间 MediaController 状态还没回传，用 mPlayIntent 覆盖，避免慢一拍。
-     */
-    private void updatePlayPause() {
-        if (service() == null || mBinding == null) return;
-        try {
-            boolean playing = mPlayIntent != null ? mPlayIntent : (!isEnded() && player().isPlayWhenReady());
-            mBinding.control.action.playPause.setText(playing ? R.string.pause : R.string.play);
-        } catch (Throwable ignored) {
-        }
     }
 
     private boolean isFullscreen() {
@@ -1803,10 +1726,9 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     private View getFocus2() {
         if (mFocus2 != null && mFocus2.isShown() && mFocus2 != mBinding.control.action.opening && mFocus2 != mBinding.control.action.ending) return mFocus2;
-        if (mBinding.control.action.playPause.isShown()) return mBinding.control.action.playPause;
         if (mBinding.control.action.chapter.isShown()) return mBinding.control.action.chapter;
-        if (mBinding.control.action.prev.isShown()) return mBinding.control.action.prev;
-        return mBinding.control.action.more;
+        // 默认落点与 fongmi 一致：行首「下集」。
+        return mBinding.control.action.next;
     }
 
     @Override
@@ -1882,14 +1804,11 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         if (focus == null) return false;
         if (isInside(mBinding.control.seekBox, focus)) return onSeekBarKey(event);
         if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
-        boolean inExtra = isInExtra(focus);
-        boolean inMain = isInside(mBinding.control.action.main, focus);
-        if (!inExtra && !inMain) return false;
+        if (!isInside(mBinding.control.action.main, focus)) return false;
         switch (event.getKeyCode()) {
             case KeyEvent.KEYCODE_DPAD_LEFT:
             case KeyEvent.KEYCODE_DPAD_RIGHT: {
-                ViewGroup row = inExtra ? mBinding.control.action.extra : mBinding.control.action.main;
-                View target = findFocusable(row, focus, event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT);
+                View target = findFocusable(mBinding.control.action.main, focus, event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT);
                 if (target != null) target.requestFocus();
                 return true;
             }
@@ -1901,8 +1820,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
                 return true;
             case KeyEvent.KEYCODE_DPAD_DOWN:
                 if (focus instanceof CustomUpDownView) return false;
-                // 唯一例外：extra 行里按 ↓ 回主行「更多」——纯行内焦点导航（无值/seek 副作用），否则焦点会被困在 extra 行。
-                if (inExtra) mBinding.control.action.more.requestFocus();
                 return true;
             default:
                 return false;
@@ -1921,7 +1838,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private void exitScrubFocus() {
         seekFocus = false;
         mKeyDown.setScrubMode(false);
-        View target = (mScrubReturn != null && mScrubReturn.isShown()) ? mScrubReturn : mBinding.control.action.playPause;
+        View target = (mScrubReturn != null && mScrubReturn.isShown()) ? mScrubReturn : mBinding.control.action.next;
         target.requestFocus();
         mScrubReturn = null;
     }
@@ -2038,7 +1955,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         root.setAlpha(1f);
         mBinding.control.action.getRoot().setVisibility(View.GONE);
         root.setVisibility(View.VISIBLE);
-        updatePlayPause();
         updateTrackLabels();
         setSubtitleLift(true);
     }
@@ -2145,22 +2061,23 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     @Override
     public void onKeyUp() {
-        showControl(mBinding.control.action.playPause);
+        showControl(getFocus2());
     }
 
     @Override
     public void onKeyDown() {
-        showControl(mBinding.control.action.playPause);
+        showControl(getFocus2());
     }
 
     @Override
     public void onKeyCenter() {
-        // OK 键行为可配：默认播放/暂停；选「呼出菜单」时第一次按 OK 弹控制栏，再按才作用到焦点按钮。
-        if (PlayerSetting.isOkMenu()) showControl(mBinding.control.action.playPause);
-        else {
-            onPlayPause();
-            hideControl();
-        }
+        // 第 39 轮定案（完全对齐 fongmi）：OK 直接暂停/播放，菜单不再有独立播放/暂停按钮。
+        // 暂停时只出「快进快退那种」时间/状态精简显示（enterSeekMode：按钮行 GONE），恢复播放即收起。
+        if (service() == null) return;
+        boolean wasPlaying = !isEnded() && player().isPlayWhenReady();
+        onPlayPause();
+        if (wasPlaying) enterSeekMode();
+        else hideControl();
     }
 
     @Override

@@ -230,20 +230,6 @@
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
                 <androidx.appcompat.widget.LinearLayoutCompat
-                    android:id="@+id/okAction"
-                    style="@style/SettingRow">
-
-                    <com.google.android.material.textview.MaterialTextView
-                        style="@style/SettingLabel"
-                        android:text="@string/setting_ok_action" />
-
-                    <com.google.android.material.textview.MaterialTextView
-                        android:id="@+id/okActionText"
-                        style="@style/SettingValue" />
-
-                </androidx.appcompat.widget.LinearLayoutCompat>
-
-                <androidx.appcompat.widget.LinearLayoutCompat
                     android:id="@+id/danmaku"
                     style="@style/SettingRow"
                     android:visibility="gone">

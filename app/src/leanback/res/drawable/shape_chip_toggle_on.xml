@@ -2,15 +2,15 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
 
-    <!-- 切换类按钮「开」态（非焦点）：白描边 + 15% 白底衬 + 白字。
-         色彩收敛后激活态只用白/灰阶，不再用品牌蓝（B7：亮色不协调，改用白色相对色）。 -->
+    <!-- 切换类按钮「开」态（非焦点）：标记色描边 + 标记色文字（第 39 轮：循环点击变色表示开关，
+         与进度条选中/轨道选中共用 qbox_accent，不再用白描边灰阶——用户实测「看不出开没开」）。 -->
     <corners android:radius="16dp" />
 
-    <solid android:color="#26FFFFFF" />
+    <solid android:color="@color/transparent" />
 
     <stroke
         android:width="1dp"
-        android:color="@color/qbox_text" />
+        android:color="@color/qbox_accent" />
 
     <padding
         android:bottom="8dp"

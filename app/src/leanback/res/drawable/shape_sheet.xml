@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 底浮式设置层背景（第 39 轮 P1-3：轨道选择等）：与播放控制条同一套黑材质 token
+     （qbox_panel 半透明），不另起色值；顶部圆角、底部直角贴屏。 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/qbox_panel" />
+    <corners
+        android:topLeftRadius="20dp"
+        android:topRightRadius="20dp"
+        android:bottomLeftRadius="0dp"
+        android:bottomRightRadius="0dp" />
+</shape>

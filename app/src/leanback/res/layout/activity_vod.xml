@@ -138,7 +138,7 @@
                 android:shadowDy="1"
                 android:shadowRadius="4"
                 android:letterSpacing="0.02"
-                android:textColor="@color/white_50"
+                android:textColor="@color/qbox_text_dim"
                 android:textSize="14sp"
                 tools:text="09:20:00" />
 

@@ -51,7 +51,7 @@
         android:shadowDy="1"
         android:shadowRadius="4"
         android:singleLine="true"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/qbox_text"
         android:textSize="15sp"
         tools:text="蜘蛛侠" />
 

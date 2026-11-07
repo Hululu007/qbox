@@ -82,10 +82,19 @@ public abstract class BaseBottomSheetDialog extends BottomSheetDialogFragment {
         return 0;
     }
 
+    /** 底浮式设置层（第 39 轮 P1-3：轨道选择等回 fongmi「从底部浮起」形态）。默认 false = TV 居中面板。 */
+    protected boolean isSheet() {
+        return false;
+    }
+
     private void setSheet(BottomSheetDialog dialog) {
         FrameLayout sheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
         if (sheet == null) return;
         if (Util.isLeanback()) {
+            if (isSheet()) {
+                sheetize(sheet);
+                return;
+            }
             // TV 面板化：高度由内容决定（上限 85% 屏高，超出内部滚动），不走手机的固定半屏高度。
             setBehavior(sheet);
             panelize(dialog, sheet);
@@ -93,6 +102,28 @@ public abstract class BaseBottomSheetDialog extends BottomSheetDialogFragment {
         }
         setHeight(sheet, getMaxHeight());
         setBehavior(sheet);
+    }
+
+    /**
+     * TV 底浮式（fongmi 原生形态）：从底部浮起、全宽、高度随内容（上限 85% 屏高）。
+     * 背景 = shape_sheet（qbox_panel 半透明，与播放控制条同一套黑材质 token，不另起色值）。
+     * 与面板化同一套假 inset 防御：本机会上报假的左侧安全区（320px），Material 会转成
+     * sheet 的 marginLeft 把层推偏，常驻布局监听强制归零。
+     */
+    private void sheetize(FrameLayout sheet) {
+        sheet.setBackgroundResource(R.drawable.shape_sheet);
+        BottomSheetBehavior<FrameLayout> behavior = BottomSheetBehavior.from(sheet);
+        behavior.setMaxWidth(-1);
+        behavior.setMaxHeight((int) (ResUtil.getScreenHeight() * 0.85f));
+        setBehavior(sheet);
+        ViewCompat.setOnApplyWindowInsetsListener(sheet, (v, insets) -> WindowInsetsCompat.CONSUMED);
+        fixSheetFrame(sheet);
+        sheet.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                fixSheetFrame(sheet);
+            }
+        });
     }
 
     /**

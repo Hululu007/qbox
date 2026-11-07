@@ -9,7 +9,8 @@
     <color name="qbox_surface_hi">#232329</color>
     <color name="qbox_line">#2B2B33</color>
     <color name="qbox_text">#FFFFFF</color>
-    <color name="qbox_text_dim">#A6A6B0</color>
+    <!-- L2 浅一档：只给副标题与时钟（第 39 轮用户硬性分层：标题/tab/按钮等交互文字一律 L1 白） -->
+    <color name="qbox_text_dim">#C9C9D1</color>
     <!-- 4.04:1 → 5.9:1：卡片备注/分组标题/搜索框 hint 在纯黑画布上必须过 WCAG AA。 -->
     <color name="qbox_text_mute">#8C8C98</color>
     <color name="qbox_accent">#5B8CFF</color>

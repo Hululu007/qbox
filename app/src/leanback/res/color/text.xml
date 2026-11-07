@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- 焦点态背景统一为白色药丸，文字反色；选中态深色底 + 白字；普通态次级灰白。 -->
+    <!-- 焦点态背景统一为白色药丸，文字反色；其余一律 L1 白（第 39 轮硬性分层：交互文字不要灰白）。 -->
     <item android:color="@color/qbox_focus_text" android:state_focused="true" />
-    <item android:color="@color/qbox_text" android:state_selected="true" />
-    <item android:color="@color/qbox_text" android:state_checked="true" />
-    <item android:color="#C9C9D1" />
+    <item android:color="@color/qbox_text" />
 </selector>

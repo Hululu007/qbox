@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- 白药丸焦点上反色，当前分类保持白色，未选分类压低。 -->
+    <!-- 白药丸焦点上反色；其余一律 L1 白（第 39 轮：选中与否由底衬表达，不由文字亮度）。 -->
     <item android:color="@color/qbox_focus_text" android:state_focused="true" />
-    <item android:color="@color/qbox_text" android:state_selected="true" />
-    <item android:color="#C9C9D1" />
+    <item android:color="@color/qbox_text" />
 
 </selector>

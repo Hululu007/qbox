@@ -60,7 +60,6 @@
     <string name="play_backward">←</string>
     <string name="play_speed">Speed</string>
     <string name="play_speed_hint">Speed <xliff:g name="speed">%1$s</xliff:g></string>
-    <string name="play_speed_setting">Speed setting</string>
     <string name="play_reset">Reset</string>
     <string name="play_replay">Replay</string>
     <string name="play_decode">Hard</string>
@@ -281,9 +280,6 @@
     <string name="setting_live">Live</string>
     <string name="setting_wall">Wallpaper</string>
     <string name="setting_player">Player setting</string>
-    <string name="setting_ok_action">OK key</string>
-    <string name="setting_ok_pause">Pause / Play</string>
-    <string name="setting_ok_menu">Open menu</string>
     <string name="setting_danmaku">Danmaku setting</string>
     <string name="setting_incognito">Incognito mode</string>
     <string name="setting_theme_color">Theme color</string>

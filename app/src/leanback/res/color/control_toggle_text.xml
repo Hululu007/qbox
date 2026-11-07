@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- 切换类按钮文字色（白色系版本）：
-         焦点+开 = 实白底上的深色字；焦点 = 深色字；开·非焦点 = 白字（配白描边底衬）；关 = 灰白。 -->
+    <!-- 切换类按钮文字色：焦点（含开+焦点）= 白药丸上深色字；开·非焦点 = 标记色（变色表示开关）；
+         关 = L1 白（第 39 轮硬性分层：交互文字一律高对比白，不用灰白）。 -->
     <item android:color="@color/qbox_focus_text" android:state_focused="true" android:state_selected="true" />
     <item android:color="@color/qbox_focus_text" android:state_focused="true" />
-    <item android:color="@color/qbox_text" android:state_selected="true" />
-    <item android:color="#C9C9D1" />
+    <item android:color="@color/qbox_accent" android:state_selected="true" />
+    <item android:color="@color/qbox_text" />
 </selector>
