@@ -178,3 +178,27 @@ colors.xml 已有 black_05→black_90 阶梯。drawable 里的散值（`#0D/#1A/
 | 废串清理 | setting_ok_action/menu/pause、play_speed_setting 三处 strings 删除 | OK 直接暂停后设置项作废 |
 
 品牌色总数维持 **17**（无新增色值：shape_sheet 复用 qbox_panel，track_text/toggle 复用 L1/accent/反色）。
+
+---
+
+## 6. 第 40 轮：面板材质单一标准（GS-65）与合规清单
+
+**规格（唯一）**：浮于内容之上的面板一律黑幕系——色 = 纯黑；透明度基准 = `qbox_panel`（72%，= 播放菜单渐变中档）；渐变面板只允许同族 `48%→72%→90%`（shape_controller）；圆角 28dp（浮层面板）/ 20dp 顶角（底浮 sheet）/ 8-10dp（HUD 小件）；**无描边**（层级靠亮度差、状态靠标记色）。整页 Activity 背景不适用。
+
+| 面 | 改前 | 改后 | 实测 |
+|---|---|---|---|
+| shape_controller（播放菜单） | 48→72→90 黑渐变 | 不动（基准） | — |
+| shape_panel（Alert/面板化弹窗） | 实心 `#17171C` | `@color/qbox_panel` | 来源弹窗透出海报复底 ✅ |
+| shape_nav_scrim（导航带，m=0 默认） | `#090A0D`、峰值 85%、tab 行 71→52% | **纯黑、峰值 72%、tab 行 60→44%、尾部二次归零** | 顶部合成亮度 13→26（菜单同区 ~23，差 ≤12%）✅ |
+| shape_nav_bar（栏变体 m=1） | qbox_panel 72% | 不动（已合规） | — |
+| shape_widget（HUD 提示） | black_40（40% 偏透） | `@color/qbox_panel` | — |
+| shape_stats（nerds 面板） | 80% 实黑 + 1dp 描边 | `@color/qbox_panel`、去描边 | — |
+| shape_delete_hint | 80% 实黑 | `@color/qbox_panel` | — |
+| 高级设置五弹窗（倍速/音频/视频/字幕/弹幕） | Material Filter Chip 描边 + TonalButton colorPrimary + 默认 slider/switch | QBoxDialogChip（无描边 10% 白衬）/QBoxDialogButton/switch 开=标记色/slider 白轨 | 倍速设置截图：无紫色残留、面板透视频 ✅ |
+| 设置页（activity_setting 等整页） | qbox_surface 实底 | 不动（整页豁免） | — |
+
+**来源弹窗尺寸回退**：改前（39 轮统一面板波及）= 560dp 宽实心；改后 = 384dp（列表 0.4 屏宽）/576/768dp（网格 2/3 列）紧凑 + 半透明（`BaseAlertDialog.isCompact`）。实测弹窗内边 759px ≈ 380dp ✅。
+
+**导航带对齐判定标准**：带开/关双截图同机位反解 alpha 剖面，顶部实测 0.658 vs 设计 0.66；与播放菜单平均（70%）同底合成亮度差 ≤12% 判定观感一致。tab 行底缘 48% 处 L1 白对比度 5.0:1（亮海报 200 底）、时钟 30dp 处 L2 7.0:1，均过 4.5:1。
+
+品牌色总数仍 **17**（无新增；chip_bed/switch_thumb/switch_track/icon_tint 均复用既有 token）。

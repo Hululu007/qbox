@@ -935,6 +935,36 @@ GS-35~GS-45 共 11 条并入 `docs/GOLDEN-STANDARDS.md`（引用 TV 编号，冲
 - 历史行新增「不存在的罪人」带进度条卡片（播放位置记忆正常）。
 - 已知未验项（如实标注）：视轨/字幕层仅同码路径推断未逐页截图（音轨层已验）；seek 后缓冲帧本机 CDN 过快仍未捕到（沿 38 轮标注）。
 
+### 第 40 轮（2026-11-07，v1.9.20 发版）— 循环聚焦去双层 / 暂停去顶标 / 来源弹窗回退 / 面板材质全局统一 / 发版 GitHub
+
+#### 40.1 循环聚焦去双层表达 ✅
+- 聚焦+开 = 白药丸 + **标记色文字**（shape_chip_toggle_on_focused 去 1.5dp 内圈描边；control_toggle_text 的 selected 提前到 focused 之前判定）。实测 `r40_repeat`：白丸上蓝字，无内圈。OFF 聚焦 = 白丸深字（与全站焦点一致）。
+
+#### 40.2 暂停去顶部标题 ✅
+- onPlayingChanged 暂停分支 showInfo→hideInfo（showInfo 成死码已删）。实测 `r40_pf`：暂停只出底部精简态（标题/质量胶囊/进度/时间），顶部无重复标题条。
+
+#### 40.3 来源弹窗回退紧凑+半透明 ✅
+- 根因：44ce5d6（第 16 轮统一弹层）把 BaseAlertDialog 全部钉死 560dp——SiteDialog 原 0.4 屏宽被波及。修：BaseAlertDialog 加 `isCompact()` 钩子，SiteDialog 回退 0.4/0.6/0.8 屏宽（列表 384dp/网格 576/768dp）；shape_panel 实心 surface→qbox_panel。实测 `r40_site5`：弹窗内边 759px≈380dp、透出首页底图。改前/改后：560dp 实心 → 384dp 半透明。
+
+#### 40.4 轨道层焦点强化 ✅
+- 齿轮/搜索/选择文件三个图标按钮：borderless ripple（TV 上聚焦不可见）→ selector_icon_btn（聚焦白圆）+ icon_tint（聚焦深色）。实测 `r40_gear2`：齿轮白圆一目了然；选中轨道「立体声, AAC-LC」蓝字保持。
+
+#### 40.5 高级设置品牌化 + 全局面板统一（GS-65）✅
+- shape_panel → qbox_panel（一处改，Alert+面板化 sheet 全半透明）；shape_widget/stats/delete_hint 散黑并入；新增 GS-65 单一标准（纯黑、qbox_panel 基准、无描边、整页豁免）。
+- 五弹窗（倍速/音频/视频/字幕/弹幕）控件品牌化：QBoxDialogChip（无 Material 描边、10% 白衬、焦点白丸）、QBoxDialogButton、switch 开=标记色、slider 白轨无彩晕。实测 `r40_speed2`：倍速设置无紫色残留、面板透视频。
+
+#### 40.6 导航带与播放菜单对齐 ✅
+- 实测对照：菜单渐变 48→72→90（平均 70%）；导航带原 85% 峰 #090A0D——「太深色」实锤。对齐：纯黑化 + 峰值 72%（=qbox_panel），文字区 72→48% 缓降、尾部二次归零（几何不动）。带开/关同机位反解：顶部 alpha 实测 0.658≈设计 0.66；合成亮度 13→26（菜单同区 ~23，差 ≤12%）。亮海报（紫蓝底）tab/时钟/标题全清晰（`r40_bright3`）；tab 底缘 48% 处 L1 5.0:1、时钟 L2 7.0:1。
+
+#### 40.7 发版 v1.9.20 ✅
+- versionCode 77→78 / versionName 1.9.19→1.9.20；commit 6920237；`git push origin ui-cinema` + `ui-cinema:main`（均快进）；annotated tag v1.9.20（--cleanup=verbatim，说明完整）已推送 qbox-tv。
+- GitHub Release（zqs1qiwan/qbox，latest）：QBox-1.9.20-armeabi-v7a.apk + QBox-1.9.20-arm64-v8a.apk + QBox-1.9.20-source.zip。
+- app 内更新验证：API `repos/zqs1qiwan/qbox/releases/latest` 返回 tag_name=v1.9.20、assets 双 APK 命名匹配 `QBox-<cleanTag>-<abi>.apk`；`releases/latest` 302 → /tag/v1.9.20（Updater 兜底路径）；设备装 1.9.20 手动检查更新 = 「已是最新」（证明客户端读取+解析+比较链路通）。
+
+#### 40.8 P0 回归 ✅
+- 进度条选中态标记色（`r40_scrub` 沿 39 轮路径复验）、循环蓝态跨帧保持、跨页同色未动、filter 层级/落点未动（本轮无相关代码变更）；导航带几何（190dp 尾归零、焦点进出显隐）实测未回归。
+- 备注：测试机装有 baiguotv 包（他项目），一次 BACK 链过长误入其前台已立即 am start 拉回，未做任何交互。
+
 ---
 
 ## 3. 历史遗留与易回归
