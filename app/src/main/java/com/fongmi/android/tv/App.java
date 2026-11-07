@@ -81,6 +81,9 @@ public class App extends Application implements Application.ActivityLifecycleCal
     @Override
     public void onCreate() {
         super.onCreate();
+        // 第 43 轮：源站名 emoji 支持（用户拍板「源上 emoji 更好肉眼识别」）——盒子固件字体链
+        // 渲染不出 emoji（实测 ▯），bundled NotoColorEmoji 随包内嵌；异步加载不阻塞启动。
+        androidx.emoji2.text.EmojiCompat.init(new androidx.emoji2.bundled.BundledEmojiCompatConfig(this));
         Notify.createChannel();
         registerActivityLifecycleCallbacks(this);
     }

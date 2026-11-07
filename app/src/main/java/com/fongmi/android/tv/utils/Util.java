@@ -5,7 +5,6 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Paint;
 import android.os.Build;
 import android.os.IBinder;
 import android.provider.Settings;
@@ -33,11 +32,12 @@ import java.util.regex.Pattern;
 
 public class Util {
 
-    private static Paint mGlyphPaint;
-
     /**
-     * 站点名/标签清洗：配置里常用 emoji 和图标字体做装饰，低端盒子（Android 9）字体不全，
-     * 会渲染成豆腐块。这里去掉系统字体渲染不出来的字符，保留正常文字。
+     * 站点名/标签清洗（第 43 轮重做）：用户拍板「要支持 emoji，源上 emoji 更好肉眼识别」——
+     * emoji 与装饰符号一律保留（设备 /system/fonts 有 NotoColorEmoji.ttf，TextView 默认字体链可渲染彩色 emoji）；
+     * ZWJ/VS15/VS16 保留（emoji 序列组成符，如 👨‍👩‍👧 不断裂）；
+     * 只删私有区 0xE000–0xF8FF（图标字体私有码位，任何字体都画不出，必豆腐）。CJK 与常用标点不受影响。
+     * 历史：1.9.3 曾按 Paint.hasGlyph 过滤 SMP/符号区（低端盒子豆腐块），43 轮实测本机字体链有 emoji 字体后放开。
      */
     public static String cleanName(String text) {
         if (TextUtils.isEmpty(text)) return "";
@@ -45,25 +45,11 @@ public class Util {
         for (int i = 0; i < text.length(); ) {
             int code = text.codePointAt(i);
             int size = Character.charCount(code);
-            String ch = text.substring(i, i + size);
             i += size;
-            if (code == 0x200D || code == 0xFE0F || code == 0xFE0E) continue;
             if (code >= 0xE000 && code <= 0xF8FF) continue;
-            // SMP 平面（绝大多数 emoji）与 BMP 符号区（箭头/杂项符号/装饰符 0x2190–0x2BFF，如 ♥⭐▶）
-            // 在精简字体的电视盒子上同样会豆腐块，一并按字体实际渲染能力过滤；CJK 与常用标点不受影响。
-            if ((code > 0xFFFF || (code >= 0x2190 && code <= 0x2BFF)) && !canRender(ch)) continue;
-            sb.append(ch);
+            sb.appendCodePoint(code);
         }
         return sb.toString().trim();
-    }
-
-    private static boolean canRender(String text) {
-        try {
-            if (mGlyphPaint == null) mGlyphPaint = new Paint();
-            return mGlyphPaint.hasGlyph(text);
-        } catch (Exception e) {
-            return true;
-        }
     }
 
     private static final Pattern EPISODE = Pattern.compile("(?i)(?:ep|第|e|[\\-\\.\\s])\\s?(\\d{1,4})");

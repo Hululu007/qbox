@@ -6,6 +6,7 @@ compileSdk = "37"
 
 annotation = "1.10.0"
 appcompat = "1.7.1"
+emoji2 = "1.5.0"
 biometric = "1.1.0"
 desugar = "2.1.5"
 leanback = "1.2.0"
@@ -52,6 +53,8 @@ zxingCore = "3.5.4"
 [libraries]
 annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+emoji2 = { group = "androidx.emoji2", name = "emoji2", version.ref = "emoji2" }
+emoji2-bundled = { group = "androidx.emoji2", name = "emoji2-bundled", version.ref = "emoji2" }
 biometric = { group = "androidx.biometric", name = "biometric", version.ref = "biometric" }
 desugar = { group = "com.android.tools", name = "desugar_jdk_libs_nio", version.ref = "desugar" }
 leanback = { group = "androidx.leanback", name = "leanback", version.ref = "leanback" }

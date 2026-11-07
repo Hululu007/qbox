@@ -131,6 +131,10 @@ dependencies {
     implementation project(':catvod')
     implementation project(':quickjs')
     implementation libs.appcompat
+    // 第 43 轮：源站名 emoji 支持——盒子固件字体链渲染不出 emoji（实测豆腐块），
+    // bundled NotoColorEmoji 随包内嵌（APK +~9.5MB），EmojiCompat 全局替换，AppCompatTextView 自动生效。
+    implementation libs.emoji2
+    implementation libs.emoji2.bundled
     implementation libs.lifecycle.service
     implementation libs.media
     implementation libs.palette

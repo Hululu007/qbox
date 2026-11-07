@@ -76,7 +76,14 @@ public class Notify {
 
     private void makeText(String text) {
         if (mToast != null) mToast.cancel();
-        mToast = Toast.makeText(App.get(), text, Toast.LENGTH_LONG);
+        // 第 43 轮：系统 Toast 不经 AppCompat，emoji 需显式过 EmojiCompat.process 才能用内嵌字体渲染
+        // （实测换源 toast 站名 emoji 豆腐块）；字体未加载完时返回原文，不受影响。
+        CharSequence cs = text;
+        try {
+            if (androidx.emoji2.text.EmojiCompat.get().getLoadState() == androidx.emoji2.text.EmojiCompat.LOAD_STATE_SUCCEEDED) cs = androidx.emoji2.text.EmojiCompat.get().process(text);
+        } catch (Exception ignored) {
+        }
+        mToast = Toast.makeText(App.get(), cs, Toast.LENGTH_LONG);
         mToast.show();
     }
 }
