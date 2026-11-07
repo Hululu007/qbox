@@ -22,6 +22,11 @@
     <!-- 顶栏实底（1.9.7 起改由 shape_top_scrim 承担，保留 token 给后续实底栏用）。 -->
     <color name="qbox_header_scrim">#F012141B</color>
 
+    <!-- 导航带/栏专用（第 43 轮，用户「再透一档」）：60% 黑——比面板基准 qbox_panel(72%) 透一档，
+         与播放菜单顶部(48%)同族观感；顶栏图标白圈焦点在栏上清晰可见。栏版主体与收边同 token；
+         渐变带（shape_nav_scrim）峰值同源 60%、文字区缓降到 40%、尾部二次归零。 -->
+    <color name="qbox_nav_bar">#99000000</color>
+
     <!-- 面板材质主体中档（第 37 轮抽取自播放控制条 shape_controller 的 48%→72%→90% 黑渐变中档）：
          导航「栏」（bar 变体）与控制条面板共用同一材质——均匀实色打底，不在栏上另起色值。 -->
     <color name="qbox_panel">#B8000000</color>

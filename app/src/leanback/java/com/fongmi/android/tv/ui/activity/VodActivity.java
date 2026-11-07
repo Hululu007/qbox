@@ -150,7 +150,7 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
         boolean bar = v == 1;
         filterBandOpen = filterBandOpen && bar;
         mBinding.navScrim.setBackgroundResource(bar
-                ? com.fongmi.android.tv.R.color.qbox_panel
+                ? com.fongmi.android.tv.R.color.qbox_nav_bar
                 : com.fongmi.android.tv.R.drawable.shape_nav_scrim);
         android.view.ViewGroup.LayoutParams lp = mBinding.navScrim.getLayoutParams();
         lp.height = com.fongmi.android.tv.utils.ResUtil.dp2px(bar ? NAV_BAR_SOLID_DP : 190);

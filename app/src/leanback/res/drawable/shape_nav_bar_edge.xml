@@ -5,7 +5,7 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
     <gradient
         android:angle="270"
-        android:startColor="@color/qbox_panel"
+        android:startColor="@color/qbox_nav_bar"
         android:endColor="#00000000"
         android:type="linear" />
 </shape>

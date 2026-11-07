@@ -468,7 +468,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         int v = com.github.catvod.utils.Prefers.getInt("debug_nav_variant", 0);
         boolean bar = v == 1;
         mBinding.navScrim.setBackgroundResource(bar
-                ? com.fongmi.android.tv.R.color.qbox_panel
+                ? com.fongmi.android.tv.R.color.qbox_nav_bar
                 : com.fongmi.android.tv.R.drawable.shape_nav_scrim);
         android.view.ViewGroup.LayoutParams lp = mBinding.navScrim.getLayoutParams();
         lp.height = com.fongmi.android.tv.utils.ResUtil.dp2px(bar ? 136 : 190);
