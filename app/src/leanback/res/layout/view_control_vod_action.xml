@@ -59,7 +59,7 @@
         android:id="@+id/repeat"
         style="@style/Control"
         android:layout_marginEnd="4dp"
-        android:background="@drawable/selector_chip_toggle"
+        android:background="@color/transparent"
         android:text="@string/play_repeat"
         android:textColor="@color/control_toggle_text" />
 

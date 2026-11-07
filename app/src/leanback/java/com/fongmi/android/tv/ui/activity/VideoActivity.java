@@ -349,6 +349,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.control.action.decode.setOnClickListener(view -> onDecode());
         mBinding.control.action.ending.setOnClickListener(view -> onEnding());
         mBinding.control.action.repeat.setOnClickListener(view -> onRepeat());
+        // 循环按钮（第 41 轮定稿）：全态无圈无衬——开关靠文字变色（白/标记色），聚焦靠加粗，两通道都不画圈。
+        mBinding.control.action.repeat.setOnFocusChangeListener((v, f) -> ((android.widget.TextView) v).setTypeface(null, f ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL));
         mBinding.control.action.danmaku.setOnClickListener(view -> onDanmaku());
         mBinding.control.action.edition.setOnClickListener(view -> onEdition());
         mBinding.control.action.chapter.setOnClickListener(view -> onChapter());
@@ -1620,8 +1622,11 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
             mBinding.poster.setVisibility(View.GONE);
             hideCenter();
         } else if (isPaused()) {
-            // 第 40 轮：暂停不再弹顶部标题条——底部精简态已有标题/时间/进度，顶部重复是冗余。
-            hideInfo();
+            // 第 41 轮：暂停顶部去标题留时钟——标题/时间底部精简态已有（第 40 轮去冗余），
+            // 但右上角时钟用户明确要留：top 只亮时钟，标题/分辨率保持 GONE。
+            mBinding.widget.title.setVisibility(View.GONE);
+            mBinding.widget.size.setVisibility(View.GONE);
+            mBinding.widget.top.setVisibility(View.VISIBLE);
         }
     }
 

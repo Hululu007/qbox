@@ -1,4 +1,4 @@
-﻿const icDir = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F5A623'><path d='M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z'/></svg>`;
+const icDir = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F5A623'><path d='M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z'/></svg>`;
 const icFile = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23717970'><path d='M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z'/></svg>`;
 let currentRoot = '';
 let currentFile = '';
@@ -136,14 +136,14 @@ function listFile(path, addHistory = false) {
             info = JSON.parse(res);
         } catch (e) {
             $('#loadingToast').hide();
-            warnToast('回應格式錯誤');
+            warnToast('响应格式错误');
             return;
         }
         const parent = info.parent;
         currentRoot = path;
         currentParent = parent;
         const array = info.files;
-        if (path === '' && array.length === 0) warnToast('可能沒有存儲權限');
+        if (path === '' && array.length === 0) warnToast('可能没有存储权限');
         $('#file_list').html('');
         if (parent !== '.') addFile(buildParentItem());
         array.forEach(node => {
@@ -155,7 +155,7 @@ function listFile(path, addHistory = false) {
     }).fail(function () {
         clearTimeout(loadingTimer);
         $('#loadingToast').hide();
-        warnToast('載入失敗');
+        warnToast('加载失败');
     });
 }
 
@@ -209,13 +209,13 @@ function confirmNewFolder(yes) {
         listFile(currentRoot);
     }).fail(function () {
         $('#loadingToast').hide();
-        warnToast('新增失敗');
+        warnToast('新建失败');
     });
 }
 
 function showDelFolderDialog(path, refreshPath) {
     pendingDelFolder = { path, refreshPath };
-    $('#delFolderContent').text('是否刪除 ' + path);
+    $('#delFolderContent').text('是否删除 ' + path);
     openDialog('delFolder');
 }
 
@@ -230,13 +230,13 @@ function confirmDelFolder(yes) {
         listFile(refreshPath);
     }).fail(function () {
         $('#loadingToast').hide();
-        warnToast('刪除失敗');
+        warnToast('删除失败');
     });
 }
 
 function showDelFileDialog(path) {
     currentFile = path;
-    $('#delFileContent').text('是否刪除 ' + path);
+    $('#delFileContent').text('是否删除 ' + path);
     openDialog('delFile');
 }
 
@@ -249,7 +249,7 @@ function confirmDelFile(yes) {
         listFile(currentRoot);
     }).fail(function () {
         $('#loadingToast').hide();
-        warnToast('刪除失敗');
+        warnToast('删除失败');
     });
 }
 

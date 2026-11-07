@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- 切换类按钮文字色（第 40 轮简化）：开 = 标记色（聚焦时白药丸上也是蓝字，变色即状态表达）；
-         关·聚焦 = 白药丸上深色字；关 = L1 白。 -->
+    <!-- 循环按钮文字色（第 41 轮定稿）：开 = 标记色，关 = L1 白；不再有任何底衬/描边/圈，
+         聚焦由代码加粗字重表达（变色 + 字重，两通道都不靠圈）。 -->
     <item android:color="@color/qbox_accent" android:state_selected="true" />
-    <item android:color="@color/qbox_focus_text" android:state_focused="true" />
     <item android:color="@color/qbox_text" />
 </selector>

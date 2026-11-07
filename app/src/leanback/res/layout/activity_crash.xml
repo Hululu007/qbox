@@ -18,7 +18,7 @@
         android:gravity="center"
         android:lineSpacingExtra="4dp"
         android:text="@string/crash_info"
-        android:textColor="@color/white"
+        android:textColor="@color/text"
         android:textSize="16sp" />
 
     <com.google.android.material.textview.MaterialTextView
@@ -30,7 +30,7 @@
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:text="@string/crash_restart"
-        android:textColor="@color/white" />
+        android:textColor="@color/text" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/details"
@@ -41,6 +41,6 @@
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:text="@string/crash_details"
-        android:textColor="@color/white" />
+        android:textColor="@color/text" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

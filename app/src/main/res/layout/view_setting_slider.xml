@@ -39,7 +39,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="12dp"
         android:focusable="true"
-        app:haloColor="@color/transparent"
+        app:haloColor="@color/white_20"
         app:thumbTint="@color/qbox_text"
         app:tickVisible="false"
         app:trackColorActive="@color/qbox_text"

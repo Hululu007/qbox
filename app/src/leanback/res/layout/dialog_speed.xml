@@ -14,7 +14,7 @@
         android:stepSize="0.5"
         android:valueFrom="2"
         android:valueTo="5"
-        app:haloColor="@color/transparent"
+        app:haloColor="@color/white_20"
         app:thumbTint="@color/qbox_text"
         app:tickVisible="false"
         app:trackColorActive="@color/qbox_text"
