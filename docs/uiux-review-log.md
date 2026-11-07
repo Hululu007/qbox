@@ -881,6 +881,33 @@ GS-35~GS-45 共 11 条并入 `docs/GOLDEN-STANDARDS.md`（引用 TV 编号，冲
 
 收尾：GS-42 改写（统一曲线+片长封顶口径，防「按比例压扁」再误解）；台账本节。两仓本地 commit（不 push）。待拍板：默认导航变体（m=0/m=1）、filter 底衬强度（#5E）。
 
+### 第 37 轮（2026-11-07）— 栏改实色+极细收边 / filter 延展 / 进度条可聚焦拖动 / 颜色清单
+
+#### 37.1 栏边缘：均匀实色 + 极细收边（材质对齐控制条面板）
+- 结构：`shape_nav_scrim_bar`（渐变尾）废，拆「实色主体 nav_scrim(136dp) + 4dp 收边 nav_scrim_edge」；主体色 = 新 token **`@color/qbox_panel #B8000000`**（= shape_controller 48/72/90 渐变的中档 72%，面板渐变中档也改指该 token，两处同源）。实测主体 alpha 0.716-0.724 全平，收边 136→140dp 单调归零（0.54→0.18→0）；亮/暗底边缘放大裁图各一（r37_crop_edge_bright / r37_crop_edge_dark2）。
+#### 37.2 filter：单独 scrim 删除，栏向下延展
+- `shape_filter_bed` 全删；栏版 filter 展开时主体 240ms 动画延展到最后一行 chip 底沿（TypeFragment.getFilterBottomPx + 8dp），收起归位；显隐 = 焦点在导航区 或 filter 展开。实测 bounds 644px=322dp 贴最后一行，收起无残影。
+- 业界对照（写入 GS-62 背景）：Netflix/Apple TV+/YouTube TV 进度条均可聚焦，选中=条加粗/球放大+变色；国产左右固定步长。
+#### 37.3 进度条可聚焦拖动
+- ↑ 从按钮行进进度条（UpDown 按钮 ↑ 仍调档），选中态=白框+提亮+1.35×（**后被 38 轮 P0-3 否决重做**）；↓/BACK 归还进入前按钮；按住走统一曲线；单点 ±1% 钳 5-30s（scrubTap step=30000 实测）。
+#### 37.4 颜色清单 docs/color-audit.md
+- 全仓扫描：文字色 13 个、白 alpha 散值 10+；合并后**品牌色 17 个**（文字 5 + 底色 6 + 强调 2 + 白衬描边 4）；标记色选定 `#5B8CFF`（面板底 5.4:1，理由与备选见文档 §3）。文字收敛落地：tab/chip 白系两档（选中 #FFFFFF/未选 #C9C9D1），hero_tab_text 反相 bug 修正；时钟降 white_50+14sp。
+
+### 第 38 轮（2026-11-07）— P0 打回修复：层级/焦点/原生快进/颜色落地/转圈
+
+#### 38.1 栏层级 bug（filter 文字被盖）✅
+- 根因：nav_band 在布局里位于 pager 之后（z 最上），72% 实色盖在 chip 文字上。修：两个布局把 nav_band 移到 pager 之下（backdrop 之上），tab/chip 文字天然在栏上。放大裁图 `r38_crop_chips.png`：文字完整无压暗无裁切。新增 GS-61。
+#### 38.2 海报按 ↑ 回 filter 落点 ✅
+- 根因：`mLastFilterRow` 只在「点击 chip」时记录，纯移动焦点不更新；且 `upToFilter` 用 firstFocusable 一律落行首。修：① OnChildViewHolderSelectedListener 持续跟踪焦点所在 chip 行；② upToFilter 恢复时取行内 HorizontalGridView 自己记忆的选中位（列也还原）。实测：地区行「华语」→海报→↑ 回「华语」；平台行「爱奇艺」→海报→↑ 回「爱奇艺」（行/列双还原，截图 r38_after_up3）。
+#### 38.3 fongmi 原生对齐（P1-1）✅
+- 对照上游 `ab17e53` 原版 CustomKeyDownVod：原生 = 每按键事件（含 repeat）固定 ±INTERVAL_SEEK(10s)，无曲线。QBox 自造三代模型（阶梯/连续曲线/统一曲线+片长封顶）**全部移除**，GS-42 重写为原生口径并立「禁止再自造变速曲线」。实测：全局每 tick step 恒 10000ms、cum 线性；拖动模式 = max(2×INTERVAL_SEEK, 1%片长)/repeat（38.75min 片实测 step=23251ms 恒等，2.3× 全局）。单点仍 ±1% 钳 5-30s。
+#### 38.4 颜色合并全落地 ✅
+- color-audit.md 映射表 13 项全部执行（进度表在文档内）：文字近似色并入 L1/L2/L3、白衬 24/29→26、描边 33→4D、shape_hero_tab_normal 删除、#4C8DFF 核查仅注释残留。首页/筛选页截图无掉对比度无死白块。
+#### 38.5 播放器转圈补挂 ✅
+- 现状结论：activity_video.xml 里 `<include view_progress>` 的 loading_cube **从未被喂图**（WebP 解码发生在 ProgressLayout 自己的 mProgressBinding 上，是另一实例）——不是丢了也不是被遮，是「另一份拷贝」。修：VideoActivity.showProgress 惰性解码同一 WebP 喂给 include 实例（API<28 退 ic_logo）。显隐沿用 STATE_BUFFERING→show / READY→hide。实测起播 `r38_load.png`：立方体动画 + 3 KB/s 垂直叠放；播放中无转圈；seek 后缓冲沿用同一路径（本机 CDN 过快未捕到帧，如实标注）。
+
+收尾：GS 更新（GS-01 标记色登记、GS-34 ↑出口修订、GS-42 原生重写、新增 GS-61/62）；color-audit.md 进度表。两仓本地 commit（不 push）。P1-2（播放菜单重排）/P1-3（轨道层半透明+底浮选择 UI）排入下一轮。
+
 ---
 
 ## 3. 历史遗留与易回归
