@@ -269,3 +269,35 @@ colors.xml 已有 black_05→black_90 阶梯。drawable 里的散值（`#0D/#1A/
 scrim 一族末端 `#090A0D`→`#12141B` 与底色同值，首页/详情/分类页海报淡出到底色的过渡实测无接缝（`r42_home`/`r42_navband` 目验：海报边缘溶入底色，无灰边、无亮线）。
 
 品牌色总数维持 **17**（`#12141B` 为 `qbox_bg` 改值非新增；`#090A0D` 从 scrim 族退役）。
+
+---
+
+## 9. 第 43 轮：导航带/栏再透一档（72%→60%）+ 元素级品牌统一化（GS-66）
+
+### 9.1 导航带/栏降透（用户：「下拉黑色透明背景有点太黑了，还需要跟播放菜单一样透明多一点，黑的导致搜索设置等按钮都看不到圆圈边缘了」）
+
+| 项 | 改前（40 轮） | 改后（43 轮） |
+|---|---|---|
+| 渐变带 `shape_nav_scrim` 峰值 | 72%（#B8） | **60%（#99）**，全曲线等比 ×0.833（形状不变），文字区底缘 48%→40% |
+| 栏版 `HomeActivity/VodActivity` 主体 | `@color/qbox_panel`（72%） | **`@color/qbox_nav_bar`（60%）**（新 token，面板基准 qbox_panel 不动） |
+| 栏版收边 `shape_nav_bar_edge` | qbox_panel | qbox_nav_bar（同源） |
+
+实测（同机位：首页焦点入导航区）：改前栏合成 `#0F0D0D` → 改后 `#161212`（透出海报柔光）；搜索/推送/收藏/下载/设置**非聚焦圆底边缘在栏上清晰可见**（r43_nav60b vs r42_nav）；搜索白丸焦点同帧对比更强。
+亮海报（200/255 底）60% 均匀段对比度预算：L1 ≈8.1:1、L2 ≈4.9:1，均过 4.5:1。
+GS-65 ② 已修订：导航带/栏 = qbox_nav_bar（60%），渐变带峰值 60%、文字区缓降到 40%。
+
+### 9.2 循环按钮聚焦态统一（GS-66 判例，纠正 41 轮误改）
+
+- 背景：`selector_repeat_bg`（聚焦=**同一块 `shape_chip_focused` 白药丸**，selected 无底衬——去掉的"圈"= selected 态 12% 白底 `shape_chip_activated`，不是聚焦样式）。
+- 文字：`control_toggle_text`：selected→accent（最优先）/ focused→qbox_focus_text / 默认 L1。
+- 四态实测（同帧邻钮对比）：关+聚焦=白丸深字（与邻钮一致）✓、开+聚焦=白丸蓝字 ✓、开+非聚焦=蓝字无衬 ✓、关+非聚焦=白字无衬 ✓。
+- 已知不一致登记：**直播 invert/across/change ON 态**仍走 `shape_chip_activated` 12% 白底，与点播循环"蓝字"不一致——待用户拍板是否统一（element-matrix.md §2）。
+
+### 9.3 emoji 渲染（源站名支持 emoji）
+
+- 现象：43 轮前 cleanName 按 hasGlyph 删 emoji（豆腐块）→ 实测本机 `/system/fonts/NotoColorEmoji.ttf` 存在但**固件字体链不挂**（TextView 默认链渲染 ▯）。
+- 方案：`androidx.emoji2:emoji2(-bundled) 1.5.0` 内嵌 NotoColorEmoji（APK +7.1MB，62.8MB），App.onCreate `EmojiCompat.init`；AppCompat/MaterialTextView 自动生效；系统 Toast 显式 `EmojiCompat.process`（Notify.makeText）。
+- `Util.cleanName` 重做：emoji/装饰符/ZWJ/VS 全保留，只删私有区 0xE000–0xF8FF。
+- 实测：详情页站名 🐻剧圈、聚合卡 🧽海绵🌸茉莉👀瓜子、历史卡角标 🐻剧圈——彩色 emoji 全显；改前 toast 豆腐块（crop_toast）→ 改后彩色（r43_dtl2/r43_pos2）。
+
+品牌色总数维持 **18**（新增 `qbox_nav_bar` #99000000 一项；导航带/栏专用）。
