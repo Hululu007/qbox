@@ -1133,6 +1133,30 @@ GS-35~GS-45 共 11 条并入 `docs/GOLDEN-STANDARDS.md`（引用 TV 编号，冲
 #### 44.4 设备侧（待开机验证）
 - `.214` 发版时仍处关机状态（adb device not found），以下项**待开机后验证，未执行**：① 装对应 ABI 的 1.9.21 release 包；② 设置页呈 B 样式（行直落背景无块）；③ 现机 1.9.20 debug 点「版本」应弹「发现新版本 v1.9.21」（正例），装 1.9.21 后应报「已是最新」。
 
+### 第 45 轮（2026-11-08）— main 分叉合并统一 / 二级设置页 B 化 / 恒定 latest 下载链接
+
+> 用户：「分叉有什么影响么？要合并一下统一一下；二级页也要统一；另外我们发版本可以打 latest 标签么？这样有一个固定的下载链接可以给外部使用，每次都定位到 latest」。
+
+#### 45.1 发布仓 main 分叉合并统一 ✅
+- **远端分叉内容**：qbox 仓 main 是一条与开发树**无共同祖先**的精简发布树，3 个提交（`c609663` 发布门面文件=LICENSE/README/branding/截图、`fd44c3d` 1.9.14 签名说明、`347c51d` ignore .dsh，作者 The Q，11-02）——全是门面文件，与 app 代码零交集。
+- **处理**：`merge FETCH_HEAD --allow-unrelated-histories`（用户明确不要 force push）。LICENSE/branding/截图自动纳入；冲突仅 `.gitignore`/`README.md` 两个 add/add——README = 门面版全文在前+开发者版附后（零放弃），.gitignore = 两边规则并集分区。merge commit `359625e`，已推 qbox main 与 qbox-tv ui-cinema。
+- **一致性验收**：`git diff a5d773b(v1.9.21 tag) 359625e(main HEAD) -- app/ catvod/ quickjs/ gradle/` = **0 行**——release 源码与 main HEAD 代码完全一致，差异仅为门面文件。
+- 另一 agent 的 .gitignore/README.md 工作区改动：stash→merge→恢复，全程未混入 commit、未丢失。
+
+#### 45.2 二级设置页统一 B 风格（GS-66）✅
+- 4 个二级页（播放/解码/预载/弹幕）容器 `shape_settings_panel`→transparent、padding 12dp→0dp——行直落 `#12141B` 底，与主设置页 B 同款。`shape_settings_panel` 自此无引用（留档待清理）。
+- element-matrix §5 已改「已统一」。**主+二级页同机位截图：待 .214 开机补拍**（45 轮执行时设备仍关机，debug 构建 62.8MB 已就绪）。
+
+#### 45.3 恒定 latest 下载链接 ✅
+- 不建 latest tag（会强移 tag 坏历史）；改为 v1.9.21 release 追加两件恒定名资产：`QBox-latest-arm64-v8a.apk`、`QBox-latest-armeabi-v7a.apk`（与版本名资产并存，release 现 5 件）。
+- 固定链接实测：`releases/latest/download/QBox-latest-arm64-v8a.apk` → 302 → `download/v1.9.21/QBox-latest-arm64-v8a.apk`，首字节 PK 头可下载 ✓（v7a 同）。
+- **对外固定链接**（每次发版自动指向最新）：`https://github.com/zqs1qiwan/qbox/releases/latest/download/QBox-latest-arm64-v8a.apk`（或 `-armeabi-v7a.apk`）。
+- 发版流程已写入 **GS-67**（双 ABI+source zip+双套命名+tag verbatim+三重验证+main 同树），以后每次发版必须同挂版本名与恒定名两套资产。
+
+#### 45.4 备注
+- `.214` 全程关机；待开机验证清单 = 44.4 三项 + 45.2 二级页 B 化同机位截图（主设置页/播放设置/解码设置）+ 45.3 恒定链接在设备浏览器可达性。
+- versionCode/Name 未动（45 轮改动为布局资源，发版等用户确认后走 GS-67）。
+
 ---
 
 ## 3. 历史遗留与易回归

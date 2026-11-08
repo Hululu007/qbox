@@ -159,6 +159,8 @@
   循环按钮判例（第 43 轮）：开关型菜单按钮的「聚焦」必须与同行其它按钮**同一块白药丸**（selector_chip/shape_chip_focused），开/关只由文字变色表达——用户两次打回「为什么光标聚焦到循环上跟其他菜单光标不一样」「让你改的是点击后的效果取消边框」；去掉的是 selected 态那层额外底衬（shape_chip_activated 12% 白），不是聚焦样式。
   反例：41 轮把循环改成「无底衬+加粗字重」——聚焦通道与全站断裂，用户「我都不知道自己有没有选中循环」。｜验证：元素矩阵逐行核对 + 同元素跨页同帧截图对比（循环四组合与邻钮同帧，见台账 43.1）。｜来源：第 43 轮
 
+- **GS-67｜发版流程（第 44/45 轮定）**：① versionCode/versionName 递增；② 双 ABI release（`build.ps1 -Abi v7a|arm64 -Variant Release`）+ source zip（`git archive HEAD`）；③ **asset 双套命名并存**：版本名 `QBox-<tag>-<abi>.apk`（Updater 解析用，cleanTag=tag 去 v 前缀、abi 下划线转横线）+ **恒定名 `QBox-latest-<abi>.apk`**（对外固定下载链接 `releases/latest/download/QBox-latest-<abi>.apk` 用；**禁止建名为 latest 的 tag**——强移 tag 会坏历史）；④ tag `-a --cleanup=verbatim`，推开发仓（qbox-tv `ui-cinema`）与发布仓（qbox）；⑤ `gh release create --latest` 挂全部 5 件资产；⑥ 三重验证：`releases/latest` API 的 tag/assets、网页 302 落点、设备 UA（okhttp/3.15）模拟 Updater 请求 + 恒定链接 302 且可下载（PK 头）；⑦ **发布仓 main 必须与 ui-cinema 同树**（merge 合入远端分叉，禁 force push；release tag 与 main HEAD 的 app 代码零差异为验收线）。｜验证：见台账 44.3/45。｜来源：第 44/45 轮
+
 - **GS-58｜品牌素材单一来源清单（第 33/34 轮）**：换品牌素材必须过全资源清单逐项核对——mipmap 5 密度方/圆 + anydpi-v26 foreground + leanback banner + drawable-nodpi/ic_logo（首页顶栏 + mobile）+ ic_splash_logo（开屏）+ 载入动画（res/raw，ProgressLayout 惰性解码）+ 设置页（当前无 logo 位，登记为不适用）。素材先核对（尺寸/透明通道/锯齿/镂空）再动，有问题先报告。载入动画用 ImageDecoder 解透明动态 WebP（API 28+），禁拆帧 AnimationDrawable（内存 62MB 级）；不进冷启动关键路径，WaitTime 三次中位数不得劣化 >2%。
   验证：每处实机截图 + 旧 logo 残留逐项确认 + 冷启动计时表。｜来源：第 33/34 轮
 
