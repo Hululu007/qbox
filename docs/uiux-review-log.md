@@ -1052,10 +1052,10 @@ GS-35~GS-45 共 11 条并入 `docs/GOLDEN-STANDARDS.md`（引用 TV 编号，冲
 - 改前/改后同机位：r42_nav（72%）vs r43_nav60b（60%）——栏合成 `#0F0D0D`→`#161212`，透出海报柔光；**搜索/设置等图标非聚焦圆底边缘清晰可见**，搜索白丸焦点对比更强。
 - 亮海报预算：L1 ≈8.1:1、L2 ≈4.9:1（均过 AA）。GS-65 ② 已修订。
 
-#### 43.4 设置页视觉重做：A/B 两方案实机同机位（待用户挑选）
+#### 43.4 设置页视觉重做：A/B 两方案实机同机位（**第 44 轮用户已选定 B**）
 - 参考：tvOS HIG（标题外置、内容成组、组间大留白）+ Android TV 原生设置（无卡片、小标题+行列表）；行高统一 8→12dp（两案共用）。
-- **方案 A（Apple TV 式，ui-cinema 主线）**：分组标题挪出块外上方，4 个独立 `qbox_panel` 分组块（内容源/播放/系统/维护）——`r43_setA`。
-- **方案 B（Android TV 式，`settings-plan-b` 分支 commit `907920c`）**：去卡片，行直落 `#12141B` 底，分组靠标题+间距——`r43_setB2`。（注：初版 B commit 曾基于 42 轮代码，已重建到 43 轮主线最新之上，确保 B 包同样含循环/巡回/导航带/emoji 全部修复。）
+- **方案 A（Apple TV 式，未采用）**：分组标题挪出块外上方，4 个独立 `qbox_panel` 分组块——`r43_setA`，留档 `shots/settings-A-main.png`。
+- **方案 B（Android TV 式，✅ 第 44 轮用户选定并合入主线 `907920c`）**：去卡片，行直落 `#12141B` 底，分组靠标题+间距——`r43_setB2`。（注：初版 B commit 曾基于 42 轮代码，已重建到 43 轮主线最新之上，确保 B 包同样含循环/巡回/导航带/emoji 全部修复。）
 - 两版同机位（设置首屏、焦点"点播"）供用户挑；落选方案 revert/弃分支即可。
 
 #### 43.5 源站名 emoji 支持 ✅
@@ -1110,6 +1110,19 @@ GS-35~GS-45 共 11 条并入 `docs/GOLDEN-STANDARDS.md`（引用 TV 编号，冲
 - scrub 位置基线在一次进入前后有跳变（疑自动换源/切集），scrub 行为本身（变色/步幅/缓冲）全部正常，不影响结论。
 - 构建 3 次：主线+emoji2（62.8MB）、B 版（settings-plan-b，后于 44 轮前重建为 `907920c`）、最终版含 toast 修复（65.1MB，差异为 emoji2 字体打包方式）。
 - versionCode/Name 未动；发版产物未准备 push/release（等用户确认）。
+
+### 第 44 轮（2026-11-08）— 设置页方案 B 选定合入 + v1.9.21 发版
+
+> 用户：「还是 b 好看一点 选 b 吧 更新线上版本」。
+
+#### 44.1 B 合入主线 ✅
+- `settings-plan-b`（`907920c`，已重建于 43 轮主线最新之上）fast-forward 合入 `ui-cinema`，分支删除。合入后逐项核查共存：B 版 4 处 transparent 块 + 循环 selector_repeat_bg + 巡回 findEdgeFocusable + 导航带 qbox_nav_bar + emoji2 依赖，全部在位。
+- 文档同步：GS-65 ⑤ 修订（主设置页=行直落 qbox_bg 无块；二级设置页暂保留分组块，不一致登记待统一）；element-matrix §4/§5 + 处置记录；color-audit §9.4；43.4 标注「A 未采用留档」。
+
+#### 44.2 v1.9.21 发版
+- versionCode 78→**79**、versionName 1.9.20→**1.9.21**；内容 = 43 轮全部（循环聚焦统一/菜单巡回/导航带 60%/emoji 内嵌/toast emoji/A·B 设置页选定 B）。
+- 双 ABI release + source zip，命名沿用 `QBox-1.9.21-<abi>.apk`；tag `v1.9.21`（`--cleanup=verbatim`）+ GitHub release 标 latest。
+- 验证与设备侧结果见本节末「发版验证」。
 
 ---
 

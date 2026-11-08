@@ -41,7 +41,7 @@
 | 卡片副标题（历史进度） | 首页历史行 | `@color/qbox_text_dim` | 42 轮 11.1:1 | ✅ |
 | 卡片角标备注 | 聚合/首页 | L3 `@color/qbox_text_mute` | 39 轮 | ✅ |
 | 卡片焦点环 | 全部卡片 | 3dp 白环只圈海报、ZOOM_FACTOR_SMALL | 37-39 轮 | ✅ |
-| 设置行 | 设置/四个二级设置页 | `@style/SettingRow`（selector_item 白丸，43 轮行高 8→12dp）+ SettingLabel/SettingValue（`@color/text` 17sp） | 42/43 轮设置页截图 | ✅ |
+| 设置行 | 设置/四个二级设置页 | `@style/SettingRow`（selector_item 白丸，43 轮行高 8→12dp）+ SettingLabel/SettingValue（`@color/text` 17sp）；**主设置页 44 轮起行直落 qbox_bg 底（方案 B，用户选定）** | 42/43 轮设置页截图；44 轮 B 合入 | ✅ |
 | 轨道行（底浮 sheet） | 音/视/字轨/章节 | `track_text`：焦点反色/选中 accent/其余 L1 | 39 轮蓝字；43 轮 sheet 标题 12.9:1 | ✅ |
 
 ## 5. 面板与浮层
@@ -51,7 +51,7 @@
 | 播放控制条 | 播放 | `shape_controller` 48→72→90 黑渐变（基准） | 40 轮 | ✅ |
 | Alert 面板 | 全部弹窗 | `shape_panel`=`qbox_panel` 28dp 圆角 | 42 轮弹窗标题 20.9:1 | ✅ |
 | 底浮 sheet | 轨道/章节 | `shape_sheet` 同菜单 48→72→90 渐变，顶角 20dp | 41 轮反解 α；43 轮复验 | ✅ |
-| 设置分组块 | 设置页 | `shape_settings_panel`=`qbox_panel` 20dp（42 轮撤豁免） | 42 轮块合成 #08080A | ✅ |
+| 设置分组块 | **仅二级设置页**（播放/解码/预载/弹幕） | `shape_settings_panel`=`qbox_panel` 20dp（42 轮撤豁免）；**主设置页 44 轮方案 B 去卡片，无块** | 42 轮块合成 #08080A | ⚠️ 二级页块与主页 B 版不一致，待用户看二级页后拍板统一 |
 | 导航带/栏 | 首页/分类 | `shape_nav_scrim` 峰值 60%（43 轮 72%→60%）/ `qbox_nav_bar` 60% 栏 | 43 轮：合成 #161212（改前 #0F0D0D），图标白圈边缘可见 | ✅ |
 | HUD（widget/stats/删除提示） | 播放/首页 | `qbox_panel` | 40 轮 | ✅ |
 | toast | 全局 | 系统 Toast（GS-65 豁免：非面板） | 43 轮「循环：开」目验 | ✅ 豁免 |
@@ -79,3 +79,7 @@
 1. ⚠️→✅ **循环按钮聚焦态**：41 轮误改「无底衬+加粗」→ 43 轮恢复与全站同一块白药丸（selector_repeat_bg 复用 shape_chip_focused）；去掉的是 selected 12% 白底（shape_chip_activated 对循环不生效），ON 只蓝字。
 2. ⚠️ 登记中 **直播 ON 态**（invert/across/change）：仍走 shape_chip_activated 12% 白底，与点播循环「蓝字」不一致——待用户拍板是否统一为蓝字（涉及 LiveActivity 三钮，直播路径未实测，不敢擅改）。
 3. ✅ **导航带/栏透明度**：72%→60%（qbox_nav_bar），解决「图标焦点圆边看不见」。
+
+## 处置记录（44 轮）
+
+4. ✅ **设置页方案 B 选定合入主线**（用户：「还是 b 好看一点 选 b 吧」）：主设置页 = 分组标题+行直落 qbox_bg 底、无分组块；方案 A（标题外置+4 块）未采用，留档 `shots/settings-A-main.png`。二级设置页（播放/解码/预载/弹幕）仍为 qbox_panel 分组块，与主页不一致——登记待用户看二级页后拍板是否同步去卡片。
