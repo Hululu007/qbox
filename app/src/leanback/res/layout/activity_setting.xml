@@ -92,9 +92,9 @@
                 <androidx.appcompat.widget.LinearLayoutCompat
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/shape_settings_panel"
+                    android:background="@color/transparent"
                     android:orientation="vertical"
-                    android:padding="10dp">
+                    android:padding="0dp">
 
                     <androidx.appcompat.widget.LinearLayoutCompat
                         android:id="@+id/vod"
@@ -228,9 +228,9 @@
                 <androidx.appcompat.widget.LinearLayoutCompat
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/shape_settings_panel"
+                    android:background="@color/transparent"
                     android:orientation="vertical"
-                    android:padding="10dp">
+                    android:padding="0dp">
 
                     <androidx.appcompat.widget.LinearLayoutCompat
                         android:id="@+id/player"
@@ -275,9 +275,9 @@
                 <androidx.appcompat.widget.LinearLayoutCompat
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/shape_settings_panel"
+                    android:background="@color/transparent"
                     android:orientation="vertical"
-                    android:padding="10dp">
+                    android:padding="0dp">
 
                     <androidx.appcompat.widget.LinearLayoutCompat
                         android:id="@+id/incognito"
@@ -330,9 +330,9 @@
                 <androidx.appcompat.widget.LinearLayoutCompat
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/shape_settings_panel"
+                    android:background="@color/transparent"
                     android:orientation="vertical"
-                    android:padding="10dp">
+                    android:padding="0dp">
 
                     <androidx.appcompat.widget.LinearLayoutCompat
                         android:id="@+id/cache"
