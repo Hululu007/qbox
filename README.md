@@ -1,4 +1,8 @@
-# QBox
+<p align="center">
+  <img src="branding/qbox-logo.png" width="120" alt="QBox logo">
+</p>
+
+<h1 align="center">QBox</h1>
 
 **为 Android TV 和电视盒子打造的清爽播放器。** 无广告、无捆绑、不强制登录，导入你自己的配置源即可使用。
 
@@ -11,8 +15,13 @@
 > 是否使用、如何使用，以及所使用内容是否合法，由你自行判断并承担全部责任。
 
 <p align="center">
-  <img src="docs/screenshots/ui-cinema/v1911-box-home.jpg" width="49%" alt="QBox 首页">
-  <img src="docs/screenshots/ui-cinema/v198-box-detail.jpg" width="49%" alt="QBox 详情页">
+  <img src="docs/screenshots/ui-cinema/v1923-home.jpg" width="49%" alt="首页">
+  <img src="docs/screenshots/ui-cinema/v1923-class.jpg" width="49%" alt="分类与筛选">
+  <img src="docs/screenshots/ui-cinema/v1923-detail.jpg" width="49%" alt="详情页">
+  <img src="docs/screenshots/ui-cinema/v1923-player.jpg" width="49%" alt="播放控制条">
+  <img src="docs/screenshots/ui-cinema/v1923-pause.jpg" width="49%" alt="暂停精简态">
+  <img src="docs/screenshots/ui-cinema/v1923-setting.jpg" width="49%" alt="设置页">
+  <img src="docs/screenshots/ui-cinema/v1923-track.jpg" width="49%" alt="轨道选择">
 </p>
 
 ## 为什么用 QBox
@@ -45,12 +54,12 @@ QBox 只负责把配置源里的内容展示出来并播放，本身不生产、
 
 ## 下载
 
-前往 **[GitHub Releases](https://github.com/zqs1qiwan/qbox/releases/latest)** 下载最新版本：
+前往 **[GitHub Releases](https://github.com/zqs1qiwan/qbox/releases/latest)** 下载最新版本，或用固定链接（始终指向最新版）：
 
 | 安装包 | 适用设备 |
 |---|---|
-| `QBox-*-arm64-v8a.apk` | 大多数 2019 年后的电视 / 盒子 |
-| `QBox-*-armeabi-v7a.apk` | 较老的 32 位电视 / 盒子 |
+| [QBox-latest-arm64-v8a.apk](https://github.com/zqs1qiwan/qbox/releases/latest/download/QBox-latest-arm64-v8a.apk) | 大多数 2019 年后的电视 / 盒子（64 位） |
+| [QBox-latest-armeabi-v7a.apk](https://github.com/zqs1qiwan/qbox/releases/latest/download/QBox-latest-armeabi-v7a.apk) | 较老的 32 位电视 / 盒子 |
 
 - 支持 Android 7.0 及以上
 - 两个包使用相同签名，可以直接覆盖安装，数据不会丢失
@@ -161,6 +170,8 @@ QBox 是面向 Android TV / 电视盒子的播放器，基于 [FongMi/TV 5.6.1](
 | `app/libs/*.aar` | 媒体层 AAR（ExoPlayer / MPV 等），源码来自 FongMi/media |
 | `thunder/` `tvbus/` `hook/` `jianpian/` `forcetech/` `zlive/` | 对应 AAR 的源码模块，不参与主工程构建 |
 | `docs/` | 上游配置与使用文档 |
+| `smoke/` | 离线 mock、无头截图与基线（合成占位内容，仅调试） |
+| `.github/workflows/ci.yml` | 自动构建/测试；启动无头 AVD 并截首页（CI 临时 keystore） |
 
 Python 爬虫（Chaquopy）已移除，`com.fongmi.chaquo.Loader` 是空实现，py 站点回退到 `SpiderNull`。
 
@@ -195,6 +206,17 @@ Windows 下可以用 `.toolchain/build.ps1 -Abi all -Variant Release`（脚本�
 - 签名密钥保存在仓库外，**绝不提交** `*.jks`、`keystore.properties`、`local.properties`
 - release 与 debug 使用同一签名时，可以互相覆盖安装而不丢数据
 - 更换签名后，老版本必须先卸载再安装
+
+## 无头测试 / CI
+
+详见 `docs/HEADLESS.md`。`.github/workflows/ci.yml` 在 Linux runner 上从 FongMi/media `release-1.11.0-fongmi` 构建 18 个 `lib-*-release.aar`，生成仅用于 CI 的临时 keystore，跑 Robolectric 单测并打 `leanbackX86_64Debug`；随后以 `smoke/` 中纯合成占位内容启动 720p 无头 AVD，截取 `qbox-home.png` 和 `qbox-home.xml`。
+
+```powershell
+.\smoke\mock-server.ps1
+.\smoke\headless-screenshot.ps1 -StartEmulator -Avd qbox-tv720 -ClearData
+```
+
+CI 通过 `-PqboxTestConfig=<url>` 覆盖 debug 首启配置；不传时默认仍是内置测试源，**release 不带任何内容源**。无头测试只覆盖安装、启动、焦点和版面，播放/解码/HDMI/遥控器仍需真实电视验收。
 
 ## 发布
 
