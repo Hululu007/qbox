@@ -1,3 +1,4 @@
+# ===== 开发环境（ui-cinema 历史） =====
 .idea
 .vscode
 .gradle
@@ -14,5 +15,30 @@ lib-*.aar
 captures/
 .cxx/
 .kotlin/
+*.log
+tmp-*
+
+# ===== 发布仓本地文件（qbox main 历史） =====
+# 本机/代理笔记，不公开
+AGENTS.md
+STATUS.md
+
+# 签名与本地配置
+*.jks
+*.keystore
+keystore.properties
+local.properties
+
+# DSH 本地技能（含引擎二进制），每个开发者自己装
+.dsh/
+
+# 构建产物与本地目录
+.gradle/
+build/
+dist/
+fongmi/
+fongmi-561/
+media/
+.toolchain/
 *.log
 tmp-*
