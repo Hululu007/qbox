@@ -1122,7 +1122,16 @@ GS-35~GS-45 共 11 条并入 `docs/GOLDEN-STANDARDS.md`（引用 TV 编号，冲
 #### 44.2 v1.9.21 发版
 - versionCode 78→**79**、versionName 1.9.20→**1.9.21**；内容 = 43 轮全部（循环聚焦统一/菜单巡回/导航带 60%/emoji 内嵌/toast emoji/A·B 设置页选定 B）。
 - 双 ABI release + source zip，命名沿用 `QBox-1.9.21-<abi>.apk`；tag `v1.9.21`（`--cleanup=verbatim`）+ GitHub release 标 latest。
-- 验证与设备侧结果见本节末「发版验证」。
+- 产物：armeabi-v7a 48.9MB / arm64-v8a 54.9MB（release R8 压缩后）/ source.zip 24.5MB（git archive HEAD）。
+- 推送：开发仓 `qbox-tv`（ui-cinema + tag）与发布仓 `qbox`（tag；main 分支 push 被拒——远端有 40 轮后的额外提交，未强推，release 基于 tag 不受影响，main 分叉留用户决定）。
+
+#### 44.3 发版验证（三重，全部通过）
+- **API**：`repos/zqs1qiwan/qbox/releases/latest` → tag `v1.9.21`、name `QBox 1.9.21`、assets 三件（双 APK + source.zip）✓
+- **网页 302**：`releases/latest` → 302 `/releases/tag/v1.9.21` ✓
+- **Updater 解析**：设备 UA（okhttp/3.15）请求 API 200；asset 命名 `QBox-1.9.21-<abi>.apk` 匹配 Updater 规则（cleanTag=1.9.21、abi 下划线转横线）✓
+
+#### 44.4 设备侧（待开机验证）
+- `.214` 发版时仍处关机状态（adb device not found），以下项**待开机后验证，未执行**：① 装对应 ABI 的 1.9.21 release 包；② 设置页呈 B 样式（行直落背景无块）；③ 现机 1.9.20 debug 点「版本」应弹「发现新版本 v1.9.21」（正例），装 1.9.21 后应报「已是最新」。
 
 ---
 
