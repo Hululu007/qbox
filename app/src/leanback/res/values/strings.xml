@@ -16,5 +16,6 @@
     <!-- Push -->
     <string name="push_clip">Push clipboard content</string>
     <string name="push_info">Scan QR Code or enter the URL in browser\n<xliff:g name="name">%s</xliff:g></string>
+    <string name="push_server_error">Local service failed to start. Restart the app and try again.</string>
 
 </resources>

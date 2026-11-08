@@ -17,6 +17,7 @@ import com.fongmi.android.tv.utils.QRCode;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Sniffer;
 import com.fongmi.android.tv.utils.Util;
+import com.github.catvod.Proxy;
 
 public class PushActivity extends BaseActivity {
 
@@ -43,6 +44,13 @@ public class PushActivity extends BaseActivity {
 
     @Override
     protected void initView(Bundle savedInstanceState) {
+        Server.get().start(); // 幂等兜底：服务异常未起时再试一次
+        if (Proxy.getPort() == -1) {
+            // 服务没起来就不出二维码：code 与 info 必须展示同一地址，绝不能出 -1 或过期端口
+            mBinding.code.setVisibility(View.INVISIBLE);
+            mBinding.info.setText(R.string.push_server_error);
+            return;
+        }
         mBinding.code.setImageBitmap(QRCode.getBitmap(Server.get().getAddress(getTab()), 250, 1));
         mBinding.info.setText(ResUtil.getString(R.string.push_info, Server.get().getAddress()));
     }
@@ -60,6 +68,7 @@ public class PushActivity extends BaseActivity {
     }
 
     private void onCode(View view) {
+        if (Proxy.getPort() == -1) return;
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(Uri.parse(Server.get().getAddress(getTab())));
         startActivity(intent);

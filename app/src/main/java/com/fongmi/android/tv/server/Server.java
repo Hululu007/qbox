@@ -1,11 +1,15 @@
 package com.fongmi.android.tv.server;
 
+import android.util.Log;
+
 import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.utils.Task;
 import com.github.catvod.Proxy;
 import com.github.catvod.utils.Util;
 
 public class Server {
+
+    private static final String TAG = "QBoxServer";
 
     private volatile PlaybackService service;
     private volatile Nano nano;
@@ -49,10 +53,22 @@ public class Server {
                 nano = new Nano(i);
                 nano.start(500);
                 Proxy.set(i);
-                break;
+                Log.i(TAG, "server started on port " + i);
+                return;
             } catch (Throwable e) {
                 nano = null;
+                Log.w(TAG, "port " + i + " unavailable: " + e.getMessage());
             }
+        }
+        // 9978-9998 全被占用时兜底：让系统分配空闲端口，保证推送页与代理服务始终可用。
+        try {
+            nano = new Nano(0);
+            nano.start(500);
+            Proxy.set(nano.getListeningPort());
+            Log.i(TAG, "server started on system-assigned port " + nano.getListeningPort());
+        } catch (Throwable e) {
+            nano = null;
+            Log.e(TAG, "server start failed", e);
         }
     }
 

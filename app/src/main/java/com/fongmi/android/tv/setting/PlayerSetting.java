@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.setting;
 
+import com.fongmi.android.tv.BuildConfig;
 import com.github.catvod.utils.Prefers;
 
 public class PlayerSetting {
@@ -84,7 +85,12 @@ public class PlayerSetting {
     }
 
     public static int getBackground() {
-        return Math.clamp(Prefers.getInt("background", 2), MIN_BACKGROUND, MAX_BACKGROUND);
+        return Math.clamp(Prefers.getInt("background", defaultBackground()), MIN_BACKGROUND, MAX_BACKGROUND);
+    }
+
+    /** TV 默认关（切后台即暂停并释放音频焦点，47 轮用户拍板）；手机默认画中画。 */
+    private static int defaultBackground() {
+        return "mobile".equals(BuildConfig.FLAVOR_mode) ? 2 : 0;
     }
 
     public static void putBackground(int background) {

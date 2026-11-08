@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.os.HandlerCompat;
 
+import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.hook.Hook;
 import com.github.catvod.Init;
@@ -86,6 +87,9 @@ public class App extends Application implements Application.ActivityLifecycleCal
         androidx.emoji2.text.EmojiCompat.init(new androidx.emoji2.bundled.BundledEmojiCompatConfig(this));
         Notify.createChannel();
         registerActivityLifecycleCallbacks(this);
+        // 本地 HTTP 服务（推送页/代理）进程启动即拉起：此前只在配置加载时启动，
+        // 新装无配置的用户进推送页会拿到未启动的端口 -1（.130 实测复现）。幂等，bind 失败自带端口递增与系统分配兜底。
+        Server.get().start();
     }
 
     @Override
