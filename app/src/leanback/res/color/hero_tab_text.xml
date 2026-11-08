@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 第 39 轮硬性分层：tab 文字一律 L1 高对比白（不要灰白不要彩色）；
+         选中/未选的区分走底衬档位（8%→15%→焦点药丸），不走文字亮度。 -->
+    <item android:color="@color/qbox_focus_text" android:state_focused="true" />
+    <item android:color="@color/qbox_text" />
+</selector>

@@ -1,3 +1,24 @@
+# ===== 开发环境（ui-cinema 历史） =====
+.idea
+.vscode
+.gradle
+.github
+.settings
+.DS_Store
+*.iml
+*build
+*.jks
+*.properties
+lib-*.aar
+/Release
+/docs
+captures/
+.cxx/
+.kotlin/
+*.log
+tmp-*
+
+# ===== 发布仓本地文件（qbox main 历史） =====
 # 本机/代理笔记，不公开
 AGENTS.md
 STATUS.md

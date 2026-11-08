@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- QBox 统一头部框架：首页 / 点播页 / 设置页必须完全一致，切页时上方模块不能位移。
+         顶栏 22dp 内边距 + 46dp 内容 = 70dp，分类条 6dp 间距 + 42dp = 118dp。
+         内容区从 144dp 开始。盒子实际 density=2.0，列表又把聚焦行垂直居中，
+         第一排焦点环顶边会落到 118dp 附近，所以绘制裁切线必须比它再高 4dp。 -->
+    <dimen name="qbox_header_pad_top">22dp</dimen>
+    <dimen name="qbox_header_content">46dp</dimen>
+    <dimen name="qbox_tabs_gap">6dp</dimen>
+    <dimen name="qbox_tabs_height">42dp</dimen>
+    <!-- 内容区起点（列表 paddingTop 的基准，实际行顶还会再加一个聚焦放大的 zoomPad）：
+         顶栏+分类条 118dp，行顶 = 135 + 15 ≈ 150dp → 距分类条 32dp。
+         首页第一行有分组标题时文字从这里开始；分类页/聚合页没有标题时海报从这里开始，
+         两边的「第一眼内容」距分类条保持一致，不会一边空一大条、一边贴住。
+         之前 144dp 实际行顶 159dp（距分类条 41dp），分类页看起来空得很明显。 -->
+    <dimen name="qbox_content_top">135dp</dimen>
+
+    <!-- 顶栏 + 分类条的下沿（22 + 46 + 2 + 6 + 42 = 118dp）。
+         列表绘制的硬下限：再往上画就会盖住分类条。 -->
+    <dimen name="qbox_header_total">118dp</dimen>
+
+    <!-- 聚合搜索/多源详情页：pager 已经在头部下面。
+         这里保留和分类页一致的聚焦放大（ZOOM_FACTOR_SMALL，约 1.1 倍），
+         顶部留 32dp 给放大后多出来的约 11dp + 焦点框呼吸位，
+         避免第一排白边被站点 tab 压住。 -->
+    <dimen name="qbox_content_top_inset">32dp</dimen>
+    <dimen name="qbox_content_bottom">24dp</dimen>
+
+    <!-- 列表绘制裁切线：120dp 会把第一排聚焦放大的焦点环顶边切掉（density=2.0 实测），
+         收到 114dp 后环顶边留有 6px 余量，同时仍在分类条下沿附近。 -->
+    <dimen name="qbox_header_clip">114dp</dimen>
+
+    <!-- 顶栏实底 + 长渐隐的高度：顶栏 70dp 的 ~2.9 倍（规范 ≥1.5 倍），
+         前 36% 近实底承载 tab，其余长渐隐进海报，无分界线（第 20 轮，原 124dp 硬边带）。 -->
+    <dimen name="qbox_header_mask">200dp</dimen>
+
+</resources>

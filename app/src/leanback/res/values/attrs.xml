@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- 首页右上角动作按钮：静止只有图标，聚焦时横向展开成 icon + 文字。 -->
+    <declare-styleable name="ActionChip">
+        <attr name="chipIcon" format="reference" />
+        <attr name="chipText" format="string" />
+    </declare-styleable>
+
+</resources>

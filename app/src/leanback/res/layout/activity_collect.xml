@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_app"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="32dp"
+        android:paddingTop="@dimen/qbox_header_pad_top"
+        android:paddingEnd="32dp"
+        android:paddingBottom="2dp">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/back"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:background="@drawable/selector_action_icon"
+            android:clickable="true"
+            android:contentDescription="@string/back"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:padding="12dp"
+            android:src="@drawable/ic_back"
+            app:tint="@color/text" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/result"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="18dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textColor="@color/qbox_text"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            tools:text="@string/collect_result" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/clock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:fontFeatureSettings="tnum"
+            android:letterSpacing="0.02"
+            android:textColor="@color/qbox_text_dim"
+            android:textSize="15sp"
+            tools:text="09:20:00" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <androidx.leanback.widget.HorizontalGridView
+        android:id="@+id/recycler"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:paddingStart="32dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="32dp"
+        app:focusOutEnd="false"
+        app:focusOutFront="false" />
+
+    <com.fongmi.android.tv.ui.custom.CustomViewPager
+        android:id="@+id/pager"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+</androidx.appcompat.widget.LinearLayoutCompat>

@@ -1,0 +1,200 @@
+<resources>
+
+    <style name="Theme.Base" parent="Theme.Material3.Dark.NoActionBar">
+        <!-- 色彩收敛（B6/B7）：交互高亮统一白/灰阶，品牌蓝只留品牌位（logo/竖条锚点）。
+             colorPrimary 驱动滑杆/勾选框/开关等 Material 控件，原先的蓝在纯黑界面上显得杂乱。 -->
+        <item name="colorPrimary">@color/qbox_text</item>
+        <item name="colorSurface">@color/qbox_surface</item>
+        <item name="colorOnSurface">@color/qbox_text</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.QBox.Dialog</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.QBox.Sheet</item>
+        <item name="android:colorBackground">@color/qbox_bg</item>
+        <item name="android:windowBackground">@color/qbox_bg</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:windowAnimationStyle">@style/NoAnim</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <style name="Theme.Splash" parent="Theme.SplashScreen">
+        <item name="postSplashScreenTheme">@style/Theme.App</item>
+        <item name="windowSplashScreenBackground">#000000</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+    </style>
+
+    <style name="Theme.App" parent="Theme.Base" />
+
+    <!-- 设置页分区标题：小字号、字距拉开、压暗，和可聚焦的行区分开。
+         前面加一条品牌蓝竖条，给纯黑页面一点结构和扫读锚点。 -->
+    <style name="SettingHeader">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">28dp</item>
+        <item name="android:layout_marginBottom">6dp</item>
+        <item name="android:drawableStart">@drawable/shape_setting_accent</item>
+        <item name="android:drawablePadding">8dp</item>
+        <item name="android:letterSpacing">0.1</item>
+        <item name="android:textColor">#C9C9D1</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <!-- 对话框：Material3 默认会按 elevation 给 surface 叠加一层紫灰，和纯黑界面不搭，这里关掉叠色。 -->
+    <style name="ThemeOverlay.QBox.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorSurface">@color/qbox_surface</item>
+        <item name="colorSurfaceContainerHigh">@color/qbox_surface</item>
+        <item name="colorSurfaceContainer">@color/qbox_surface</item>
+        <item name="elevationOverlayEnabled">false</item>
+    </style>
+
+    <!-- 底部弹层（音轨/视轨/字幕/倍速设置等）：与面板对话框同一套 surface 与控件配色，
+         修「播放中菜单另起一套 UI」的问题。动画统一为面板淡入淡出（不再从底部滑入）。 -->
+    <style name="ThemeOverlay.QBox.Sheet" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="colorSurface">@color/qbox_surface</item>
+        <item name="colorSurfaceContainerHigh">@color/qbox_surface</item>
+        <item name="colorSurfaceContainer">@color/qbox_surface</item>
+        <item name="elevationOverlayEnabled">false</item>
+        <item name="bottomSheetStyle">@style/QBox.BottomSheet</item>
+        <item name="android:windowAnimationStyle">@style/QBox.PanelAnim</item>
+    </style>
+
+    <!-- 关掉系统窗 inset 转 margin：本机上报假的左侧安全区（320px），
+         开着的话 sheet 会被向右推且右缘被裁（真机实测面板偏右 ~400dp 宽）。 -->
+    <style name="QBox.BottomSheet" parent="Widget.Material3.BottomSheet">
+        <item name="marginLeftSystemWindowInsets">false</item>
+        <item name="marginRightSystemWindowInsets">false</item>
+        <item name="marginTopSystemWindowInsets">false</item>
+    </style>
+
+    <!-- 面板动画：与系统对话框一致（淡入淡出）。 -->
+    <style name="QBox.PanelAnim" parent="android:Animation.Dialog" />
+
+    <style name="HeroTab">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">8dp</item>
+        <item name="android:paddingStart">18dp</item>
+        <item name="android:paddingEnd">18dp</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">8dp</item>
+        <item name="android:background">@drawable/selector_hero_tab</item>
+        <item name="android:textColor">@color/hero_tab_text</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:focusable">true</item>
+        <item name="android:focusableInTouchMode">true</item>
+        <item name="android:clickable">true</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <!-- 全站 tab 排版 token（第 31 轮）：首页分类条（FuncPresenter）与分类/榜单页分类条（TypeAdapter）
+         共用同一组参数——字号/字重/字距/颜色/阴影逐项一致，不许各页各写一份（命名不带点：带点又无 parent 会被 aapt 当父样式解析）。
+         颜色走 @color/tab_text（焦点反色黑 / 当前分类白 / 其余压暗）；选中与焦点药丸走 @drawable/selector_tab。 -->
+    <style name="QBoxTabText">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0.01</item>
+        <item name="android:textColor">@color/tab_text</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:shadowColor">#66000000</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">1</item>
+        <item name="android:shadowRadius">4</item>
+    </style>
+
+    <!-- 设置页统一行样式：两列布局下每条不再是一条超长空条。 -->
+    <!-- 第 43 轮：行高 8→12dp（Apple TV 设置式宽松行高，10-foot 更易扫读；A/B 方案共用）。 -->
+    <style name="SettingRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:background">@drawable/selector_item</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:focusableInTouchMode">true</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:paddingBottom">12dp</item>
+    </style>
+
+    <style name="SettingLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:duplicateParentState">true</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textColor">@color/text</item>
+        <item name="android:textSize">17sp</item>
+    </style>
+
+    <style name="SettingValue">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">16dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:duplicateParentState">true</item>
+        <item name="android:ellipsize">middle</item>
+        <item name="android:gravity">end</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textColor">@color/text</item>
+        <item name="android:textSize">17sp</item>
+    </style>
+
+    <style name="Theme.Crash" parent="Theme.Base">
+        <item name="android:windowBackground">@color/grey_800</item>
+        <item name="android:windowDisablePreview">true</item>
+    </style>
+
+    <style name="NoAnim">
+        <item name="android:activityOpenEnterAnimation">@null</item>
+        <item name="android:activityOpenExitAnimation">@null</item>
+        <item name="android:activityCloseEnterAnimation">@null</item>
+        <item name="android:activityCloseExitAnimation">@null</item>
+    </style>
+
+    <style name="Shadow">
+        <item name="android:shadowColor">#B0000000</item>
+        <item name="android:shadowDx">1.5</item>
+        <item name="android:shadowDy">1.5</item>
+        <item name="android:shadowRadius">2</item>
+    </style>
+
+    <!-- 控制条按钮：整行等分（width=0 + weight=1），宽度由等分决定、不由文案决定——
+         文案/秒数变化天然不会引起位移。禁止给单个控件定死 dp 宽度解决抖动（GS-33）。 -->
+    <style name="Control">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/selector_chip</item>
+        <item name="android:focusable">true</item>
+        <item name="android:focusableInTouchMode">true</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingStart">4dp</item>
+        <item name="android:paddingEnd">4dp</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">8dp</item>
+        <item name="android:textColor">@color/text</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:fontFeatureSettings">tnum</item>
+    </style>
+
+    <!-- ===== 第 40 轮：高级设置弹窗品牌统一（克制、少描边、层级靠亮度差） ===== -->
+    <!-- 弹窗 chip：去 Material 描边；底衬只承担亮度层级（10% 白），焦点 = 白药丸反色字。 -->
+    <style name="QBoxDialogChip" parent="Widget.Material3.Chip.Filter">
+        <item name="chipStrokeWidth">0dp</item>
+        <item name="chipBackgroundColor">@color/chip_bed</item>
+        <item name="android:textColor">@color/text</item>
+        <item name="checkedIconVisible">false</item>
+        <item name="chipIconVisible">false</item>
+    </style>
+
+    <!-- 弹窗文字按钮（重置等）：无填充无描边，文字 L1，焦点白药丸反色字。 -->
+    <style name="QBoxDialogButton" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textColor">@color/text</item>
+        <item name="android:background">@drawable/selector_chip_round</item>
+        <item name="rippleColor">@color/transparent</item>
+    </style>
+
+</resources>

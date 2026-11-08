@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 浅黑灰渐变底（第 42 轮，替代原近纯黑渐变）：顶部 #151823、底部 #0F1117，
+         围绕 qbox_bg #12141B 做 ±1 档的纵向明度变化，保留体积感但不再死黑；
+         半透明黑面板（72%）叠上后靠明度差自然浮出。 -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:endColor="#0F1117"
+                android:startColor="#151823"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <!-- 左上角柔光制造体积感。色彩收敛后改为中性灰白微光（原为 #332B4A74 蓝紫光，
+         是界面里「奇怪蓝色」的来源之一）。 -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:centerX="0.18"
+                android:centerY="0.02"
+                android:endColor="#00000000"
+                android:gradientRadius="620dp"
+                android:startColor="#26FFFFFF"
+                android:type="radial" />
+        </shape>
+    </item>
+
+</layer-list>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 变体 A（Netflix 风，默认）：窄顶部渐变护住返回/时钟行，中段全透让海报铺满，底部渐暗接内容区。 -->
+    <item
+        android:gravity="top"
+        android:height="130dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:endColor="#00000000"
+                android:startColor="#99000000"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:centerColor="#0012141B"
+                android:centerY="0.45"
+                android:endColor="#D912141B"
+                android:startColor="#0012141B"
+                android:type="linear" />
+        </shape>
+    </item>
+
+</layer-list>

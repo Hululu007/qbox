@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 首页分类条 tab 项：容器带图标位；文字排版参数全部来自 @style/QBoxTabText
+     （与分类/榜单页同一 token，第 31 轮统一；颜色/药丸也收口到 tab_text / selector_tab）。 -->
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="42dp"
+    android:background="@drawable/selector_tab"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:gravity="center"
+    android:orientation="horizontal"
+    android:paddingStart="14dp"
+    android:paddingEnd="14dp">
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/icon"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_marginEnd="8dp"
+        android:duplicateParentState="true"
+        android:visibility="gone"
+        app:tint="@color/tab_text"
+        tools:src="@drawable/ic_home_vod" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/text"
+        style="@style/QBoxTabText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:duplicateParentState="true"
+        tools:text="电影" />
+
+</androidx.appcompat.widget.LinearLayoutCompat>

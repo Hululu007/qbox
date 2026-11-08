@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_app"
+    android:orientation="vertical">
+
+    <!-- 二级设置页也要有可见的返回和标题，别让用户只能摸遥控器的返回键。 -->
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="32dp"
+        android:paddingTop="@dimen/qbox_header_pad_top"
+        android:paddingEnd="32dp"
+        android:paddingBottom="2dp">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/back"
+            android:layout_width="@dimen/qbox_header_content"
+            android:layout_height="@dimen/qbox_header_content"
+            android:background="@drawable/selector_action_icon"
+            android:clickable="true"
+            android:contentDescription="@string/back"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:padding="12dp"
+            android:src="@drawable/ic_back"
+            app:tint="@color/text" />
+
+        <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="18dp"
+            android:layout_weight="1"
+            android:letterSpacing="0.01"
+            android:singleLine="true"
+            android:text="@string/setting_preload_title"
+            android:textColor="@color/qbox_text"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="16dp"
+        android:animateLayoutChanges="true"
+        android:background="@color/transparent"
+        android:orientation="vertical"
+        android:padding="0dp">
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/preload"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/selector_item"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:orientation="horizontal">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:text="@string/player_preload"
+                android:textColor="@color/text"
+                android:textSize="18sp" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
+                android:id="@+id/preloadText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:textColor="@color/text"
+                android:textSize="18sp"
+                tools:text="Off" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/preloadNext"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/selector_item"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:orientation="horizontal">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:text="@string/player_preload_next"
+                android:textColor="@color/text"
+                android:textSize="18sp" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
+                android:id="@+id/preloadNextText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:textColor="@color/text"
+                android:textSize="18sp"
+                tools:text="Off" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/preloadThread"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/selector_item"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:orientation="horizontal">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:text="@string/player_preload_threads"
+                android:textColor="@color/text"
+                android:textSize="18sp" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
+                android:id="@+id/preloadThreadText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:textColor="@color/text"
+                android:textSize="18sp"
+                tools:text="1" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/preloadSize"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/selector_item"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:orientation="horizontal">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:text="@string/player_preload_size"
+                android:textColor="@color/text"
+                android:textSize="18sp" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
+                android:id="@+id/preloadSizeText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:textColor="@color/text"
+                android:textSize="18sp"
+                tools:text="512 MB" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/preloadTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/selector_item"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:orientation="horizontal">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:text="@string/player_preload_time"
+                android:textColor="@color/text"
+                android:textSize="18sp" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:duplicateParentState="true"
+                android:id="@+id/preloadTimeText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:textColor="@color/text"
+                android:textSize="18sp"
+                tools:text="60 s" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+    </androidx.appcompat.widget.LinearLayoutCompat>
+</androidx.core.widget.NestedScrollView>
+</androidx.appcompat.widget.LinearLayoutCompat>

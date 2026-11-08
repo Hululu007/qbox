@@ -1,0 +1,136 @@
+package com.fongmi.android.tv.ui.fragment;
+
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.ViewGroup;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.viewbinding.ViewBinding;
+
+import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.bean.Cache;
+import com.fongmi.android.tv.bean.Class;
+import com.fongmi.android.tv.bean.Filter;
+import com.fongmi.android.tv.databinding.FragmentFolderBinding;
+import com.fongmi.android.tv.ui.activity.VodActivity;
+import com.fongmi.android.tv.ui.base.BaseFragment;
+
+import java.util.HashMap;
+import java.util.Optional;
+
+public class FolderFragment extends BaseFragment {
+
+    private FragmentFolderBinding mBinding;
+    private Class mType;
+
+    public static FolderFragment newInstance(String key, Class type) {
+        Bundle args = new Bundle();
+        args.putString("key", key);
+        args.putParcelable("type", type);
+        FolderFragment fragment = new FolderFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    private String getKey() {
+        return getArguments().getString("key");
+    }
+
+    public Class getType() {
+        return getArguments().getParcelable("type");
+    }
+
+    private TypeFragment getChild() {
+        return (TypeFragment) getChildFragmentManager().findFragmentById(R.id.container);
+    }
+
+    private VodActivity getParent() {
+        return (VodActivity) getActivity();
+    }
+
+    @Override
+    protected ViewBinding getBinding(@NonNull LayoutInflater inflater, @Nullable ViewGroup container) {
+        return mBinding = FragmentFolderBinding.inflate(inflater, container, false);
+    }
+
+    @Override
+    protected void initView() {
+        mType = getType();
+        getChildFragmentManager().beginTransaction().replace(R.id.container, TypeFragment.newInstance(getKey(), mType.getTypeId(), mType.getStyle(), getExtend(), mType.isFolder())).commit();
+    }
+
+    private HashMap<String, String> getExtend() {
+        HashMap<String, String> extend = new HashMap<>();
+        for (Filter filter : Cache.get(mType)) if (filter.getInit() != null) extend.put(filter.getKey(), filter.getInit());
+        return extend;
+    }
+
+    public void openFolder(String typeId, HashMap<String, String> extend) {
+        TypeFragment next = TypeFragment.newInstance(getKey(), typeId, mType.getStyle(), extend, mType.isFolder());
+        FragmentTransaction ft = getChildFragmentManager().beginTransaction();
+        Optional.ofNullable(getParent()).ifPresent(VodActivity::closeFilter);
+        Optional.ofNullable(getChild()).ifPresent(ft::hide);
+        ft.add(R.id.container, next);
+        ft.addToBackStack(null);
+        ft.commit();
+    }
+
+    public void toggleFilter(boolean visible) {
+        Optional.ofNullable(getChild()).ifPresent(f -> f.toggleFilter(visible));
+    }
+
+    /** 筛选面板最后一行 chip 的屏幕底缘（第 37 轮栏版向下延展的停点），委托子分类页；未展开/未布局返回 0。 */
+    public int getFilterBottomPx() {
+        TypeFragment child = getChild();
+        return child == null ? 0 : child.getFilterBottomPx();
+    }
+
+    /** 焦点是否在筛选 chip 行内（第 37 轮 P0-1 栏显隐判据），委托子分类页。 */
+    public boolean isFilterRowFocus(android.view.View focus) {
+        TypeFragment child = getChild();
+        return child != null && child.isFilterRowFocus(focus);
+    }
+
+    public void onRefresh() {
+        Optional.ofNullable(getChild()).ifPresent(TypeFragment::onRefresh);
+    }
+
+    public boolean canBack() {
+        return getChildFragmentManager().getBackStackEntryCount() > 0;
+    }
+
+    /** 交给子分类页处理焦点，供顶栏往下时直接落到第一张卡片。 */
+    public boolean requestFocus() {
+        TypeFragment child = getChild();
+        return child != null && child.requestFocus();
+    }
+
+    /** 从子分类页回顶层，用于把「上」键交还给顶栏。 */
+    public boolean isAtTop() {
+        TypeFragment child = getChild();
+        return child == null || child.isAtTop();
+    }
+
+    /** 筛选展开时第一次按 ↑ 就进筛选项，而不是只滚动一下。 */
+    public boolean upToFilter() {
+        TypeFragment child = getChild();
+        return child != null && child.upToFilter();
+    }
+
+    public String getFirstPic() {
+        TypeFragment child = getChild();
+        return child == null ? null : child.getFirstPic();
+    }
+
+    public void goBack() {
+        getChildFragmentManager().popBackStack();
+    }
+
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (mBinding != null && !isVisibleToUser) Optional.ofNullable(getChild()).ifPresent(f -> f.setUserVisibleHint(false));
+    }
+}

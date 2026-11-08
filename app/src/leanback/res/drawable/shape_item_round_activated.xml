@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <!-- selector_item_round 的 state_selected 映射到本文件：选中态=白描边 + 15% 白底（与循环按钮同套指示，N-28 双通道） -->
+    <solid android:color="#26FFFFFF" />
+    <stroke
+        android:width="1.5dp"
+        android:color="@color/white" />
+    <corners android:radius="999dp" />
+    <padding
+        android:bottom="8dp"
+        android:left="16dp"
+        android:right="16dp"
+        android:top="8dp" />
+</shape>

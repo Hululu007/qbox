@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 源质量信息胶囊（第 26 轮）：非可点的信息标签专用——8% 白底 + 0.5dp 12% 白描边 + 6dp 小圆角，
+     比可点按钮（实底/白药丸）显著克制，不彩色、不抢焦点、不抢视觉层级。 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#14FFFFFF" />
+    <stroke
+        android:width="0.5dp"
+        android:color="#26FFFFFF" />
+    <corners android:radius="6dp" />
+</shape>

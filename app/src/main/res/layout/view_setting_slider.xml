@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/row"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="24dp"
+        android:paddingTop="8dp">
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="@color/qbox_text" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFeatureSettings="tnum"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="@color/qbox_text_dim" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <!-- 品牌化 slider（第 40 轮）：thumb/激活轨 = L1 白，未激活轨 = 30% 白，无 halo 彩晕。 -->
+    <com.google.android.material.slider.Slider
+        android:id="@+id/slider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="12dp"
+        android:focusable="true"
+        app:haloColor="@color/white_20"
+        app:thumbTint="@color/qbox_text"
+        app:tickVisible="false"
+        app:trackColorActive="@color/qbox_text"
+        app:trackColorInactive="@color/white_30" />
+
+</androidx.appcompat.widget.LinearLayoutCompat>

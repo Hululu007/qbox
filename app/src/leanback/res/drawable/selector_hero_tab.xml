@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 焦点 = 白药丸；选中（当前页）= 15% 白衬；常态 = 8% 白衬。
+         第 39 轮：tab 文字一律 L1 白，选中与否由底衬档位表达。 -->
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/qbox_text" />
+            <corners android:radius="999dp" />
+        </shape>
+    </item>
+    <item android:state_selected="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#26FFFFFF" />
+            <corners android:radius="999dp" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#14FFFFFF" />
+            <corners android:radius="999dp" />
+        </shape>
+    </item>
+</selector>

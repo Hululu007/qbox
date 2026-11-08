@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_app"
+    android:orientation="vertical">
+
+    <!-- 与首页/点播页同一套头部尺寸：22dp 内边距 + 46dp 内容，标题左边对齐到 96dp。 -->
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="32dp"
+        android:paddingTop="@dimen/qbox_header_pad_top"
+        android:paddingEnd="32dp"
+        android:paddingBottom="2dp">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/back"
+            android:layout_width="@dimen/qbox_header_content"
+            android:layout_height="@dimen/qbox_header_content"
+            android:background="@drawable/selector_action_icon"
+            android:clickable="true"
+            android:contentDescription="@string/back"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:padding="12dp"
+            android:src="@drawable/ic_back"
+            app:tint="#8C8C98" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="18dp"
+            android:layout_weight="1"
+            android:duplicateParentState="true"
+            android:letterSpacing="0.01"
+            android:singleLine="true"
+            android:text="@string/home_setting"
+            android:textColor="@color/qbox_text"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/clock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:duplicateParentState="true"
+            android:fontFeatureSettings="tnum"
+            android:letterSpacing="0.02"
+            android:textColor="@color/qbox_text_dim"
+            android:textSize="15sp"
+            tools:text="09:20:00" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:scrollbars="none">
+
+        <!-- 两列布局：一列放内容源/播放，一列放系统/维护。
+             第 43 轮方案 A（Apple TV 式）：分组标题挪出块外上方，块只包行——
+             标题在上、内容成块、组间大留白；行高放宽（SettingRow 12dp）。 -->
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false"
+            android:orientation="horizontal"
+            android:paddingStart="32dp"
+            android:paddingTop="18dp"
+            android:paddingEnd="32dp"
+            android:paddingBottom="24dp">
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="20dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <com.google.android.material.textview.MaterialTextView
+                    style="@style/SettingHeader"
+                    android:layout_marginTop="0dp"
+                    android:text="@string/setting_group_source" />
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/transparent"
+                    android:orientation="vertical"
+                    android:padding="0dp">
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:id="@+id/vod"
+                        style="@style/SettingRow">
+
+                        <com.google.android.material.textview.MaterialTextView
+                            style="@style/SettingLabel"
+                            android:text="@string/setting_vod" />
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/vodUrl"
+                            style="@style/SettingValue"
+                            tools:text="https://" />
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:id="@+id/vodHome"
+                            android:contentDescription="@string/action_home"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:background="@drawable/selector_item"
+                            android:focusable="true"
+                            android:focusableInTouchMode="true"
+                            android:padding="8dp"
+                            android:src="@drawable/ic_setting_home"
+                            app:tint="#8C8C98" />
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:id="@+id/vodHistory"
+                            android:contentDescription="@string/action_history"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:background="@drawable/selector_item"
+                            android:focusable="true"
+                            android:focusableInTouchMode="true"
+                            android:padding="8dp"
+                            android:src="@drawable/ic_setting_history"
+                            app:tint="#8C8C98" />
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:id="@+id/live"
+                        style="@style/SettingRow">
+
+                        <com.google.android.material.textview.MaterialTextView
+                            style="@style/SettingLabel"
+                            android:text="@string/setting_live" />
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/liveUrl"
+                            style="@style/SettingValue"
+                            tools:text="https://" />
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:id="@+id/liveHome"
+                            android:contentDescription="@string/action_home"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:background="@drawable/selector_item"
+                            android:focusable="true"
+                            android:focusableInTouchMode="true"
+                            android:padding="8dp"
+                            android:src="@drawable/ic_setting_home"
+                            app:tint="#8C8C98" />
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:id="@+id/liveHistory"
+                            android:contentDescription="@string/action_history"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:background="@drawable/selector_item"
+                            android:focusable="true"
+                            android:focusableInTouchMode="true"
+                            android:padding="8dp"
+                            android:src="@drawable/ic_setting_history"
+                            app:tint="#8C8C98" />
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:id="@+id/wall"
+                        style="@style/SettingRow">
+
+                        <com.google.android.material.textview.MaterialTextView
+                            style="@style/SettingLabel"
+                            android:text="@string/setting_wall" />
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/wallUrl"
+                            style="@style/SettingValue"
+                            tools:text="https://" />
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:id="@+id/wallDefault"
+                            android:contentDescription="@string/action_home"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:background="@drawable/selector_item"
+                            android:focusable="true"
+                            android:focusableInTouchMode="true"
+                            android:padding="8dp"
+                            android:src="@drawable/ic_setting_home"
+                            app:tint="#8C8C98" />
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:id="@+id/wallRefresh"
+                            android:contentDescription="@string/action_refresh"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:background="@drawable/selector_item"
+                            android:focusable="true"
+                            android:focusableInTouchMode="true"
+                            android:padding="8dp"
+                            android:src="@drawable/ic_setting_refresh"
+                            app:tint="#8C8C98" />
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <com.google.android.material.textview.MaterialTextView
+                    style="@style/SettingHeader"
+                    android:text="@string/setting_group_play" />
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/transparent"
+                    android:orientation="vertical"
+                    android:padding="0dp">
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:id="@+id/player"
+                        style="@style/SettingRow">
+
+                        <com.google.android.material.textview.MaterialTextView
+                            style="@style/SettingLabel"
+                            android:text="@string/setting_player" />
+
+
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:id="@+id/danmaku"
+                        style="@style/SettingRow"
+                        android:visibility="gone">
+
+                        <com.google.android.material.textview.MaterialTextView
+                            style="@style/SettingLabel"
+                            android:text="@string/setting_danmaku" />
+
+
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <com.google.android.material.textview.MaterialTextView
+                    style="@style/SettingHeader"
+                    android:layout_marginTop="0dp"
+                    android:text="@string/setting_group_system" />
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/transparent"
+                    android:orientation="vertical"
+                    android:padding="0dp">
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:id="@+id/incognito"
+                        style="@style/SettingRow">
+
+                        <com.google.android.material.textview.MaterialTextView
+                            style="@style/SettingLabel"
+                            android:text="@string/setting_incognito" />
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/incognitoText"
+                            style="@style/SettingValue" />
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:id="@+id/doh"
+                        style="@style/SettingRow">
+
+                        <com.google.android.material.textview.MaterialTextView
+                            style="@style/SettingLabel"
+                            android:text="@string/setting_doh" />
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/dohText"
+                            style="@style/SettingValue" />
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:id="@+id/size"
+                        style="@style/SettingRow">
+
+                        <com.google.android.material.textview.MaterialTextView
+                            style="@style/SettingLabel"
+                            android:text="@string/setting_size" />
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/sizeText"
+                            style="@style/SettingValue" />
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <com.google.android.material.textview.MaterialTextView
+                    style="@style/SettingHeader"
+                    android:text="@string/setting_group_maintain" />
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/transparent"
+                    android:orientation="vertical"
+                    android:padding="0dp">
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:id="@+id/cache"
+                        style="@style/SettingRow">
+
+                        <com.google.android.material.textview.MaterialTextView
+                            style="@style/SettingLabel"
+                            android:text="@string/setting_cache" />
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/cacheText"
+                            style="@style/SettingValue" />
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:id="@+id/backup"
+                        style="@style/SettingRow">
+
+                        <com.google.android.material.textview.MaterialTextView
+                            style="@style/SettingLabel"
+                            android:text="@string/setting_backup" />
+
+
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:id="@+id/restore"
+                        style="@style/SettingRow">
+
+                        <com.google.android.material.textview.MaterialTextView
+                            style="@style/SettingLabel"
+                            android:text="@string/setting_restore" />
+
+
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:id="@+id/version"
+                        style="@style/SettingRow">
+
+                        <com.google.android.material.textview.MaterialTextView
+                            style="@style/SettingLabel"
+                            android:text="@string/setting_version" />
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/versionText"
+                            style="@style/SettingValue" />
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.appcompat.widget.LinearLayoutCompat>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- 焦点实白药丸。padding 已上移到列表项布局（adapter_group/adapter_channel），
+         避免「只有聚焦行有内边距」导致聚焦时文字右移、行高跳动。 -->
+    <corners android:radius="10dp" />
+
+    <solid android:color="@color/qbox_text" />
+
+</shape>

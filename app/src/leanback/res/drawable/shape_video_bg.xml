@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- 直角黑底：详情页小窗播放时画面与黑边都是纯黑，加载前不会露出圆角缺口。 -->
+    <solid android:color="#000000" />
+
+</shape>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 变体 D（铺满海报 + 四边轻收边）：海报直接铺满，导航浮在其上；
+         不做顶部导航黑带、不做整屏压暗。
+         第 25 轮再减弱（用户实机仍看出 56dp/24% 的顶部渐变）：上/左右收到 40dp 内 ≤12%，
+         只消除画面与电视物理边框的生硬交界，正常观看距离应不可辨。 -->
+    <item
+        android:gravity="top"
+        android:height="40dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:endColor="#0012141B"
+                android:startColor="#1F12141B"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <!-- 底边保留比三边略强（选集行文字可读性的最低保障，第 22 轮实测依据）：
+         120dp 内最高 30%，已从 40% 再降；若用户仍可见将继续减弱。 -->
+    <item
+        android:gravity="bottom"
+        android:height="120dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="90"
+                android:endColor="#0012141B"
+                android:startColor="#4D12141B"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <item
+        android:gravity="start"
+        android:width="40dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="0"
+                android:endColor="#0012141B"
+                android:startColor="#1F12141B"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <item
+        android:gravity="end"
+        android:width="40dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="180"
+                android:endColor="#0012141B"
+                android:startColor="#1F12141B"
+                android:type="linear" />
+        </shape>
+    </item>
+
+</layer-list>

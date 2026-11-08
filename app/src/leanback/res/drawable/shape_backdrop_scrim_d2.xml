@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 四边收边·中档（第 30 轮对比档 t=1）：上/左右 64dp@20%，底 140dp@45%。 -->
+    <item
+        android:gravity="top"
+        android:height="64dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:endColor="#0012141B"
+                android:startColor="#3312141B"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <item
+        android:gravity="bottom"
+        android:height="140dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="90"
+                android:endColor="#0012141B"
+                android:startColor="#7312141B"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <item
+        android:gravity="start"
+        android:width="64dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="0"
+                android:endColor="#0012141B"
+                android:startColor="#3312141B"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <item
+        android:gravity="end"
+        android:width="64dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="180"
+                android:endColor="#0012141B"
+                android:startColor="#3312141B"
+                android:type="linear" />
+        </shape>
+    </item>
+
+</layer-list>

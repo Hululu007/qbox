@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 弹层图标按钮（齿轮/搜索/选择文件）背景：聚焦 = 实白圆（配 icon_tint 深色图标），
+     非聚焦 = 透明。替代 selectableItemBackgroundBorderless（TV 上聚焦几乎不可见，第 40 轮用户实测）。 -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape android:shape="oval">
+            <solid android:color="@color/qbox_text" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/transparent" />
+        </shape>
+    </item>
+</selector>

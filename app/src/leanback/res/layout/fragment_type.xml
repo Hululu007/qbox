@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.fongmi.android.tv.ui.custom.ProgressLayout
+            android:id="@+id/progressLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.fongmi.android.tv.ui.custom.CustomVerticalGridView
+                android:id="@+id/recycler"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:paddingStart="32dp"
+                android:paddingTop="@dimen/qbox_content_top"
+                android:paddingEnd="32dp"
+                android:paddingBottom="24dp"
+                app:focusOutEnd="true"
+                app:focusOutFront="true" />
+
+        </com.fongmi.android.tv.ui.custom.ProgressLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+</FrameLayout>

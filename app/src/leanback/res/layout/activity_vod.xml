@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_app">
+
+    <!-- 氛围底图：跟随当前聚焦海报，整屏铺满（第 28 轮统一详情页终态：BackdropBlur 氛围模糊 + alpha 0.85）。 -->
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/backdrop"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.85"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop" />
+
+    <!-- 第 28 轮：整屏压暗/200dp 顶栏渐变/96dp 左右渐隐全部撤掉，统一成详情页 D 版同款四边轻收边。 -->
+    <View
+        android:id="@+id/backdrop_scrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/shape_backdrop_scrim_d" />
+
+    <!-- 按需导航带（第 29 轮起）：静止 alpha=0 不可见；焦点进导航区时 VodActivity 淡入。
+         第 35 轮回退 31 轮二次曲线版并延域 190dp；第 37 轮拆「主体+4dp 收边」，材质=@color/qbox_panel。
+         第 38 轮层级修正：放在 pager 之下——栏是 tab/filter 文字「背后」的底，chip/tab 文字必须在其上，
+         不许盖住文字（P0 打回：filter 的字被盖在下面了）。 -->
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/nav_band"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:alpha="0"
+        android:orientation="vertical">
+
+        <View
+            android:id="@+id/nav_scrim"
+            android:layout_width="match_parent"
+            android:layout_height="190dp"
+            android:background="@drawable/shape_nav_scrim" />
+
+        <View
+            android:id="@+id/nav_scrim_edge"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:background="@drawable/shape_nav_bar_edge"
+            android:visibility="gone" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <!-- 内容层：pager 从屏幕最顶开始，分类页里的列表再让出 paddingTop。
+         和首页完全同一套尺寸，点进来时上方模块不会缩进/上移。 -->
+    <com.fongmi.android.tv.ui.custom.CustomViewPager
+        android:id="@+id/pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- 第 28 轮：200dp 顶栏压暗渐变撤掉，与首页一致。
+         id=header：导航带显示判据用的「导航区」结构边界（第 31 轮）。 -->
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="32dp"
+            android:paddingTop="@dimen/qbox_header_pad_top"
+            android:paddingEnd="32dp"
+            android:paddingBottom="2dp">
+
+            <!-- 46dp 点击区，标题左边与首页源名对齐到 96dp。 -->
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/back"
+                android:layout_width="@dimen/qbox_header_content"
+                android:layout_height="@dimen/qbox_header_content"
+                android:background="@drawable/selector_action_icon"
+                android:clickable="true"
+                android:contentDescription="@string/back"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:padding="12dp"
+                android:src="@drawable/ic_back"
+                app:tint="@color/text" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="18dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:letterSpacing="0.01"
+                android:shadowColor="#66000000"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="4"
+                android:singleLine="true"
+                android:textColor="@color/qbox_text"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                tools:text="电影" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/selector_filter_chip"
+                android:clickable="true"
+                android:drawablePadding="6dp"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:letterSpacing="0.02"
+                android:paddingStart="13dp"
+                android:paddingTop="5dp"
+                android:paddingEnd="14dp"
+                android:paddingBottom="5dp"
+                android:text="@string/filter"
+                android:textColor="@color/hero_tab_text"
+                android:textSize="13sp"
+                app:drawableStartCompat="@drawable/ic_filter"
+                app:drawableTint="@color/hero_tab_text"
+                tools:visibility="visible" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/clock"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:fontFeatureSettings="tnum"
+                android:shadowColor="#66000000"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="4"
+                android:letterSpacing="0.02"
+                android:textColor="@color/qbox_text_dim"
+                android:textSize="14sp"
+                tools:text="09:20:00" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/qbox_tabs_height"
+            android:layout_marginTop="@dimen/qbox_tabs_gap">
+
+            <!-- 第 35 轮：tab 文字底衬（shape_text_bed 柔光斑）随首页一并移除。 -->
+            <androidx.leanback.widget.HorizontalGridView
+                android:id="@+id/typeRecycler"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:paddingStart="32dp"
+                android:paddingEnd="32dp"
+                app:focusOutEnd="false"
+                app:focusOutFront="false" />
+
+        </FrameLayout>
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+</FrameLayout>

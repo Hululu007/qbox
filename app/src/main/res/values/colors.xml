@@ -1,0 +1,60 @@
+<resources>
+
+    <!-- QBox「Cinema」设计 token：浅黑灰画布 + 单色文字 + 克制的蓝色点缀。
+         第 42 轮：纯黑 → 浅黑灰（用户拍板：半透明黑面板叠在纯黑上糊成一块看不出层次，
+         靠底面明度差让面板自然浮出，不靠描边）。取 #12141B：冷调深灰，与标记蓝同族不打架；
+         L1 白文字对比仍 ~19:1，72% 黑面板合成后比底色暗 ~3 档，层次可读。 -->
+    <color name="qbox_bg">#12141B</color>
+    <color name="qbox_icon_bg">#FFFFFF</color>
+    <color name="qbox_bg_soft">#0B0B0E</color>
+    <color name="qbox_surface">#17171C</color>
+    <color name="qbox_surface_hi">#232329</color>
+    <color name="qbox_line">#2B2B33</color>
+    <color name="qbox_text">#FFFFFF</color>
+    <!-- L2 浅一档：只给副标题与时钟（第 39 轮用户硬性分层：标题/tab/按钮等交互文字一律 L1 白） -->
+    <color name="qbox_text_dim">#C9C9D1</color>
+    <!-- 4.04:1 → 5.9:1：卡片备注/分组标题/搜索框 hint 在纯黑画布上必须过 WCAG AA。 -->
+    <color name="qbox_text_mute">#8C8C98</color>
+    <color name="qbox_accent">#5B8CFF</color>
+    <color name="qbox_accent_soft">#1E2B4D</color>
+    <color name="qbox_focus_text">#0B0B0F</color>
+
+    <!-- 顶栏实底（1.9.7 起改由 shape_top_scrim 承担，保留 token 给后续实底栏用）。 -->
+    <color name="qbox_header_scrim">#F012141B</color>
+
+    <!-- 导航带/栏专用（第 43 轮，用户「再透一档」）：60% 黑——比面板基准 qbox_panel(72%) 透一档，
+         与播放菜单顶部(48%)同族观感；顶栏图标白圈焦点在栏上清晰可见。栏版主体与收边同 token；
+         渐变带（shape_nav_scrim）峰值同源 60%、文字区缓降到 40%、尾部二次归零。 -->
+    <color name="qbox_nav_bar">#99000000</color>
+
+    <!-- 面板材质主体中档（第 37 轮抽取自播放控制条 shape_controller 的 48%→72%→90% 黑渐变中档）：
+         导航「栏」（bar 变体）与控制条面板共用同一材质——均匀实色打底，不在栏上另起色值。 -->
+    <color name="qbox_panel">#B8000000</color>
+
+    <color name="transparent">#00000000</color>
+    <color name="black">#000000</color>
+    <color name="black_05">#0D000000</color>
+    <color name="black_10">#1A000000</color>
+    <color name="black_15">#26000000</color>
+    <color name="black_20">#33000000</color>
+    <color name="black_30">#4D000000</color>
+    <color name="black_40">#66000000</color>
+    <color name="black_50">#80000000</color>
+    <color name="black_60">#99000000</color>
+    <color name="black_70">#B3000000</color>
+    <color name="black_80">#CC000000</color>
+    <color name="black_90">#E6000000</color>
+    <color name="white">#FFFFFF</color>
+    <color name="white_05">#0DFFFFFF</color>
+    <color name="white_15">#26FFFFFF</color>
+    <color name="white_10">#1AFFFFFF</color>
+    <color name="white_20">#33FFFFFF</color>
+    <color name="white_30">#4DFFFFFF</color>
+    <color name="white_40">#66FFFFFF</color>
+    <color name="white_50">#80FFFFFF</color>
+    <color name="white_60">#99FFFFFF</color>
+    <color name="white_70">#B3FFFFFF</color>
+    <color name="white_80">#CCFFFFFF</color>
+    <color name="white_90">#E6FFFFFF</color>
+
+</resources>

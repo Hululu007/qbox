@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- 载入动画（第 34 轮）：透明动态 WebP（立方体旋转）直接放在黑画布上——
+         WebP 带 alpha 通道，不再需要白圆 chip 承载。API 28+ ImageDecoder 解码。 -->
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/loading_cube"
+        android:layout_width="112dp"
+        android:layout_height="112dp"
+        android:layout_gravity="center"
+        android:importantForAccessibility="no"
+        android:scaleType="centerInside" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/traffic"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="64dp"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:visibility="gone"
+        tools:text="120 KB/s"
+        tools:visibility="visible" />
+
+    <!-- 第 35 轮：「正在加载…」文案移除——转圈本身已表达加载中；转圈保持居中，不留空白占位。 -->
+</FrameLayout>

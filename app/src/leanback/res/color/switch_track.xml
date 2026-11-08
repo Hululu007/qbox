@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 弹窗开关 track（第 40 轮品牌化）：开 = 蓝黑底（accent_soft 既有 token），关 = 20% 白。 -->
+    <item android:color="@color/qbox_accent_soft" android:state_checked="true" />
+    <item android:color="@color/white_20" />
+</selector>

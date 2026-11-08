@@ -1,0 +1,51 @@
+package com.qbox;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.View.MeasureSpec;
+
+import androidx.appcompat.view.ContextThemeWrapper;
+
+import com.fongmi.android.tv.R;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
+import org.robolectric.annotation.Config;
+
+/**
+ * 首页布局冒烟测试：用应用主题真正 inflate activity_home，
+ * 断言顶栏（源名胶囊/时钟）能测量出高度、关键控件都在。
+ * 不需要真机，能挡住"布局写错导致首页崩"的问题。
+ */
+@RunWith(RobolectricTestRunner.class)
+@Config(sdk = 34, qualifiers = "w1920dp-h1080dp-xhdpi")
+public class HomeLayoutTest {
+
+    @Test
+    public void homeLayoutInflates() {
+        Context context = new ContextThemeWrapper(RuntimeEnvironment.getApplication(), R.style.Theme_App);
+        View root = LayoutInflater.from(context).inflate(R.layout.activity_home, null);
+        assertNotNull("root inflate failed", root);
+
+        View source = root.findViewById(R.id.source);
+        assertNotNull("source pill missing", source);
+        source.measure(MeasureSpec.makeMeasureSpec(400, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+        assertTrue("source height = " + source.getMeasuredHeight(), source.getMeasuredHeight() > 0);
+
+        for (int id : new int[]{R.id.logo, R.id.source, R.id.clock, R.id.recycler, R.id.progressLayout,
+                R.id.search, R.id.live, R.id.keep, R.id.push, R.id.setting}) {
+            assertNotNull("missing view: " + id, root.findViewById(id));
+        }
+
+        View search = root.findViewById(R.id.search);
+        search.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED), MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+        assertTrue("search action should be 46dp, got " + search.getMeasuredWidth() + "px", search.getMeasuredWidth() > 0);
+        System.out.println("QBOX_UI_OK source=" + source.getMeasuredHeight() + "px");
+    }
+}

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- 分区标题前的小竖条：给设置页一点品牌色和扫读锚点。 -->
+    <solid android:color="@color/qbox_accent" />
+    <corners android:radius="2dp" />
+    <size
+        android:width="3dp"
+        android:height="14dp" />
+
+</shape>

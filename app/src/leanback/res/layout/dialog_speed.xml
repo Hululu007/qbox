@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="48dp">
+
+    <com.google.android.material.slider.Slider
+        android:id="@+id/slider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:stepSize="0.5"
+        android:valueFrom="2"
+        android:valueTo="5"
+        app:haloColor="@color/white_20"
+        app:thumbTint="@color/qbox_text"
+        app:tickVisible="false"
+        app:trackColorActive="@color/qbox_text"
+        app:trackColorInactive="@color/white_30" />
+
+</FrameLayout>

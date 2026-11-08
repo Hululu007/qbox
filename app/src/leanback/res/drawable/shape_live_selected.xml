@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- 直播列表选中态（非焦点）：12% 白底标记当前分组/当前频道。
+         与首页分类 tab 的「当前分类 12% 白底」一致；焦点态仍是实白药丸。 -->
+    <corners android:radius="10dp" />
+
+    <solid android:color="#1FFFFFFF" />
+
+</shape>

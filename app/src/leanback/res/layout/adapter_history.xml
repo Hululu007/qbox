@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:paddingBottom="10dp">
+
+    <!-- 继续观看：16:9 剧照，和「更新推荐」的海报区分开，一行能完整放下。
+         焦点环不在此用 foreground（会被底部压暗遮住下半圈），改由下方独立覆盖层承担。 -->
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/image"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:background="@color/qbox_surface"
+        android:duplicateParentState="true"
+        app:shapeAppearanceOverlay="@style/Vod.Card" />
+
+    <!-- 底部压暗：白进度条压在任意亮度的剧照上都看得清。 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_alignStart="@+id/image"
+        android:layout_alignEnd="@+id/image"
+        android:layout_alignBottom="@+id/image"
+        android:background="@drawable/shape_history_scrim"
+        android:importantForAccessibility="no" />
+
+    <!-- 焦点环覆盖层：绘制在底部压暗之上，白色焦点框全程完整实色、不随海报明暗变化（D12）。 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignStart="@+id/image"
+        android:layout_alignTop="@+id/image"
+        android:layout_alignEnd="@+id/image"
+        android:layout_alignBottom="@+id/image"
+        android:background="@drawable/selector_vod"
+        android:duplicateParentState="true"
+        android:importantForAccessibility="no" />
+
+    <ProgressBar
+        android:id="@+id/progress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_alignStart="@+id/image"
+        android:layout_alignEnd="@+id/image"
+        android:layout_alignBottom="@+id/image"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:max="1000"
+        android:progressDrawable="@drawable/progress_history"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/image"
+        android:layout_alignTop="@+id/image"
+        android:layout_alignEnd="@+id/image"
+        android:layout_alignParentBottom="true"
+        android:background="@color/black_50"
+        android:scaleType="center"
+        android:src="@drawable/ic_vod_delete"
+        android:visibility="gone"
+        app:shapeAppearanceOverlay="@style/Vod.Card"
+        tools:visibility="visible" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/site"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/image"
+        android:layout_alignTop="@+id/image"
+        android:layout_margin="8dp"
+        android:background="@drawable/shape_vod_site"
+        android:paddingStart="7dp"
+        android:paddingTop="2dp"
+        android:paddingEnd="7dp"
+        android:paddingBottom="2dp"
+        android:singleLine="true"
+        android:textColor="@color/white"
+        android:textSize="11sp"
+        android:visibility="gone"
+        tools:text="站点"
+        tools:visibility="visible" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/image"
+        android:layout_alignStart="@+id/image"
+        android:layout_alignEnd="@+id/image"
+        android:layout_marginTop="8dp"
+        android:ellipsize="end"
+        android:fontFamily="sans-serif-medium"
+        android:singleLine="true"
+        android:textColor="@color/qbox_text"
+        android:textSize="15sp"
+        tools:text="片名" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/remark"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/name"
+        android:layout_alignStart="@+id/name"
+        android:layout_alignEnd="@+id/name"
+        android:layout_marginTop="2dp"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:textColor="@color/qbox_text_dim"
+        android:textSize="12sp"
+        tools:text="看到 12 分钟" />
+
+</RelativeLayout>

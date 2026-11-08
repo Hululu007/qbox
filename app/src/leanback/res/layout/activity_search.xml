@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_app"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="32dp"
+        android:paddingTop="@dimen/qbox_header_pad_top"
+        android:paddingEnd="32dp"
+        android:paddingBottom="2dp">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/back"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:background="@drawable/selector_action_icon"
+            android:clickable="true"
+            android:contentDescription="@string/back"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:padding="12dp"
+            android:src="@drawable/ic_back"
+            app:tint="@color/text" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="18dp"
+            android:layout_weight="1"
+            android:letterSpacing="0.04"
+            android:singleLine="true"
+            android:text="@string/home_search"
+            android:textColor="@color/qbox_text"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/clock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFeatureSettings="tnum"
+            android:letterSpacing="0.02"
+            android:textColor="@color/qbox_text_dim"
+            android:textSize="15sp"
+            tools:text="09:20:00" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:orientation="horizontal"
+        android:paddingStart="32dp"
+        android:paddingTop="20dp"
+        android:paddingEnd="32dp"
+        android:paddingBottom="24dp">
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="32dp"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/field"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:background="@drawable/selector_search_field"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp">
+
+                <com.fongmi.android.tv.ui.custom.CustomMic
+                    android:id="@+id/mic"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="12dp"
+                    android:background="@drawable/selector_mic_focus"
+                    android:contentDescription="@string/search_mic"
+                    android:focusable="true"
+                    android:padding="4dp"
+                    android:focusableInTouchMode="true"
+                    android:nextFocusDown="@id/keyboard"
+                    android:src="@drawable/ic_search_mic" />
+
+                <com.fongmi.android.tv.ui.custom.CustomSearchView
+                    android:id="@+id/keyword"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@null"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:hint="@string/search_keyword"
+                    android:imeOptions="actionDone"
+                    android:inputType="textCapWords|textAutoCorrect|textAutoComplete"
+                    android:letterSpacing="0.02"
+                    android:maxLength="255"
+                    android:nextFocusDown="@id/keyboard"
+                    android:singleLine="true"
+                    android:textColor="@color/qbox_text"
+                    android:textColorHint="@color/qbox_text_mute"
+                    android:textCursorDrawable="@drawable/shape_cursor"
+                    android:textSize="22sp" />
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/keyboard"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:overScrollMode="never"
+                app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+                app:spanCount="7"
+                tools:itemCount="36"
+                tools:listitem="@layout/adapter_keyboard_text" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/scroll"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true"
+            android:overScrollMode="never">
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/recordLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="28dp"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:letterSpacing="0.08"
+                        android:text="@string/search_record"
+                        android:textColor="@color/qbox_text_mute"
+                        android:textSize="14sp" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recordRecycler"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="-6dp"
+                        android:clipChildren="false"
+                        android:clipToPadding="false"
+                        android:overScrollMode="never"
+                        tools:itemCount="6"
+                        tools:listitem="@layout/adapter_search_record" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/word"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:letterSpacing="0.08"
+                    android:text="@string/search_hot"
+                    android:textColor="@color/qbox_text_mute"
+                    android:textSize="14sp" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/wordRecycler"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="-6dp"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    android:overScrollMode="never"
+                    tools:itemCount="10"
+                    tools:listitem="@layout/adapter_search_word" />
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+        </androidx.core.widget.NestedScrollView>
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+</androidx.appcompat.widget.LinearLayoutCompat>

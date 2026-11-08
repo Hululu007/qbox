@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 轨道选择行文字（第 39 轮 P1-3）：焦点 = 白药丸上深色字；被选中轨道 = 标记色（颜色标志）；
+         其余 = L1 白。 -->
+    <item android:color="@color/qbox_focus_text" android:state_focused="true" />
+    <item android:color="@color/qbox_accent" android:state_selected="true" />
+    <item android:color="@color/qbox_text" />
+</selector>
