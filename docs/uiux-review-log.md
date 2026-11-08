@@ -1055,7 +1055,7 @@ GS-35~GS-45 共 11 条并入 `docs/GOLDEN-STANDARDS.md`（引用 TV 编号，冲
 #### 43.4 设置页视觉重做：A/B 两方案实机同机位（待用户挑选）
 - 参考：tvOS HIG（标题外置、内容成组、组间大留白）+ Android TV 原生设置（无卡片、小标题+行列表）；行高统一 8→12dp（两案共用）。
 - **方案 A（Apple TV 式，ui-cinema 主线）**：分组标题挪出块外上方，4 个独立 `qbox_panel` 分组块（内容源/播放/系统/维护）——`r43_setA`。
-- **方案 B（Android TV 式，`settings-plan-b` 分支 commit `2e0f806`）**：去卡片，行直落 `#12141B` 底，分组靠标题+间距——`r43_setB2`。
+- **方案 B（Android TV 式，`settings-plan-b` 分支 commit `907920c`）**：去卡片，行直落 `#12141B` 底，分组靠标题+间距——`r43_setB2`。（注：初版 B commit 曾基于 42 轮代码，已重建到 43 轮主线最新之上，确保 B 包同样含循环/巡回/导航带/emoji 全部修复。）
 - 两版同机位（设置首屏、焦点"点播"）供用户挑；落选方案 revert/弃分支即可。
 
 #### 43.5 源站名 emoji 支持 ✅
@@ -1108,7 +1108,7 @@ GS-35~GS-45 共 11 条并入 `docs/GOLDEN-STANDARDS.md`（引用 TV 编号，冲
 #### 43.8 备注
 - 误操作登记：BACK 链过长 2 次把 QBox 退到系统桌面（com.huanxi.tvhome），均立即 monkey 拉回、未与桌面交互；UP 落点依赖当前焦点，盲链失败 2 次后以 dumpsys+截图逐步定位完成。
 - scrub 位置基线在一次进入前后有跳变（疑自动换源/切集），scrub 行为本身（变色/步幅/缓冲）全部正常，不影响结论。
-- 构建 3 次：主线+emoji2（62.8MB）、B 版（settings-plan-b `2e0f806`）、最终版含 toast 修复（65.1MB，差异为 emoji2 字体打包方式）。
+- 构建 3 次：主线+emoji2（62.8MB）、B 版（settings-plan-b，后于 44 轮前重建为 `907920c`）、最终版含 toast 修复（65.1MB，差异为 emoji2 字体打包方式）。
 - versionCode/Name 未动；发版产物未准备 push/release（等用户确认）。
 
 ---
