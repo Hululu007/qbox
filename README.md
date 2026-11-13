@@ -73,6 +73,7 @@ QBox 基于 FongMi/TV 二次开发，遵循 GPL-3.0。
 
 - 每个 Release 都附带对应版本的源码包 `QBox-<版本>-source.zip`
 - 源码包内含构建说明；media 相关 AAR 由公开的 [FongMi/media](https://github.com/FongMi/media) 分支构建
+- 源码包内含自动化测试与用于本地调试的无头 Android TV 测试流程（离线 mock、GitHub Actions 和截图基线）；它只用于检查安装、启动、焦点和版面，仍需在真实电视上验收播放、解码和遥控器行为
 - 本仓库只用于发布安装包与源码包
 
 ## 安装

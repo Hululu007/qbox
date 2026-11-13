@@ -42,3 +42,8 @@ media/
 .toolchain/
 *.log
 tmp-*
+
+# 本地临时产物（APK 反编译、下载的制品等）
+.tmp/
+.tmp_*.java
+
