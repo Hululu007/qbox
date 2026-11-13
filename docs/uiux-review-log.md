@@ -1375,3 +1375,19 @@ QBox 是 Android TV / TV 盒子产品，故以 Android TV 实际规范为主、t
 
 - **单测**：`EpisodeInfoTest` 18/18、`QuarkNamingTest` 17/17（15 类网盘模板 + 版本修饰 + 重名补号）、`EpisodeCellTest` 1/1；`git diff --check` 干净。
 - **构建**：单次 `build.ps1 -Abi v7a -Variant Debug` + `GRADLE_OPTS=-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2 -Dorg.gradle.parallel=false`，约 40s–2m45s；不并发多 daemon。
+
+## 10. 2026-11-13（晚）v1.9.25 纯代码轮：toast 图标根因 + 选集排序/等大/稀疏/原名保留
+
+**背景**：用户确认四个问题——① toast 前带安卓/应用 logo；② 选集依旧无法正确聚焦；③ 按钮大小不一、角标跟名字走；④ 识别后顺序不按大小排（集按数字、时间由早到晚，金标准「尽量能让用户从 1 看到 100」）；另要求 ⑤ 集数少时排列稀疏显示更多名称信息、⑥ 匹配完不丢原名（匹配在前、其余在后、过长滚动、聚焦重复滚动）。本轮**纯代码研究+修复，不上电视**。
+
+**① toast 图标根因（上游对比）**：clone `FongMi/TV`（fongmi 分支，targetSdk 同为 37——targetSdk 假设排除）。上游 `App.attachBaseContext` 接线 `com.github.catvod.Runtime.setToast(text -> Notify.show(text))`，catvod 生态 spider 统一走 `Runtime.toast()`；QBox 的 catvod 模块（5.6.1 基线）**没有 Runtime.java**，spider 调用抛 NoClassDefFoundError → 回退裸 `Toast.makeText` → Android 11+ 系统渲染带调用方应用图标的 TextToastRecord。修复：新增 `catvod/.../Runtime.java`（context/activity/toast/dialog 失败 future）+ App 接线 + `Spider.getActivity()` 兼容；保留 toast-shadow.dex（普通 jar 直调 Toast 的兜底）。加固 jar 直调系统 Toast 仍是已知限制。
+
+**④ 排序（金标准升格）**：真根因是 `sortEpisodes` 只在用户按「正序/倒序」时才跑，**首开渲染永远用源原始顺序**。修复：`selectFlag` / `restorePlaybackSelection` / `mergeFlag` 三条渲染路径全部先套 `EpisodeInfo.order`。另把比较器改为「混合命名时双方集数可比先按集数保证 1→100，同时间再按集数区分同日多版本」。
+
+**⑥ rest 保留原名**：`Item` 新增 `rest` 字段 = 清理后去掉 qualifier/后缀的剩余原名；展示「匹配部分在前 + 原名在后 + 尾部编码」，取消 12 字截断；格子内 `ellipsize=marquee` + `marquee_forever`，聚焦 `setSelected(true)` 从头滚动、失焦回起点。TRAILING_NUMBER 分支剔掉剩余部分里的重复裸数字。
+
+**③⑤ 等大格子 + 稀疏列数**：`adapter_episode.xml` 重排——胶囊宽度=网格列宽（match_parent）、高度固定 44dp、文字左对齐、角标 `top|end` 钉在按钮框右上角（不随名字走）；`analyze()` 列数自适应：≤4 条 2 列（稀疏宽格）、5-7 条一排摊开（短名≤7 列、其余≤5 列）、8+ 条按 7×2/5×2。
+
+**② 焦点加固**：`applyEpisodeLayoutManager` 复用 LayoutManager 只 `setSpanCount`（重建会丢焦点/滚动状态）；`focusEpisodeGrid` 当前集不在本页时先 `showEpisodePage(getPosition())` 再聚焦；`focusEpisode` 聚焦前 `scrollToPosition`。
+
+**验证**：EpisodeInfoTest 新增 4 项（rest 剧名保留 / ≤4 条 2 列 / 混合命名 E01→E11 / 长名不截断），全套 `QBOX_TEST_OK` 通过；版本 1.9.25/83。**待办**：真机回归（用户发起测试请求时）。
