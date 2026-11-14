@@ -1495,3 +1495,27 @@ QBox 是 Android TV / TV 盒子产品，故以 Android TV 实际规范为主、t
 **验证**：每批单独 build+test+真机；`QBOX_TEST_OK sites=49`（含 `deriveDisplayParts`、更新 `EpisodeCellTest`、全部既有解析断言）；`BUILD SUCCESSFUL`；无 QBoxTrace/QBoxFocusChg 残留。提交：`06b8940`（翻页/焦点/对齐）。文档：GS-78、`REGRESSION-CHECKLIST.md` C13–C18/D10–D13、本 §14。
 
 **方法论沉淀**：框架级焦点丢失不能靠猜应用层 requestFocus，必须用带调用栈的全局焦点监听定位真凶；新增显示需求优先用只读派生方法分区，不碰被大量断言锁定的解析字段，是杜绝「修一个坏一个」的关键。
+
+
+## 15. 2026-11-14（续3）选集焦点闪烁——从补丁式修复返工为根治（GS-79）
+
+**用户诉求**：「每次选集换页和确定某集的时候，光标会快速跑到播放口再闪回来，似乎播放口一直在抢遥控器光标，为什么？能修复吗？」随后追加硬要求：「注意修复是不是从根本上修复、是否会影响其他现有功能、会不会导致功能回退；**我们不做补丁式修复，只从根本解决问题；会造成技术债务的打补丁我们不做；对于修复的要求记录到金标准**。」
+
+**上一轮（GS-78③）的修复被判定为补丁**：用 `OnGlobalFocusChangeListener` 守卫，在框架把焦点抢到 video 后「抢回」选集格；本轮把它改成「同步/OnPreDraw 绘制前抢回」，本质仍是抢回，只是让肉眼看不见。用户明确拒绝。
+
+**返工过程（诚实记录弯路）**：
+1. **同口径 baseline 诊断**：加临时 `OnGlobalFocusChangeListener`（记录 `old=null→new` 及调用栈）+ `OnDrawListener`（统计「video 以 focused 被 draw」的帧数）。修复前实测：`old=null→VIDEO` **2 次**、闪烁 **4 帧**——证明「机制在触发」，不是「没抢回」。
+2. **抓完整调用栈，推翻先前假设**：真凶不是 `scrapOrRecycleView→removeViewAt`，而是
+   `RecyclerView.dispatchLayoutStep3 → LayoutManager.removeAndRecycleScrapInt → RecyclerView.removeDetachedView → ViewGroup.removeDetachedView → ViewGroup.clearFocus → View.clearFocusInternal → View.rootViewRequestFocus → onRequestFocusInDescendants → video`。
+   即：`notifyDataSetChanged` 把所有 ViewHolder 标 `FLAG_INVALID`；`detachAndScrapAttachedViews` 把它们放进 scrap；layout 结束时**未被复用的 scrap**被 `removeAndRecycleScrapInt` 清除，若含焦点格 → clearFocus → rootViewRequestFocus → 挑给布局最靠前的 video。
+3. **第一版根治尝试失败（重要教训）**：先加 `setHasStableIds(true)` + `getItemId=pageStart+position`。跨组翻页实测仍 `VIDEO=2 / Flash=2`。原因：绝对索引让跨页后所有 id 全变 → scrap 全部作废被清除，焦点格必被清。诊断证明「假设」不成立，靠猜不行。
+4. **真正根治**：`getItemId(position)=position`（**页内槽位 id**，本 adapter 数据模型 =「当前页 N 个槽位」，换页只是把同一批槽位重绑到不同集，槽位 id 必须跨页稳定）。这样 INVALID 的 scrap 能按 id 复用、焦点格不进「未复用」集合 → `rootViewRequestFocus` 从机制上不发生。
+5. **清除全部补丁**：删 `mFocusGuardLocal` 字段、`initView` 的守卫 listener、`onItemClick` 的状态位赋值、`renderEpisodeSelection` 的守卫引用注释——连上一轮已提交的守卫一并删除（GS-79④ 删补丁优先于加补丁）。
+
+**最终机制证据（同口径可复核）**：
+- baseline（守卫版）：跨组翻页/点集 `old=null→VIDEO`=2、闪烁 4 帧。
+- 根治后：跨组翻页 `PageNotify=1 / VIDEO=0 / Flash=0`；纯点集 `QBoxFocusAll` 焦点变化事件=0、+1/+3/+7s 恒 `[56,773]` 选集格；主动 4×↑ 正常到 `[56,56][856,506]` video（GS-19 未受影响）。
+
+**生产态全回归（无诊断，截图+行为交叉验证）**：5 组源 R1–R6 行内右移 6 格（y 恒 869）、R7 行末翻组 `15-28` 同排首格 `[56,869]`；点集 +2s/+6s 恒选集格；分组条点击切页 + 焦点落选集格；6 chip 等高 `665..745`；聚合搜索 GS-75 tab↔海报逐行/↑回 tab 全通；`QBOX_TEST_OK sites=49`；`BUILD SUCCESSFUL`；无 FATAL/ANR、无诊断日志残留。
+
+**方法论沉淀（→ GS-79）**：① 先定位机制再动手，用带调用栈的可观测证据证明「触发条件」，禁止凭表象猜「谁抢了焦点」就加拦截；② 补丁 = 改「结果」（抢回/掩盖/加速/状态位/时序兜底），治本 = 改「触发条件」；③ 删补丁优先于加补丁；④ 每个修复必须回答「是否治本 / 是否影响其他功能 / 是否功能回退」三问；⑤ 验证口径 = 机制归零（事件计数=0），不是「肉眼没看见」；诊断代码验证后必须删除。
