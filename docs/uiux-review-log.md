@@ -1519,3 +1519,19 @@ QBox 是 Android TV / TV 盒子产品，故以 Android TV 实际规范为主、t
 **生产态全回归（无诊断，截图+行为交叉验证）**：5 组源 R1–R6 行内右移 6 格（y 恒 869）、R7 行末翻组 `15-28` 同排首格 `[56,869]`；点集 +2s/+6s 恒选集格；分组条点击切页 + 焦点落选集格；6 chip 等高 `665..745`；聚合搜索 GS-75 tab↔海报逐行/↑回 tab 全通；`QBOX_TEST_OK sites=49`；`BUILD SUCCESSFUL`；无 FATAL/ANR、无诊断日志残留。
 
 **方法论沉淀（→ GS-79）**：① 先定位机制再动手，用带调用栈的可观测证据证明「触发条件」，禁止凭表象猜「谁抢了焦点」就加拦截；② 补丁 = 改「结果」（抢回/掩盖/加速/状态位/时序兜底），治本 = 改「触发条件」；③ 删补丁优先于加补丁；④ 每个修复必须回答「是否治本 / 是否影响其他功能 / 是否功能回退」三问；⑤ 验证口径 = 机制归零（事件计数=0），不是「肉眼没看见」；诊断代码验证后必须删除。
+
+## 16. 2026-11-15 满页→不满页翻页：焦点闪烁 + 落点末集（GS-79 续，两处根因）
+
+**用户实测复现**：多线源 21 集（第二分组最右上角）右键进下一分组（29 集）时，光标跳播放窗口再回来；并称「最后一页焦点跳到最后一集，而不是相邻的那一集」。这暴露上一轮 GS-79 稳定 id 修复的两个盲区（只测了满页→满页，没测满页→不满页）。
+
+**根因 1：满页→不满页仍闪（稳定 id 的边界）**。`showEpisodePage` 是「先 `setPage`（改 itemCount）→ 后 `focusEpisode`」。新页 itemCount 变小（满 14 → 末组 2/4）时，焦点所在的**旧末位槽位超出新 itemCount**，被 `dispatchLayoutStep3.removeAndRecycleScrapInt` 清除 → `clearFocus → rootViewRequestFocus → video`。稳定 id 只能复用「新页仍存在的槽位」，保不住被裁的槽位。实测：15-28 组第二行最右（pos13）→ 翻 29-30（2集）→ `QBoxRootFocus VIDEO=1`。
+**根因 1 修复（治本）**：`showEpisodePage` 改为「focus=true 时**先 `focusEpisode(local)` 把焦点移到目标槽位**（内部按旧页 clamp，必 < 新 itemCount，是安全槽位），**再 `setPage` 改数据**，最后再 `focusEpisode(local)` 精确落位」。焦点在数据变更前已处于安全槽位，被裁集合里没有焦点格。实测 `VIDEO` 1→0。
+
+**根因 2：落点末集**。`routeEpisodePage` forward 用 `Math.min(row*columns, size-1)`：满页第二行最右 row=1 → `row*columns=7`，翻到末组（size=4）→ `Math.min(7,3)=3` = **该组最后一集**。backward 退化到末集是对的（往回退的相邻即上一组末集），只有 forward 错。
+**根因 2 修复**：`target = row*columns`；`target < size` 落同行首格，否则退化到 **0（组开头 = 相邻的下一集）**。实测 43-56 组第二行最右 → 翻 57-60（4集）→ 落 position 0 `[56,773]`（相邻 E57），旧版落 position 3。
+
+**倒序语义澄清**：`setEpisodeGroups`/`setPage` 按**绝对集数范围**分组（标签 `57-60` 是绝对范围），`EpisodeInfo.order` 在 `renderEpisodes` 已把列表物理排序。正序时 position 0 = 最小集 = 显示首项；倒序时 position 0 = 绝对范围首项（显示末项），但仍是「显示顺序里下一组的第一格」，语义一致（相邻）。用户场景是正序，落 position 0 即相邻的 29。
+
+**验证**：60 集 5 组源（末组 4 集）实测落点/闪烁；`QBOX_TEST_OK sites=49`（`--rerun-tasks` 强制重跑 `EXIT=0`；注意手动设相对 `$env:TMP` 会让 Robolectric 临时目录报错，须用项目 `.toolchain\test.ps1` 的绝对路径环境）；`BUILD SUCCESSFUL`；诊断已删；行内/点集/主动 UP/分组条/聚合搜索回归通过。提交 `b67f29c`。GS-79 补 ⑦、回归清单 D15、本 §16。
+
+**方法论**：稳定 id 是「复用仍存在的槽位」，**不是**「保住焦点永不被裁」；任何会缩小 itemCount 的数据变更，都要先把焦点移到新数据里仍存在的槽位。落点退化要用「相邻语义」判断方向，`Math.min(x, size-1)` 一律退化到末位是陷阱。
