@@ -1391,3 +1391,26 @@ QBox 是 Android TV / TV 盒子产品，故以 Android TV 实际规范为主、t
 **② 焦点加固**：`applyEpisodeLayoutManager` 复用 LayoutManager 只 `setSpanCount`（重建会丢焦点/滚动状态）；`focusEpisodeGrid` 当前集不在本页时先 `showEpisodePage(getPosition())` 再聚焦；`focusEpisode` 聚焦前 `scrollToPosition`。
 
 **验证**：EpisodeInfoTest 新增 4 项（rest 剧名保留 / ≤4 条 2 列 / 混合命名 E01→E11 / 长名不截断），全套 `QBOX_TEST_OK` 通过；版本 1.9.25/83。**待办**：真机回归（用户发起测试请求时）。
+
+
+## 11. 2026-11-14（v1.9.25 回退轮）toast 全部回退 + 聚合搜索页焦点路由修复
+
+**背景**：用户实测确认「toast 图标无法从应用侧消除」，拍板：① 回退所有 toast 干预（不做任何干涉，保持系统原始行为）；② 灾难性 review 遥控器焦点；③ 回归测试此前全部问题；④ 测试设备改用 192.168.2.132。
+
+**toast 回退**：`git reset --hard 09d8740`（toast 干预前基线），撤销 ToastShadow 替身加载器、App.getClassLoader() 覆盖、catvod Runtime/Dialog/Task 桥、SpiderDialog 移植、网盘未登录预检、targetSdk 30、QBoxFocus 调试日志。设备端重装基线包（versionCode 81 / targetSdk 37），logcat 确认 `QBoxToastShadow` 0 条。GS-74 改写为「不干预」。
+
+**焦点 bug 定位与修复（GS-75）**：用户症状「搜索→选源→下拉到海报→↑ 回不到源、直接回返回按钮」。在 192.168.2.132 逐键复现：
+- 聚合搜索页（CollectActivity）选中右侧 tab（如「瓜子」，x=826..1094）时，海报第一列（x=64..396）按 ↑ 落到返回按钮 [64,44][156,136]；第二列（x=411..777）按 ↑ 却正常回到 tab 行——证明是 Leanback 几何搜索的 x-beam 问题（tab 行只允许从「已选中 tab」的横向范围进入）。
+- 反向：从返回按钮按 ↓ 也跳过 tab 行直接进海报。
+- 修复：`CollectActivity.dispatchKeyEvent` 显式分层——海报首行 ↑ → `recycler.requestFocus()`（落选中 tab）；工具栏 ↓ → tab 行；tab 行 ↑ → 工具栏（保持原层级）。配套：`getCurrentFragment()` 用 ViewPager tag（`android:switcher:<pagerId>:<position>`）取当前页（原 `getFragment()` 固定 `instantiateItem(pager, 0)` 永远拿第 0 页，导致拦截失效）；`CollectFragment.isFocusOnTopRow()` 用 `getChildAdapterPosition(row)==0` 判定首行，保证第 2 行起仍逐行移动。
+
+**实测（uiautomator 逐键取证，192.168.2.132 / JmGo / Android 9）**：
+- 海报首列 ↑ → tab 行 [826,156][1094,240] ✓（修复前：返回按钮）
+- 返回 ↓ → tab 行 ✓（修复前：直接进海报）
+- 第 2 行 ↑ → 第 1 行 ↑ → tab 行 ✓（逐行保留）
+- tab ↑ → 返回 ✓；tab ↓ → 海报首行 ✓
+- 详情页（VideoActivity）：video ↓ flag ↓ episodeGroup ↓ episode 第1行 ↓ 第2行 ↓ part（搜索行）；反向 ↑ 全通；选集 ←/→ 逐格、↓ 同列下一行；part ↑ → 选集。
+- SearchActivity：编辑框 ↑ → 返回；↓ → 麦克风 → 键盘首行 ✓
+- 设置页：行 ↓/↑、列 →/↑（右列保持）✓
+
+**回归**：`QBOX_TEST_OK sites=49`（EpisodeInfo/PanType/QuarkNaming/Config/LiveParse）。首页「豆豆片单」在该设备网络下 SocketTimeout（源站问题，非代码）。
