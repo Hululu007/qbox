@@ -1472,3 +1472,26 @@ QBox 是 Android TV / TV 盒子产品，故以 Android TV 实际规范为主、t
 **文档同步**：`REGRESSION-CHECKLIST.md` C 组重写为固定大小/居中/滚动（C1–C12）并打勾、映射表新增「通用 selector/dimen/删资源」必验项；`GOLDEN-STANDARDS.md` GS-76 改「历史沿革」+ 新增 GS-76b（固定尺寸终态）/GS-77（资源统一优先复用、验收日志不得删）、§七 登记；`TECH-DEBT-REVIEW.md` F6–F9 + 第 5 节进度表；本 §13。
 
 **验证汇总**：4 个代码提交各自 build+test+真机；`QBOX_TEST_OK sites=49` 全程绿；192.168.2.132（未用电视）；无 FATAL/ANR；targetSdk 37、无 toast 干预。
+
+
+## 14. 2026-11-14（续2）选集立体导航 + 焦点保持 + 标签分区（GS-78）
+
+**用户 4 项诉求**：① 第一行最右按 → 应翻页（当前跳第二行第一），选集是「立体运动」，分组边缘应切到下一分组临近位置；② 识别到的时间/集数在前方固定不滚，后面原资源全名持续滚动，4K/HDR/DV 右上两排、声道(2.0/5.1/7.1/ATMOS)右下固定，角标不影响展示原名让人类判断；③ 点集后焦点跳到播放框，应保持原地方便连续切集，要播放框应手动按 ↑ 上去；④ 分组开头正序倒序字小，应横竖居中跟本行对齐。另「按你的推荐来改」（技术债清理按推荐推进）。
+
+**诉求① 翻页（row-edge paging）**：`routeEpisodePage` 原用页内线性 `local±1 < pageSize` 判定，第一行最右（col=columns-1）满足 `local+1 < pageSize` → 落到第二行第一，与注释「同一排左右移动」矛盾。改为列边界：`col < columns-1 && local+1 < pageSize` 才行内右移，否则翻到相邻分组同排临近位置（`row*columns` / `row*columns+columns-1`）。真机（第 1 组 1-14，7 列 2 行）逐键 `v1–v8.xml`：RIGHT#1–6 焦点全在第一行 y=773（x 314→1605），RIGHT#7 翻到组 `15-28` 同排首格 `[56,773]`，RIGHT#8 新组行内继续。
+
+**诉求③ 焦点保持（最难，多轮定位）**：
+- 第 1 轮：删 `shouldEnterFullscreen`（点当前集 → `enterFullscreen → video.requestFocus`），区分播放按钮 `onPrimaryPlay` 保留进全屏语义；`renderDetail` 改 `mDetailFocusSet` 首入设一次初始焦点（重入不抢）；`renderEpisodeSelection` 从 `notifyDataSetChanged` 改成就地刷新可见格 activated 态（`EpisodeAdapter.isSelectedAt`）。真机仍跳 video。
+- 第 2 轮：加 `mKeepEpisodeFocus` + post `focusEpisodeGrid` 兜底，真机仍跳 → 说明异步/框架层在 post 之后又改焦点。
+- 第 3 轮：加临时 `QBoxTrace` 日志，发现点集瞬间焦点在选集格、restore run 后也在，但几秒后 dump 变 video，且期间没有走任何加了日志的方法。
+- 第 4 轮：加带调用栈的 `OnGlobalFocusChangeListener`（`QBoxFocusChg`），抓到完整栈：**`RecyclerView.onMeasure → onLayoutChildren → detachAndScrapAttachedViews → removeViewAt → ViewGroup.removeViewInternal → rootViewRequestFocus → ViewGroup.onRequestFocusInDescendants → video`**，特征 `old=null new=video`。这是 Android 框架在焦点子 View 被 detach 后从 window 根自动重挑第一个 focusable，非应用层 requestFocus。
+- **最终修复**：`initView` 注册 `OnGlobalFocusChangeListener` 守卫：`mFocusGuardLocal>=0`（点集时 `onItemClick` 记下 `getEpisodePosition(getCurrentFocus())`）+ `oldF==null`（框架重挑特征）+ `newF==mBinding.video` + 非全屏 → post `focusEpisode(local,true)` 把焦点拉回原格。用户主动 ↑ 逐级上到播放框时 oldFocus 不为 null，守卫不拦。移除全部临时 trace 日志。
+- 真机 `gd0/gd1/gd2.xml`：点集前 `[56,773]` → OK 后 +6s 仍 `[56,773]`（保持原地）→ 主动 4×↑ 到 `[56,56][856,506]` video（守卫不误拦）。
+
+**诉求② 标签分区**：`EpisodeInfo.Item` 新增 4 个**只读派生方法**（零字段/零解析/零构造器改动）：`resolution()`=badge 第一行、`dynamicRange()`=badge 第二行去 ATMOS、`channel()`=tail 声道段(新 `CHANNEL_TOKEN` 正则) + badge 里的 ATMOS、`codecTail()`=tail 去声道段（保留 H265/AAC）。**`badge`/`tail` 字段与 `EpisodeInfoTest`/`QuarkNamingTest` 46+ 断言 100% 不动**。布局 `adapter_episode.xml` 重构：root(match_parent×40dp 焦点 holder) → `pill`(LinearLayout, selector_item 背景 + duplicateParentState) 内含 `prefix`(label 加粗固定不滚) + `text`(rest+codecTail, 独立 marquee 滚动，`setSelected` 只绑它)，`badge`(top|end 两排) + `channel`(bottom|end) 钉角，`applyPillPadding` 给 pill 右侧按 badge/channel 实测最大宽留白。更新 `EpisodeCellTest`（prefix/text/badge/channel 分区断言）、`EpisodeInfoTest` 新增 `deriveDisplayParts`。真机 `sp1.xml`/`mf1/mf2-c.png`：胶囊固定 238×80、`E29` 加粗前缀两帧静止、`小程量房...` 独立、聚焦白药丸+反色正常。
+
+**诉求④ 分组条对齐**：`adapter_episode_sort.xml`(13sp/描边/5dp) 与 `adapter_episode_group.xml`(14sp/实心/8dp) 统一 `layout_height=@dimen/qbox_group_chip_height`(40dp) + `gravity=center` + sort 补 singleLine。真机 `pg0.xml`：正序/1-14/15-28/29 四项全 `y=665..745` 等高居中。
+
+**验证**：每批单独 build+test+真机；`QBOX_TEST_OK sites=49`（含 `deriveDisplayParts`、更新 `EpisodeCellTest`、全部既有解析断言）；`BUILD SUCCESSFUL`；无 QBoxTrace/QBoxFocusChg 残留。提交：`06b8940`（翻页/焦点/对齐）。文档：GS-78、`REGRESSION-CHECKLIST.md` C13–C18/D10–D13、本 §14。
+
+**方法论沉淀**：框架级焦点丢失不能靠猜应用层 requestFocus，必须用带调用栈的全局焦点监听定位真凶；新增显示需求优先用只读派生方法分区，不碰被大量断言锁定的解析字段，是杜绝「修一个坏一个」的关键。

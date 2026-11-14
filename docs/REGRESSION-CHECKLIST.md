@@ -26,12 +26,13 @@
 | B2 | 设备无干预残留 | logcat `QBoxToastShadow` 计数 = 0 | logcat 输出 `0` | [x] 2026-11-14 |
 | B3 | 系统默认行为 | spider 提示按系统默认渲染（接受带图标） | 用户拍板，不再干预 | [x] 2026-11-14 |
 
-## C. 选集胶囊（GS-70/72/76/76b）— 固定大小 + 文字居中
+## C. 选集胶囊（GS-70/72/76/76b/78）— 固定大小 + 前缀固定/名称滚动 + 角标分区
 
-> 2026-11-14 更新：用户拍板「按钮统一大小、文字居中、不按文字长短变尺寸、超长仍滚动」。
-> 结构：root=match_parent×(固定 @dimen/qbox_episode_height=40dp)，text=match_parent×match_parent + gravity=center，
-> 焦点态由 root→text 一层 `duplicateParentState` 直达（GS-16 合法）。padding 唯一来源 `applyPillPadding()`。
-> 背景用全站通用 `selector_item`（含 state_activated），不再有选集专用 selector/shape。
+> 2026-11-14 二次更新：用户拍板「前方识别到的时间/集数固定不滚，后面原资源全名持续滚动；4K/HDR/DV 右上两排、声道右下固定；角标不影响展示原名」。
+> 结构：root=match_parent×40dp（焦点 holder、无背景）→ LinearLayout「pill」承载 `selector_item` 背景 + `duplicateParentState` 复制焦点态，
+> 内含 `prefix`(label 固定) + `text`(rest 原名 + codecTail，marquee 独立滚动)；`badge`(右上两排)、`channel`(右下) 钉在 root 角上。
+> padding 唯一来源 `applyPillPadding()` 作用于 pill。`EpisodeInfo.Item` 用只读派生方法 `resolution/dynamicRange/channel/codecTail` 分区，
+> **badge/tail 字段与 46+ 解析断言零改动**（`deriveDisplayParts` 单测覆盖）。
 
 | # | 检查项 | 验证方法 | 证据 | 状态 |
 |---|---|---|---|---|
@@ -47,6 +48,12 @@
 | C10 | 角标嵌按钮右上、不撑大按钮 | 有 4K/DV 角标源聚焦截图 | 位置固定 `top\|end`；待测（当前源无角标） | [ ] |
 | C11 | 复用通用 `selector_item`、无选集专用 drawable | 代码审查 | `selector_item.xml`（focused/selected/activated/default）、`selector_episode_item.xml` 已删 | [x] 2026-11-14 |
 | C12 | 其它胶囊族（线路/画质/分组/排序）未被改坏 | 详情页上半部截图 | `b3b-crop.png`（分组条 1-10 聚焦白药丸+反色）、`capE-crop.png` | [x] 2026-11-14 |
+| C13 | **前缀(时间/集数)固定不滚** | 聚焦截图 + 两帧对比 | `mf1/mf2-c.png`：`E29` 加粗前缀两帧静止 | [x] 2026-11-14 |
+| C14 | **原资源全名独立滚动** | 长名聚焦两帧对比 | `mf1/mf2-c.png`（短名放得下不滚=正确）；marquee 四属性+`setSelected` 只绑 text | [x] 2026-11-14 |
+| C15 | 右上两排角标（分辨率/动态范围） | 单测 + 绑定测试 | `deriveDisplayParts`（4K/DV）、`EpisodeCellTest` badge=`4K\nDV` VISIBLE | [x] 2026-11-14 |
+| C16 | 右下固定声道（5.1/7.1/ATMOS） | 单测 + 绑定测试 | `deriveDisplayParts`（`5.1·ATMOS`/`2.0`）、`EpisodeCellTest` channel=`5.1` VISIBLE | [x] 2026-11-14 |
+| C17 | 角标匹配后不遮挡原名、不撑大按钮 | 代码审查 + 截图 | pill 固定 238×80（`sp1.xml`），右侧按 badge/channel 实测最大宽留白，前缀+名称在滚动区 | [x] 2026-11-14 |
+| C18 | `badge/tail` 字段与 46+ 解析断言零改动 | `test.ps1` | `QBOX_TEST_OK sites=49`（`EpisodeInfoTest`/`QuarkNamingTest` 全绿 + 新增 `deriveDisplayParts`） | [x] 2026-11-14 |
 
 ## D. 焦点导航（灾难性 review 项）
 
@@ -61,6 +68,10 @@
 | D7 | 全屏控制栏 15 按钮 ←/→ 可达 | 控制栏截图逐格 | 下集→…→详情 | [x] 2026-11-14 |
 | D8 | 首页 header/content 行、搜索页、设置页 | 逐键 bounds | 各页焦点落点记录 | [x] 2026-11-14 |
 | D9 | 首页返回退出、长按返回、熄屏 30 分钟退出 | dumpsys + 广播入口 | GS-71 | [x] 2026-11-14 |
+| D10 | **选集行内左右移动、行末翻页**（立体运动） | 第 1 组逐格 → 轨迹 | `v1–v8.xml`：E01→E07 全在 y=773 行内右移，第 8 次翻到组 `15-28` 同排首格；不再跳第二行第一（GS-78） | [x] 2026-11-14 |
+| D11 | **点集后焦点保持选集格原地** | 点集前后 + 间隔 dump | `gd1.xml`：OK 后 +6s 仍 `[56,773][294,853]`；根因框架 `rootViewRequestFocus`（detach 焦点格）由焦点守卫拦截 | [x] 2026-11-14 |
+| D12 | **用户主动 ↑ 能到播放框**（守卫不误拦） | 点集后 4×↑ | `gd2.xml`：焦点到 `[56,56][856,506]` video | [x] 2026-11-14 |
+| D13 | **正序/倒序与分组条等高、横竖居中** | 分组条 dump + 截图 | `pg0.xml`：4 项全 `y=665..745`（40dp 统一高度 + gravity=center） | [x] 2026-11-14 |
 
 ## E. 选集数据（EpisodeInfo 单测 + 真机）
 
