@@ -17,6 +17,15 @@
 | F4 | 7 个 0 引用 import（HomeActivity×3、VideoActivity×2、VodActivity×2） | 删除（逐个先验证 non-import uses=0，再删；`Notify.java` 的 `ResUtil` 有 4 处使用，保留） | `BUILD SUCCESSFUL` |
 | F5 | 新增可打勾回归清单 + 「改动→必验」映射表 | `docs/REGRESSION-CHECKLIST.md` | 本轮已按其打勾 |
 
+**本轮（2026-11-14 续，用户「固定大小 + 按处理顺序修复」）新增：**
+
+| # | 问题 | 修复 | 验证 | 提交 |
+|---|---|---|---|---|
+| F6 | 选集按钮跟着文字长短变大小（本末倒置） | 固定 `match_parent`×40dp + `gravity=center` + 去掉冗余 `box` 层改一层 `duplicateParentState` + marquee 保留 | `fsS/fs2/mqf-crop.png` | `e111a69` |
+| F7 | 死代码 + 11 个孤儿 drawable（冗余补丁） | 带命中次数断言脚本删 0 引用方法/`fadeHeight` 死块/同包冗余 import；删前全仓 grep 13 项确认 0 引用 | build 3m13s + `QBOX_TEST_OK` + 首页真机 | `6793c27` |
+| F8 | 胶囊 selector 孪生副本 + 硬编码颜色 | 删 `selector_episode_item`、`selector_item` 加 `state_activated`、11 文件 14 处精确等值颜色 token（跳过 `<gradient>`） | build+test+真机三态 | `9a9b5ca` |
+| F9 | 文档与代码同步（GS-76b/77、清单 C 组、映射表、台账、本报告） | 全部更新 | 文档复核 | 根仓库 |
+
 > 关键结论（反直觉）：**全站通用胶囊 `selector_item` + `shape_item_*` 没坏**。43 处复用（线路/画质/分组/设置行）都是健康的 `wrap_content` TextView 胶囊，真机 `capE-crop.png` 证实未被改坏。变丑的只有选集——它被三个历史补丁单独弄坏了。所以正确动作是「让选集收敛回通用体系」，**不是**改那 43 处。
 
 ---
@@ -67,12 +76,24 @@
 - `CustomSearchView.isFocused()` 恒返回 true（B17）、`CustomKeyboard` 光标 -1（B15）等框架级问题
 - `HomeActivity.showDiag()` 裸 Material 弹窗 + 全硬编码中文字串（B41）
 
-## 5. 建议的处理顺序（每批单独提交 + 按清单打勾）
+## 5. 处理顺序与进度（每批单独提交 + 按清单打勾）
 
-1. **第 1 批（本轮）**：胶囊结构收敛 + 死 import + 回归清单机制 ✅ 已完成
-2. **第 2 批（零风险清理）**：第 4 节 A 组死代码/孤儿资源删除 —— 只删不增，编译+单测即证，改完重跑 A 组门禁
-3. **第 3 批（需拍板）**：全站胶囊统一 —— 先定「统一圆角/焦点态/padding 单一 token」，再一次性改 selector，按 `REGRESSION-CHECKLIST.md` 的「改通用 shape 必验 D4/D6/D8 全站抽查」逐页截图
-4. **第 4 批**：硬编码颜色 → token 收口（60+ 行，机械替换，前后截图比对）
-5. **第 5 批**：潜在 bug / DEBUG 变体 / 双轨逻辑（逐项单独提交，改一个验一个）
+| 批次 | 内容 | 状态 | 提交 / 验证 |
+|---|---|---|---|
+| 1 | 胶囊结构收敛 + 死 import + 回归清单机制 | ✅ | `824258a`/`ad9831b`（上一轮） |
+| 1b | **选集按钮固定大小 + 文字居中**（用户拍板） | ✅ | `e111a69`；build+test+真机三源 |
+| 2 | 零风险清理：A 组死代码 + 11 个孤儿 drawable | ✅ | `6793c27`；build 3m13s + `QBOX_TEST_OK` + 首页真机 |
+| 3 | **全站胶囊 selector 统一**（删孪生 `selector_episode_item`，`selector_item` 加 `state_activated`）+ **精确等值颜色 token 收口**（11 文件 14 处，跳过 `<gradient>` 色标） | ✅ | `9a9b5ca`；build+test+真机三态 |
+| 4 | DEBUG 纯日志（`QBoxEpisodes`/`QBoxSnap`/`QBoxFlags`/`QBoxFocus`）| ⏸ **刻意未做** | release 被 R8 移除、零运行时收益，却要动焦点核心 `VideoActivity` 多处；`QBoxSeek`/`QBoxNav`/`QBoxGrid` 是验收手段本就不删。见下方取舍 |
+| 5 | 潜在 bug（B9–B28）、DEBUG 变体（GS-55）、双轨逻辑、圆角强统一、跨 flavour/Material Chip、`<gradient>` 色标 | ⏸ **待拍板** | 涉及行为/需先定标准，逐项单独提交 |
 
-> 供你勾选：告诉我第 3–5 批里哪些先做、哪些暂缓。我不会在你未拍板前擅自大改共享资源。
+**仍需你 review 才能动的项**（第 4 节 R/B 组，理由 = 会改行为/视觉或需先定标准，擅自混入功能提交就是「修一个坏一个」）：
+- 圆角强统一（R1–R6）、`selector_setting_chip` 缺 `state_selected`（R2）、Control 双重 padding（R3）、`selector_button` 圆角跳变（R4）、`match_parent` 列表行胶囊（R5）、MAIN 目录 Material Chip 另一套（R6）
+- DEBUG 变体清理（GS-55 需确认默认变体是否定案）、`debug_nav_variant` release 泄漏（B2）、`CollectActivity.getFragment()` 固定第 0 页（B12，与 GS-75 冲突但焦点实测正常）
+- 播放链路 NPE 守卫（B18–B25）、`isRevPlay` 残留（B26）、`setNextFocusXxx` 全量重建（B5）、`CustomSearchView.isFocused` 恒 true（B17）
+- 硬编码颜色里**无精确等价 token** 的一批（`#1FFFFFFF`/`#14FFFFFF`/`#7A000000` 等）与全部 `<gradient>` 色标（需新增语义 token，属决策）
+- 进度条 4 色硬编码两份（R8）、`CustomMic` 纯红（B32）
+
+> 取舍说明（回应「杜绝修一个坏一个」）：本轮只自动落地了**确定零视觉/行为变化**的批次（2、3）——selector 状态合并、精确等值 token、删死代码/孤儿资源，每批单独 build+test+真机。凡需先定「统一到哪种标准」或改运行时行为的，一律列出等你拍板，不擅自大改 40+ 处共享视觉。
+
+> 供你勾选：告诉我第 4–5 批里哪些先做、哪些暂缓。

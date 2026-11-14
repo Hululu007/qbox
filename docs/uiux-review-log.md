@@ -1443,3 +1443,32 @@ QBox 是 Android TV / TV 盒子产品，故以 Android TV 实际规范为主、t
 - `QBOX_TEST_OK sites=49`；`BUILD SUCCESSFUL`（test 轮 48s）。
 
 **机制落地**：新建 `docs/REGRESSION-CHECKLIST.md`（A 构建/B Toast/C 胶囊/D 焦点/E 数据 五组可打勾项 + 「改动→必验」映射表 + 每改一处只改一个关注点的铁律），金标准 §六 增加指向、新增 GS-76（胶囊结构单一化 + 打勾清单强制）、§七 登记。
+
+
+## 13. 2026-11-14（续）选集按钮固定大小 + 资源统一 + 打勾清单终态
+
+**用户诉求**：①「选集胶囊是文字大小，按钮应该统一大小、文字居中、而不是按文字调整按钮，本末倒置；超长仍滚动，其他不变」；②「按你的处理顺序开始修复，能复用且统一的资源尽量统一，代码专业简洁优雅，完成目标且保存好各类文档及过程文档，控制好验证」。
+
+**总原则**（延续 §12 的「杜绝修一个坏一个」）：只自动落地**确定零视觉/行为变化**的批次，每个关注点单独提交、单独 build+test+真机；需先定标准或改运行时行为的一律列 `TECH-DEBT-REVIEW.md` 待拍板。
+
+**批次 1b `e111a69` — 胶囊固定大小 + 文字居中**：
+- `adapter_episode.xml`：`match_parent` 根 = `match_parent` 宽 × 新增 `@dimen/qbox_episode_height`(40dp) 高，`background=@null`，仍是唯一焦点 holder（Java 的 setActivated/焦点监听/click/nextFocus* 一行未动）；**去掉冗余 `box` 层**，`text` = `match_parent`×`match_parent` 直接挂根，`gravity=center`，承载 `selector_item` 背景，`duplicateParentState=true` 一层直达 root（GS-16 合法）；`badge` 钉根 `top|end`。四个 marquee 属性 + `setSelected(hasFocus)` 保留。
+- 与「大坨」的区别：高度固定紧凑、padding 单一来源、圆角药丸；不是 44dp 大按钮。
+- 真机（192.168.2.132）：`fs1.xml` 纯数字源 1–14 每格 238×80 一致、`fsS-crop.png` 数字居中、`fs2-crop.png` 焦点 8→11 白药丸跟随+反色+第1格 activated 灰底；长标签源 `mq6.xml` 同样 238×80、`mqf-crop.png` 居中、`mm1/mm2` 聚焦显示全名（超长省略/滚动保留）。
+
+**批次 2 `6793c27` — 零风险清理**：
+- 先全仓复核（不只信审查）：`setClipTop` 在 `activity_home.xml` 只是**注释提及**（非调用），Java 0 引用；`alignTop` 活跃（L195 赋值/L266 读取）必须保留；`fadeHeight` 恒 0、`dispatchDraw` 渐隐块不可达。
+- 带「命中次数断言」脚本 `cleanup_batch2.py` 删：`ScreenGuard.isExitRequested()/clear()`、`EpisodeAdapter.getPageStart()/getNumRows()`、`Notify` 同包冗余 import、`CustomVerticalGridView` 的 `fadeHeight` 字段/两处赋值/不可达绘制块/5 个 graphics import/`setClipTop()`（保留 alignTop/contentTop/Canvas/Gravity/KeyEvent）。
+- 全仓 grep 确认 11 个孤儿 drawable 0 引用（含 `selector_subtitle` 死链下游）后删除。
+- 验证：BUILD SUCCESSFUL 3m13s 无资源错误（证明 0 悬挂引用）+ `QBOX_TEST_OK sites=49` + 首页真机焦点 `[64,300][413,819]`、0 FATAL/ANR。
+
+**批次 3 `9a9b5ca` — 资源统一**：
+- selector：`selector_episode_item` 与 `selector_item` 是仅差 `state_selected`/`state_activated` 的孪生副本。给通用 `selector_item` 加 `state_activated`（同指 `shape_item_activated`，选集是全仓唯一 setActivated 处，不串扰其它 43 处），`adapter_episode.xml` 改用 `selector_item`，删孪生副本（删前 0 引用断言，且被自己写的注释误触发断言→改措辞后重跑，防线生效）。
+- 颜色：严格脚本 `color_tokens.py` 只替换「完整属性值、精确等值」的离散色（10 文件 13 处）+ `styles.xml` 一处 item 文本；**排除 `<gradient>` 色标**（梯度中间值，用 token 反而误导、属实验参数族）与无精确等值的值（`#1FFFFFFF` 等）。核对 `text_dim.xml`(ColorStateList) 引用 `qbox_text_dim`(simple color) 无循环。
+- 验证：build+test 通过 + 真机 `b3-crop.png`/`b3b-crop.png`：选集 activated 灰底、分组条 1-10 聚焦白药丸+反色，`state_selected`/`state_focused`/`state_activated` 三态正常。
+
+**批次 4（刻意未做）/ 5（待拍板）**：DEBUG 纯日志 release 被 R8 移除、零收益却要动焦点核心 `VideoActivity`，且 `QBoxSeek`/`QBoxNav`/`QBoxGrid` 是 GS-42/52 与焦点验收手段本就不删；圆角强统一、跨 flavour、DEBUG 变体(GS-55)、潜在 bug、双轨逻辑需先定标准——全部列入 `TECH-DEBT-REVIEW.md` 第 5 节供用户拍板，未擅自改。
+
+**文档同步**：`REGRESSION-CHECKLIST.md` C 组重写为固定大小/居中/滚动（C1–C12）并打勾、映射表新增「通用 selector/dimen/删资源」必验项；`GOLDEN-STANDARDS.md` GS-76 改「历史沿革」+ 新增 GS-76b（固定尺寸终态）/GS-77（资源统一优先复用、验收日志不得删）、§七 登记；`TECH-DEBT-REVIEW.md` F6–F9 + 第 5 节进度表；本 §13。
+
+**验证汇总**：4 个代码提交各自 build+test+真机；`QBOX_TEST_OK sites=49` 全程绿；192.168.2.132（未用电视）；无 FATAL/ANR；targetSdk 37、无 toast 干预。
