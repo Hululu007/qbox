@@ -1414,3 +1414,32 @@ QBox 是 Android TV / TV 盒子产品，故以 Android TV 实际规范为主、t
 - 设置页：行 ↓/↑、列 →/↑（右列保持）✓
 
 **回归**：`QBOX_TEST_OK sites=49`（EpisodeInfo/PanType/QuarkNaming/Config/LiveParse）。首页「豆豆片单」在该设备网络下 SocketTimeout（源站问题，非代码）。
+
+
+## 12. 2026-11-14（胶囊「大坨」修复 + 全局技术债审查 + 打勾清单机制）
+
+**用户诉求**：① 修「选集又变成一大坨而不是胶囊」；② 建「每次打勾验证是否修复」的问题清单，杜绝修一个产生一个新 bug；③ 更大的技术债——「改功能导致修一个坏一个、缝缝补补让可复用/全局调教被掩盖、变成冗余补丁状态，某些胶囊全 app 通用，变丑可能不止一处，修复不要只修一个地方」；④ `Read this entire project and find everything broken/inconsistent/inefficient/no longer needed. Fix what you're sure about and list the rest for me to review.`
+
+**三路全仓只读审查**（并行 explore：资源盘点 / 布局一致性 / Java 冗余与死代码），核心事实：
+- 变丑的**只有选集**：`e014e96` 把 `selector_episode_item` 背景挂在 `match_parent` 根 View（=整列宽大白块，截图 `p04-pill.png`/`p05-pill.png` x≈756→990），且 `shape_item_*`(8/12) + text XML(12/8) + `applyPillPadding()` 的 `setPadding` 三处 padding 叠加。
+- `09d8740` 胶囊尺寸正确（wrap_content text 承载背景），但 `box` 缺 `duplicateParentState` → 焦点态链断在不可聚焦的 box → 无焦点反馈（用户上一轮报「无焦点/移动无反馈」）。
+- **通用 `selector_item`+`shape_item_*` 没坏**：43 处复用（flag/quality/part/group/设置行），都是 wrap_content TextView 自身可聚焦的健康胶囊。
+- 顺着查出的全局冗余：9 种 selector / 6 种圆角 / 5 套 padding / 3 种焦点态 / 5 种 textColor 并存；`selector_episode_item` 与 `selector_item` 是仅差一个状态的孪生副本；4 套平行 3-state 胶囊体系；8 个 selector 内联重定义 shape；60+ 行硬编码颜色（已有等价 token）；约 10 个 0 引用 drawable + 3 个死 token；13 项确定死代码（0 引用方法/不可达 fadeHeight 块/未用 import）；一批潜在 NPE 与 DEBUG 变体残留。详见 `docs/TECH-DEBT-REVIEW.md`。
+
+**本轮修复（确定、零运行时行为变化 / 直接修用户报的 bug）**：
+1. `adapter_episode.xml` 收敛：`match_parent` 根只管焦点命中/列宽/间距且 `background=@null`；`wrap_content` 的 `box` 包文字+角标并补 `duplicateParentState=true`；`wrap_content` 的 `text` 承载 `selector_episode_item` + `duplicateParentState=true` 反色。root→box→text 焦点态链接通，**Java 的 `setActivated`/`setOnFocusChangeListener`/click/`nextFocus*` 全绑 root，一个字未动**（避免动焦点 holder 引入回归）。
+2. `EpisodeAdapter.applyPillPadding()` 恢复「按角标实测宽度留白」的单一来源 `setPadding`，修正与代码矛盾的注释；`onBind` 里「背景在根上」的过时注释也改正。
+3. 删误建的孤立 `shape_episode_focused.xml`（又是专用 drawable = 冗余来源）。
+4. 删 7 个确认 non-import uses=0 的 import（HomeActivity×3/VideoActivity×2/VodActivity×2）；`Notify.ResUtil` 有 4 处使用，保留。
+
+**为什么不大改**：把 43 处通用 selector / 60+ 行颜色 / 实验变体一次性改动，正是「修一个坏一片」的来源；且全站胶囊统一需用户先拍板统一到哪种圆角/焦点态。故本轮严格只做「胶囊结构 + 死 import + 清单机制」，其余全部列入 `docs/TECH-DEBT-REVIEW.md` 供 review，建议分 5 批、每批按 `docs/REGRESSION-CHECKLIST.md` 打勾。
+
+**实测（192.168.2.132 / JmGo / Android 9）**：
+- 装新包（BUILD SUCCESSFUL 49s）→ 首页推荐卡 OK 直达详情页 → 4×DOWN 到选集行。
+- `capB-crop.png`：未聚焦项纯文字/透明底，选中项 `10.23 ·2 沉浸版` 为紧贴文字的灰底胶囊（不再整列大坨）。
+- `capC-full.png`：↑ 回选集，`10.23 ·2 沉浸版` 聚焦 = 紧贴文字的圆角白药丸（约 240px）+ 深色反色字。
+- `capD-full.png`：2×RIGHT 后白药丸移到 `10.29 ·2 上`（移动即时可见），原 `10.23 ·2` 变灰底 activated 常亮 —— 焦点态/选中态/反色互不串扰。
+- `capE-crop.png`：3×UP 焦点回 video，线路/分组/排序胶囊均为紧凑胶囊，未被改坏。
+- `QBOX_TEST_OK sites=49`；`BUILD SUCCESSFUL`（test 轮 48s）。
+
+**机制落地**：新建 `docs/REGRESSION-CHECKLIST.md`（A 构建/B Toast/C 胶囊/D 焦点/E 数据 五组可打勾项 + 「改动→必验」映射表 + 每改一处只改一个关注点的铁律），金标准 §六 增加指向、新增 GS-76（胶囊结构单一化 + 打勾清单强制）、§七 登记。
