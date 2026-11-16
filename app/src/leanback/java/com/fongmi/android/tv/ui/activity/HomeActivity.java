@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -947,7 +946,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             long now = System.currentTimeMillis();
             if (now - mLastBackPressed > 2000) {
                 mLastBackPressed = now;
-                Toast.makeText(this, R.string.home_exit_again, Toast.LENGTH_SHORT).show();
+                Notify.show(R.string.home_exit_again);
             } else {
                 App.exitApp();
             }

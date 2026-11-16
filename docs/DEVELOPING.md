@@ -5,7 +5,7 @@
 ## 仓库与版本
 
 - 源码与发布：<https://github.com/zqs1qiwan/qbox>，长期分支 `main`。
-- 当前版本以 `app/build.gradle` 为准（2.0.2 / 102）。
+- 当前版本以 `app/build.gradle` 为准（2.0.3 / 103）。
 - TV 源码对齐 FongMi/TV 5.6.1（`125468f0`）；媒体层保持 FongMi/media `release-1.11.0-fongmi` 的 media3 1.11.0，不升级 media3。
 - 详细的上游同步记录见 [UPSTREAM.md](UPSTREAM.md)。
 

@@ -163,11 +163,15 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
     private boolean filterBandOpen;
     private android.animation.ValueAnimator navBandAnim;
 
-    /** filter 面板开关：栏版下导航带主体延展/归位，并把它计入显隐判据。 */
+    /** filter 面板开关：仅栏版下延展/归位导航带；release 的 190dp 渐变带不参与这个动画。 */
     private void setFilterBand(boolean open) {
         // GS-82 债务清理（B2）：与 applyNavVariant 同源守卫，release 不读 DEBUG 变体。
         boolean bar = com.fongmi.android.tv.BuildConfig.DEBUG && com.github.catvod.utils.Prefers.getInt("debug_nav_variant", 0) == 1;
         filterBandOpen = open && bar;
+        // 回归修复：非栏版也必须在这里直接返回。旧代码在 else 里无条件把 navScrim
+        // 高度动画到 136dp（栏版主体高度），会把 release 的 190dp 渐变带裁断，
+        // 收起筛选后顶部阴影就变成一条硬边/实色线。
+        if (!bar) return;
         if (filterBandOpen) {
             mBinding.getRoot().postDelayed(() -> animateBandToFilter(0), 120);
         } else {

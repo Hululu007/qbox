@@ -468,13 +468,14 @@ public class VodPlaybackController {
         // 从「最近观看」进入时，history 里保存的 vodFlag/集数就是用户上次的选择。
         // 先按 history 精确恢复，避免一个携带旧线路的 activeRequest（或首个 Flag）把用户
         // 上次选择的线路覆盖回列表第一项；刷新/换源再走 activeRequest 路径。
-        if (freshDetail && restoreHistorySelection(history)) {
+        boolean restoredHistory = freshDetail && restoreHistorySelection(history);
+        if (restoredHistory) {
             publishPlaybackMetadata(state.getEpisode());
         } else {
             restoreDetailSelection(activeRequest, history);
         }
         restoreEpisodeOrder(history);
-        resumePlaybackIfNeeded();
+        resumePlaybackIfNeeded(restoredHistory);
     }
 
     private void restoreDetailSelection(VodPlayRequest activeRequest, History history) {
@@ -494,8 +495,14 @@ public class VodPlaybackController {
         return state.getHistory() != null && state.getHistory().isRevSort();
     }
 
-    private void resumePlaybackIfNeeded() {
-        if (state.getPlayingRequest() != null && !host.hasPlaybackSession()) requestSelectedEpisode();
+    /**
+     * 首次从「最近观看」进入详情时，state 里还没有 playingRequest（这是正常的），
+     * 但 history 已经把线路和集恢复好了。旧逻辑只认 playingRequest，导致播放器一直空转，
+     * 必须手动暂停/播放或换集才真正发起请求。历史恢复成功时也要主动起播一次。
+     */
+    private void resumePlaybackIfNeeded(boolean restoredHistory) {
+        if (host.hasPlaybackSession()) return;
+        if (restoredHistory || state.getPlayingRequest() != null) requestSelectedEpisode();
     }
 
     private boolean restoreHistorySelection(History history) {

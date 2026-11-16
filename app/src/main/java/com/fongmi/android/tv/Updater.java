@@ -167,18 +167,37 @@ public class Updater implements Download.Callback, UpdateListener {
                 .show(activity);
     }
 
-    /** Release 说明是 Markdown，电视对话框里去掉标题井号和加粗符号就够了。 */
+    /** Release 说明是 Markdown；更新弹窗只保留适合最终用户阅读的短句和要点。 */
     private String clean(String desc) {
         if (TextUtils.isEmpty(desc)) return "";
         StringBuilder sb = new StringBuilder();
-        for (String line : desc.split("\n")) {
-            String text = line.trim().replaceFirst("^#+\\s*", "").replace("**", "").replace("`", "");
-            if (text.isEmpty()) continue;
+        boolean fenced = false;
+        boolean truncated = false;
+        for (String raw : desc.split("\n")) {
+            String line = raw.trim();
+            if (line.startsWith("```")) {
+                fenced = !fenced;
+                continue;
+            }
+            if (fenced || line.isEmpty() || line.equals("---") || line.startsWith("|")) continue;
+            // 版本标题由弹窗自己显示；表格/下载/校验信息不属于「更新内容」。
+            if (line.matches("^#*\\s*QBox\\s+v?\\d.*")) continue;
+            if (line.contains("github.com/") || line.matches("^(SHA-?256|下载地址|发布日期).*")) continue;
+            boolean bullet = line.matches("^[-*+]\\s+.*");
+            line = line.replaceFirst("^[-*+]\\s+", "");
+            line = line.replaceFirst("^#+\\s*", "");
+            line = line.replaceAll("\\[([^\\]]+)\\]\\([^)]*\\)", "$1");
+            line = line.replace("**", "").replace("__", "").replace("`", "").replace("~~", "");
+            if (line.isEmpty()) continue;
+            String formatted = bullet ? "• " + line : line;
+            if (sb.length() + formatted.length() > 600) {
+                truncated = true;
+                break;
+            }
             if (sb.length() > 0) sb.append('\n');
-            sb.append(text);
-            if (sb.length() > 1200) break;
+            sb.append(formatted);
         }
-        return sb.toString().trim();
+        return sb.toString().trim() + (truncated ? "…" : "");
     }
 
     @Override

@@ -89,7 +89,8 @@ public class Notify {
             if (androidx.emoji2.text.EmojiCompat.get().getLoadState() == androidx.emoji2.text.EmojiCompat.LOAD_STATE_SUCCEEDED) cs = androidx.emoji2.text.EmojiCompat.get().process(text);
         } catch (Exception ignored) {
         }
-        // 系统文本 Toast 在 TV 上会带应用图标；改成当前 Activity 内的纯文字浮层，只保留信息本身。
+        // 系统 Toast 在部分 TV 上会回退成安卓默认机器人图标；改成 Activity 内浮层，
+        // 固定显示 QBox 自己的立方体 Q 标识，不依赖系统读取应用图标。
         Activity activity = App.activity();
         if (activity == null || activity.isFinishing()) return;
         ViewGroup content = activity.findViewById(android.R.id.content);
@@ -97,8 +98,7 @@ public class Notify {
         FrameLayout frame = (FrameLayout) content;
         if (mHideOverlay != null) App.removeCallbacks(mHideOverlay);
         if (mOverlay != null && mOverlay.getParent() instanceof ViewGroup) ((ViewGroup) mOverlay.getParent()).removeView(mOverlay);
-        View view = LayoutInflater.from(activity).inflate(R.layout.view_toast, frame, false);
-        TextView contentText = view.findViewById(R.id.text);
+        View view = LayoutInflater.from(activity).inflate(R.layout.view_toast, frame, false);        TextView contentText = view.findViewById(R.id.text);
         contentText.setText(cs);
         view.setClickable(false);
         view.setFocusable(false);
