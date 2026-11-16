@@ -139,7 +139,7 @@ QBox 是 [FongMi/TV](https://github.com/FongMi/TV) 5.6.1 的二次开发，遵�
 
 ## 构建
 
-1. JDK 21、Android SDK（compileSdk 37）、Gradle 9.7.1
+1. JDK 21、Android SDK（compileSdk 37）、Gradle Wrapper（仓库自带，当前 9.6.1）
 2. 自编媒体 AAR：使用 FongMi/media 的 `release-1.11.0-fongmi` 分支，按 `move.txt` 生成 `lib-*-release.aar`，放进 `app/libs/`
 3. 在仓库根目录创建 `local.properties`（**不要提交**）：
 
@@ -158,7 +158,7 @@ keyPassword=******
 ./gradlew :app:assembleLeanbackArm64_v8aRelease
 ```
 
-Windows 下可以用 `.toolchain/build.ps1 -Abi all -Variant Release`（脚本在仓库外，自动注入工具链环境变量）。
+Windows 下用 `gradlew.bat` 执行同样的两个任务即可。
 
 ## 发布
 
