@@ -146,14 +146,25 @@ public class EpisodeInfoTest {
     }
 
     @Test
-    public void longNamesUseFiveByTwo() {
+    public void longNamesUseThreeByTwo() {
         List<String> names = new ArrayList<>();
         for (int i = 1; i <= 30; i++) names.add(String.format("[1.55GB] 这是一部名字特别长的电视剧资源文件第%02d个版本未删减", i));
         EpisodeInfo.Plan plan = EpisodeInfo.analyze(names);
-        assertEquals(5, plan.columns);
+        assertEquals(3, plan.columns);
         assertEquals(2, plan.rows);
-        assertEquals(10, plan.groupSize);
-        assertEquals(3, plan.groupCount());
+        assertEquals(6, plan.groupSize);
+        assertEquals(5, plan.groupCount());
+    }
+
+    @Test
+    public void moderatelyLongNamesUseFourByTwo() {
+        List<String> names = new ArrayList<>();
+        for (int i = 1; i <= 30; i++) names.add(String.format("2026.10.%02d 第%d期 高清版", i, i));
+        EpisodeInfo.Plan plan = EpisodeInfo.analyze(names);
+        assertEquals(4, plan.columns);
+        assertEquals(2, plan.rows);
+        assertEquals(8, plan.groupSize);
+        assertEquals(4, plan.groupCount());
     }
 
     @Test

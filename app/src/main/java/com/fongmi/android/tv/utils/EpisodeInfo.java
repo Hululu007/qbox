@@ -160,9 +160,10 @@ public class EpisodeInfo {
     }
 
     /**
-     * 排版方案：固定两行；页内列数按「集数多少 + 标签长短」自适应（用户 2026-11-13 拍板）：
-     * 集数多时多列（短名 7 列 / 其余 5 列），集数少（电影/单片）时稀疏排列——
-     * 少列宽格能显示更完整的名称信息。第一排满了才换第二排；不足一排时左对齐不拉伸。
+     * 排版方案：固定两行；页内列数按「完整资源名长度 + 集数多少」自适应：
+     * 短名 7 列、中等名 5 列、长名 3–4 列（超长名优先 3 列，给滚动文字留出宽度）；
+     * 集数少（电影/单片）时稀疏排列——少列宽格能显示更完整的名称信息。
+     * 第一排满了才换第二排；不足一排时左对齐不拉伸。
      */
     public static Plan analyze(List<String> names) {
         List<Item> items = new ArrayList<>();
@@ -173,7 +174,8 @@ public class EpisodeInfo {
         int columns;
         if (count <= 4) columns = 2;
         else if (tier == TIER_SHORT) columns = Math.min(count, 7);
-        else columns = Math.min(count, 5);
+        else if (tier == TIER_MEDIUM) columns = Math.min(count, 5);
+        else columns = Math.min(count, averageRawLength(items) >= 24 ? 3 : 4);
         // 第一排（columns 个）满了才换第二排；内容不多时只有一排，格子不拉宽、从左往右按顺序排。
         int rows = count <= columns ? 1 : 2;
         int groupSize = Math.max(1, columns * rows);
@@ -487,11 +489,19 @@ public class EpisodeInfo {
     private static int tier(List<Item> items) {
         if (items.isEmpty()) return TIER_SHORT;
         long total = 0;
-        for (Item item : items) total += item.label.length();
+        for (Item item : items) total += item.raw.length();
         int avg = (int) (total / items.size());
-        if (avg <= 6) return TIER_SHORT;
-        if (avg <= 11) return TIER_MEDIUM;
+        if (avg <= 8) return TIER_SHORT;
+        if (avg <= 15) return TIER_MEDIUM;
         return TIER_LONG;
+    }
+
+    /** 按完整原资源名（含大小/扩展名/压制信息）计算平均长度，供长名选集排 3–4 列。 */
+    private static int averageRawLength(List<Item> items) {
+        if (items.isEmpty()) return 0;
+        long total = 0;
+        for (Item item : items) total += item.raw.length();
+        return (int) (total / items.size());
     }
 
     private static String strip(String text, Pattern... patterns) {
