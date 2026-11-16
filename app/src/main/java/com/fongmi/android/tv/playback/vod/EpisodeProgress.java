@@ -2,10 +2,12 @@ package com.fongmi.android.tv.playback.vod;
 
 import androidx.media3.common.C;
 
-import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.utils.SourceUrl;
 import com.github.catvod.utils.Prefers;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -147,16 +149,75 @@ public final class EpisodeProgress {
         if (store != null) return;
         try {
             String json = Prefers.getString(KEY);
-            store = json.isEmpty() ? new Store() : App.gson().fromJson(json, Store.class);
+            store = json.isEmpty() ? new Store() : parse(json);
         } catch (Exception e) {
             store = new Store();
         }
         if (store == null || store.vods == null) store = new Store();
     }
 
+    /** 手工解析，避免 R8 抹掉 Gson 泛型签名后把内层 Item 反序列化成 LinkedTreeMap。 */
+    private static Store parse(String json) {
+        Store store = new Store();
+        JsonElement rootElement = JsonParser.parseString(json);
+        if (!rootElement.isJsonObject()) return store;
+        JsonObject root = rootElement.getAsJsonObject();
+        JsonObject vods = object(root, "vods", "a");
+        if (vods == null) return store;
+        for (Map.Entry<String, JsonElement> vod : vods.entrySet()) {
+            if (!vod.getValue().isJsonObject()) continue;
+            Map<String, Item> episodes = new LinkedHashMap<>();
+            for (Map.Entry<String, JsonElement> entry : vod.getValue().getAsJsonObject().entrySet()) {
+                if (!entry.getValue().isJsonObject()) continue;
+                JsonObject object = entry.getValue().getAsJsonObject();
+                Item item = new Item();
+                item.position = readLong(object, "position", "a", C.TIME_UNSET);
+                item.duration = readLong(object, "duration", "b", C.TIME_UNSET);
+                item.time = readLong(object, "time", "c", 0);
+                episodes.put(entry.getKey(), item);
+            }
+            store.vods.put(vod.getKey(), episodes);
+        }
+        return store;
+    }
+
+    private static JsonObject object(JsonObject parent, String name, String legacy) {
+        JsonElement element = parent.get(name);
+        if (element == null || !element.isJsonObject()) element = parent.get(legacy);
+        return element != null && element.isJsonObject() ? element.getAsJsonObject() : null;
+    }
+
+    private static long readLong(JsonObject object, String name, String legacy, long fallback) {
+        JsonElement element = object.get(name);
+        if (element == null || element.isJsonNull()) element = object.get(legacy);
+        if (element == null || element.isJsonNull()) return fallback;
+        try {
+            return element.getAsLong();
+        } catch (RuntimeException e) {
+            return fallback;
+        }
+    }
+
     private static void persist() {
         try {
-            Prefers.put(KEY, App.gson().toJson(store));
+            JsonObject root = new JsonObject();
+            JsonObject vods = new JsonObject();
+            for (Map.Entry<String, Map<String, Item>> vod : store.vods.entrySet()) {
+                if (vod.getKey() == null || vod.getValue() == null) continue;
+                JsonObject episodes = new JsonObject();
+                for (Map.Entry<String, Item> entry : vod.getValue().entrySet()) {
+                    if (entry.getKey() == null || entry.getValue() == null) continue;
+                    Item item = entry.getValue();
+                    JsonObject object = new JsonObject();
+                    object.addProperty("position", item.position);
+                    object.addProperty("duration", item.duration);
+                    object.addProperty("time", item.time);
+                    episodes.add(entry.getKey(), object);
+                }
+                vods.add(vod.getKey(), episodes);
+            }
+            root.add("vods", vods);
+            Prefers.put(KEY, root.toString());
         } catch (Exception ignored) {
             // 存储不可用时退化为进程内记忆，不让播放链路崩溃。
         }
