@@ -1721,14 +1721,15 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         if (isPlaying) {
             mBinding.poster.setVisibility(View.GONE);
             hideCenter();
-        } else if (isPausedByUser()) {
+        } else if (!isBuffering() && !isIdle() && !isEnded()) {
             // 暂停顶部去标题留时钟——标题/时间底部精简态已有，
             // 但右上角时钟用户明确要留：top 只亮时钟，标题/分辨率保持 GONE。
             mBinding.widget.title.setVisibility(View.GONE);
             mBinding.widget.size.setVisibility(View.GONE);
             mBinding.widget.top.setVisibility(View.VISIBLE);
-            // 暂停中央标志（用户拍板）：屏幕中央显示暂停图标 + 当前/总时长，用户一眼知道已暂停。
-            showPausedCenter();
+            // onIsPlayingChanged(false) 可能先于 playWhenReady 生效；post 到下一帧再确认是否真的是用户暂停。
+            // 快进 seek 自动恢复时 playWhenReady 仍为 true，这里不会误显示中央暂停图标。
+            App.post(this::showPausedCenter);
         }
     }
 
