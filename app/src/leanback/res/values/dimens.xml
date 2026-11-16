@@ -27,12 +27,11 @@
     <dimen name="qbox_content_top_inset">32dp</dimen>
     <dimen name="qbox_content_bottom">24dp</dimen>
 
-    <!-- 列表绘制裁切线：120dp 会把第一排聚焦放大的焦点环顶边切掉（density=2.0 实测），
-         收到 114dp 后环顶边留有 6px 余量，同时仍在分类条下沿附近。 -->
-    <dimen name="qbox_header_clip">114dp</dimen>
-
-    <!-- 顶栏实底 + 长渐隐的高度：顶栏 70dp 的 ~2.9 倍（规范 ≥1.5 倍），
-         前 36% 近实底承载 tab，其余长渐隐进海报，无分界线（第 20 轮，原 124dp 硬边带）。 -->
-    <dimen name="qbox_header_mask">200dp</dimen>
+    <!-- 选集胶囊固定高度（GS-76b）：所有按钮等宽等高、文字居中，不随文字长短变尺寸。
+         40dp = 8dp 栅格 ×5，紧凑胶囊条（非被否定的 44dp 膨胀方块）。 -->
+    <dimen name="qbox_episode_height">40dp</dimen>
+    <!-- 分组条/排序标志统一高度（GS-78）：正序倒序(13sp 描边)与分组(14sp 实心)原本 padding/字号不同
+         导致行内垂直不对齐；统一固定高度 + gravity=center 让两者等高、文字横竖居中、与本行其它元素对齐。 -->
+    <dimen name="qbox_group_chip_height">40dp</dimen>
 
 </resources>

@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_app">
 
-    <!-- 氛围底图：跟随当前聚焦海报，整屏铺满（第 28 轮统一详情页终态：BackdropBlur 氛围模糊 + alpha 0.85）。 -->
+    <!-- 氛围底图：跟随当前聚焦海报，整屏铺满。 -->
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/backdrop"
         android:layout_width="match_parent"
@@ -15,16 +15,16 @@
         android:importantForAccessibility="no"
         android:scaleType="centerCrop" />
 
-    <!-- 第 28 轮：整屏压暗/200dp 顶栏渐变/96dp 左右渐隐全部撤掉，统一成详情页 D 版同款四边轻收边。 -->
+    <!-- 整屏压暗/200dp 顶栏渐变/96dp 左右渐隐全部撤掉，统一成详情页 D 版同款四边轻收边。 -->
     <View
         android:id="@+id/backdrop_scrim"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/shape_backdrop_scrim_d" />
 
-    <!-- 按需导航带（第 29 轮起）：静止 alpha=0 不可见；焦点进导航区时 VodActivity 淡入。
-         第 35 轮回退 31 轮二次曲线版并延域 190dp；第 37 轮拆「主体+4dp 收边」，材质=@color/qbox_panel。
-         第 38 轮层级修正：放在 pager 之下——栏是 tab/filter 文字「背后」的底，chip/tab 文字必须在其上，
+    <!-- 按需导航带：静止 alpha=0 不可见；焦点进导航区时 VodActivity 淡入。
+         回退 31 轮二次曲线版并延域 190dp；拆「主体+4dp 收边」，材质=@color/qbox_panel。
+         层级修正：放在 pager 之下——栏是 tab/filter 文字「背后」的底，chip/tab 文字必须在其上，
          不许盖住文字（P0 打回：filter 的字被盖在下面了）。 -->
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/nav_band"
@@ -55,8 +55,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- 第 28 轮：200dp 顶栏压暗渐变撤掉，与首页一致。
-         id=header：导航带显示判据用的「导航区」结构边界（第 31 轮）。 -->
+    <!-- 200dp 顶栏压暗渐变撤掉，与首页一致。
+         id=header：导航带显示判据用的「导航区」结构边界。 -->
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/header"
         android:layout_width="match_parent"
@@ -149,7 +149,7 @@
             android:layout_height="@dimen/qbox_tabs_height"
             android:layout_marginTop="@dimen/qbox_tabs_gap">
 
-            <!-- 第 35 轮：tab 文字底衬（shape_text_bed 柔光斑）随首页一并移除。 -->
+            <!-- tab 文字底衬（shape_text_bed 柔光斑）随首页一并移除。 -->
             <androidx.leanback.widget.HorizontalGridView
                 android:id="@+id/typeRecycler"
                 android:layout_width="match_parent"

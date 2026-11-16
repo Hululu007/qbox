@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 全站通用胶囊 selector：focused/选中/当前集/default 四态。
+         state_selected（线路/画质/分组/设置等 43 处 setSelected）与
+         state_activated（选集 EpisodeAdapter.setActivated，全仓唯一）共用同一 shape_item_activated，
+         因此选集不再需要单独的孪生副本 selector。聚焦态优先，保证「聚焦>选中」。 -->
     <item android:drawable="@drawable/shape_item_focused" android:state_focused="true" />
     <item android:drawable="@drawable/shape_item_activated" android:state_selected="true" />
+    <item android:drawable="@drawable/shape_item_activated" android:state_activated="true" />
     <item android:drawable="@drawable/shape_item_normal" />
 </selector>

@@ -88,7 +88,7 @@ public final class TrackDialog extends BaseBottomSheetDialog implements TrackAda
         return type == C.TRACK_TYPE_AUDIO || type == C.TRACK_TYPE_VIDEO || type == C.TRACK_TYPE_TEXT;
     }
 
-    /** 轨道选择回 fongmi 底浮式（第 39 轮 P1-3）：从底部浮起，不用 TV 居中面板。 */
+    /** 轨道选择回 fongmi 底浮式：从底部浮起，不用 TV 居中面板。 */
     @Override
     protected boolean isSheet() {
         return true;

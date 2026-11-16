@@ -83,7 +83,7 @@
             android:layout_marginTop="10dp"
             android:alpha="0.6"
             android:gravity="center"
-            android:text="可以按「换源」换一条线路，或返回重新选片"
+            android:text="@string/tip_switch_source"
             android:textColor="@color/white"
             android:textSize="14sp" />
 
@@ -108,7 +108,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:background="@drawable/shape_widget"
         android:gravity="center"
         android:orientation="vertical"
         android:visibility="gone"
@@ -120,39 +119,6 @@
             android:layout_height="56dp"
             android:src="@drawable/ic_widget_play" />
 
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/position"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFeatureSettings="tnum"
-                android:textColor="@color/white"
-                android:textSize="16sp"
-                tools:text="00:00:00" />
-
-            <com.google.android.material.textview.MaterialTextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="4dp"
-                android:text="/"
-                android:textColor="@color/white"
-                android:textSize="16sp" />
-
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/duration"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFeatureSettings="tnum"
-                android:textColor="@color/white"
-                android:textSize="16sp"
-                tools:text="00:00:00" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.appcompat.widget.LinearLayoutCompat>
 
 </FrameLayout>

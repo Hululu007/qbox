@@ -1,17 +1,95 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.textview.MaterialTextView xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- 选集按钮（GS-70/72/76b/78）：
+     · 固定大小：root = match_parent × @dimen/qbox_episode_height，只负责焦点命中/列宽/间距，
+       本身不画背景。焦点/选中态全由 root 承载（Java 的 setActivated/焦点监听/click/nextFocus* 绑 root）。
+     · 胶囊与文字：LinearLayout「胶囊」承载 selector_item 背景、duplicateParentState 复制 root 焦点态；
+       内部 prefix = 识别到的「时间/集数」固定不滚；text = 原资源全名，独立 marquee 持续滚动。
+       这样「既识别（前缀稳定）又不阻碍阅读（全名滚动）」，两者互不牵连。
+     · 角标：badge 右上两排（分辨率 / 动态范围 DV·HDR），channel 右下固定（声道 5.1/7.1 + ATMOS），
+       位置不随名字长短走、不占滚动文字区、不影响展示原资源名让人类自行判断。
+     · 内边距唯一来源 = EpisodeAdapter.applyPillPadding()。 -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/text"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:background="@drawable/selector_item"
-    android:ellipsize="marquee"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/qbox_episode_height"
+    android:background="@null"
     android:focusable="true"
-    android:focusableInTouchMode="true"
-    android:gravity="center"
-    android:nextFocusUp="@id/flag"
-    android:nextFocusDown="@id/array"
-    android:singleLine="true"
-    android:textColor="@color/text"
-    android:textSize="16sp"
-    tools:text="20" />
+    android:focusableInTouchMode="true">
+
+    <LinearLayout
+        android:id="@+id/pill"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/selector_item"
+        android:duplicateParentState="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <!-- 识别到的时间/集数：固定宽度、不滚动 -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/prefix"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:duplicateParentState="true"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:textColor="@color/text"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            tools:text="10.31 第4期" />
+
+        <!-- 原资源名称全名：占满剩余宽度、持续 marquee 滚动 -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:duplicateParentState="true"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:scrollHorizontally="true"
+            android:singleLine="true"
+            android:textColor="@color/text"
+            android:textSize="15sp"
+            tools:text="某某剧场版原资源完整名称" />
+
+    </LinearLayout>
+
+    <!-- 右上角两排：分辨率 + 动态范围（DV/HDR） -->
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/badge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="1dp"
+        android:layout_marginEnd="3dp"
+        android:gravity="end"
+        android:includeFontPadding="false"
+        android:lineSpacingExtra="0dp"
+        android:maxLines="2"
+        android:textColor="@color/qbox_accent"
+        android:textSize="9sp"
+        android:visibility="gone"
+        tools:text="4K&#10;DV"
+        tools:visibility="visible" />
+
+    <!-- 右下角固定：声道 5.1/7.1/2.0 + ATMOS -->
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/channel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="3dp"
+        android:layout_marginBottom="1dp"
+        android:gravity="end"
+        android:includeFontPadding="false"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:textColor="@color/qbox_accent"
+        android:textSize="9sp"
+        android:visibility="gone"
+        tools:text="5.1·ATMOS"
+        tools:visibility="visible" />
+
+</FrameLayout>

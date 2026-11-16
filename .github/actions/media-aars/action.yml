@@ -1,0 +1,62 @@
+name: media-aars
+description: Clone FongMi/media release-1.11.0-fongmi and build the 18 lib-*-release.aar into app/libs
+
+# 主项目依赖的 media3 不是 Maven 版本，而是 FongMi 自编 fork；app/libs 不入库，
+# 所以每次构建都要现编这 18 个模块。ci / tv-nightly 共用同一份逻辑。
+inputs:
+  expected_count:
+    description: minimum number of lib-*.aar expected in app/libs
+    required: false
+    default: "18"
+  media_ref:
+    description: FongMi/media branch
+    required: false
+    default: release-1.11.0-fongmi
+
+runs:
+  using: composite
+  steps:
+    - name: Build media AARs from FongMi media branch
+      shell: bash
+      env:
+        EXPECTED_COUNT: ${{ inputs.expected_count }}
+        MEDIA_REF: ${{ inputs.media_ref }}
+      run: |
+        set -e
+        media_dir="$RUNNER_TEMP/media"
+        rm -rf "$media_dir"
+        for attempt in 1 2 3; do
+          echo "=== clone attempt $attempt/3 ==="
+          if git clone --depth 1 --branch "$MEDIA_REF" https://github.com/FongMi/media.git "$media_dir"; then break; fi
+          rm -rf "$media_dir"; sleep 10
+        done
+        [ -d "$media_dir/.git" ] || { echo "::error::media clone failed"; exit 1; }
+
+        sdk_root="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+        printf 'sdk.dir=%s\n' "$sdk_root" > "$media_dir/local.properties"
+        modules=(lib-common lib-container lib-database lib-datasource lib-datasource-okhttp lib-datasource-rtmp lib-decoder lib-effect lib-exoplayer lib-exoplayer-dash lib-exoplayer-hls lib-exoplayer-rtsp lib-exoplayer-smoothstreaming lib-extractor lib-mpvplayer lib-session lib-ui lib-ui-danmaku)
+        tasks=()
+        for module in "${modules[@]}"; do tasks+=(":${module}:assembleRelease"); done
+
+        success=0
+        for attempt in 1 2 3; do
+          echo "=== media gradle attempt $attempt/3 ==="
+          if "$media_dir/gradlew" -p "$media_dir" "${tasks[@]}" --console=plain --no-daemon; then success=1; break; fi
+          echo "::warning::media gradle failed, retrying in 10s..."
+          sleep 10
+        done
+        [ "$success" -eq 1 ] || { echo "::error::media build failed after 3 attempts"; exit 1; }
+
+        mkdir -p app/libs
+        find "$media_dir" -path '*/buildout/outputs/aar/lib-*-release.aar' -print0 | xargs -0 -I{} cp "{}" app/libs/
+        count=$(find app/libs -name 'lib-*-release.aar' | wc -l)
+        echo "copied $count media AARs into app/libs (expected >= $EXPECTED_COUNT)"
+        [ "$count" -ge "$EXPECTED_COUNT" ] || { echo "::error::expected >= $EXPECTED_COUNT media AARs, got $count"; exit 1; }
+        ls -lh app/libs/lib-*.aar
+
+    - name: Free media build disk
+      shell: bash
+      run: |
+        # The emulator needs ~2GB for its system image; the media source tree is no longer needed.
+        rm -rf "$RUNNER_TEMP/media" || true
+        df -h "$RUNNER_TEMP" || true

@@ -19,7 +19,7 @@ import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 
 public final class ChapterDialog extends BaseBottomSheetDialog implements ChapterAdapter.OnClickListener {
 
-    /** 章节选择与轨道选择同族（第 41 轮）：回 fongmi 底浮式，不用居中面板。 */
+    /** 章节选择与轨道选择同族：回 fongmi 底浮式，不用居中面板。 */
     @Override
     protected boolean isSheet() {
         return true;

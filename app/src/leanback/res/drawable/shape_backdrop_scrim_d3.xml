@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- 四边收边·稍强档（第 30 轮对比档 t=2）：上/左右 96dp@30%，底 160dp@60%。 -->
+    <!-- 四边收边·稍强档：上/左右 96dp@30%，底 160dp@60%。 -->
     <item
         android:gravity="top"
         android:height="96dp">

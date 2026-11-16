@@ -1,0 +1,397 @@
+name: qbox-ci
+
+permissions:
+  contents: write
+
+# 主流水线：每次 push/PR 出 debug 包（x86_64 模拟器用 + ARM 真机用），
+# 手动 dispatch / v* tag 时额外出正式签名 release 包。
+# 共享逻辑在 .github/actions/{android-env,media-aars,verify-apk}。
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      build_release:
+        description: 'Build signed release APKs (requires release Secrets)'
+        type: boolean
+        default: false
+
+env:
+  GRADLE_USER_HOME: ${{ github.workspace }}/.gradle-cache
+  MOCK_CFG: http://10.0.2.2:8765/config.json
+  # 线上 QBox 的正式证书指纹；release 包必须与之一致，否则用户无法覆盖升级。
+  RELEASE_CERT_SHA256: 84071cd236bbf7a94234cbbaa1af7c849616f2ddbb13800dba61d087c0caa098
+
+# 同一分支连推时取消上一轮：省 compute，也避免两轮同时占用 artifact 额度。
+concurrency:
+  group: qbox-ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_type == 'branch' }}
+
+jobs:
+  build-debug:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      # 配了 debug 签名 Secrets 才校验固定指纹；临时签名（fork/公开仓默认）只做包名与 ABI 校验。
+      DEBUG_CERT_SHA256: ${{ secrets.QBOX_DEBUG_KEYSTORE_B64 != '' && 'c4844d812b319824521100e8ae61173281af46bfab93c781380e1f7ec96e0d4d' || '' }}
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+
+      - name: Cache Gradle user home
+        uses: actions/cache@v6
+        with:
+          path: ${{ env.GRADLE_USER_HOME }}
+          key: gradle-${{ runner.os }}-debug-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties', 'build.gradle', 'settings.gradle', 'app/build.gradle') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-debug-
+            gradle-${{ runner.os }}-
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+          # 不用 setup-java 的 gradle cache：GRADLE_USER_HOME 已被指到工作区，
+          # 由前面的 actions/cache 统一缓存，避免 "Path(s) do not exist" 警告。
+
+      - name: Prepare Android SDK + debug signing
+        uses: ./.github/actions/android-env
+        with:
+          keystore_b64: ${{ secrets.QBOX_DEBUG_KEYSTORE_B64 }}
+          keystore_password: ${{ secrets.QBOX_DEBUG_KEYSTORE_PASSWORD }}
+          key_alias: ${{ secrets.QBOX_DEBUG_KEY_ALIAS }}
+          keystore_path: /tmp/qbox-ci/qbox-ci.jks
+          # 固定 debug 证书：保证 CI 包可 adb install -r 覆盖升级；
+          # 仓库没配 Secrets 时（公开仓/首次 fork）退化为本次运行专用临时签名。
+          allow_ephemeral: true
+          expect_sha256: c4844d812b319824521100e8ae61173281af46bfab93c781380e1f7ec96e0d4d
+
+      - name: Build media AARs
+        uses: ./.github/actions/media-aars
+        timeout-minutes: 45
+
+      - name: Unit tests and x86_64 debug APK
+        shell: bash
+        timeout-minutes: 45
+        run: |
+          set -e
+          chmod +x ./gradlew
+          success=0
+          for attempt in 1 2 3; do
+            echo "=== app gradle attempt $attempt/3 ==="
+            if ./gradlew \
+              :app:testLeanbackArm64_v8aDebugUnitTest \
+              :app:testLeanbackX86_64DebugUnitTest \
+              :app:assembleLeanbackX86_64Debug \
+              -PqboxTestConfig="$MOCK_CFG" \
+              -ProbolectricDependencyDir="$GRADLE_USER_HOME/robolectric" \
+              --console=plain --no-daemon; then success=1; break; fi
+            echo "::warning::app gradle failed, retrying in 10s..."
+            sleep 10
+          done
+          [ "$success" -eq 1 ] || { echo "::error::unit tests failed after 3 attempts"; exit 1; }
+          # 单测报告存档，失败时也能看到哪个用例红
+          find app/build/reports/tests -name '*.html' | head -n 20 || true
+
+      - name: Build ARM Debug APKs for real TV
+        shell: bash
+        timeout-minutes: 45
+        run: |
+          set -e
+          chmod +x ./gradlew
+          # 真机包不传 -PqboxTestConfig，走 debug 默认测试源；mock 的 10.0.2.2 只有模拟器能通。
+          success=0
+          for attempt in 1 2 3; do
+            if ./gradlew \
+              :app:assembleLeanbackArmeabi_v7aDebug \
+              :app:assembleLeanbackArm64_v8aDebug \
+              --console=plain --no-daemon; then success=1; break; fi
+            echo "::warning::ARM gradle failed, retrying in 10s..."
+            sleep 10
+          done
+          [ "$success" -eq 1 ] || { echo "::error::ARM build failed after 3 attempts"; exit 1; }
+          ls -lh app/build/outputs/apk/leanbackArmeabi_v7a/debug/*.apk app/build/outputs/apk/leanbackArm64_v8a/debug/*.apk
+
+      - name: Verify TV debug APKs
+        uses: ./.github/actions/verify-apk
+        with:
+          apk_glob: 'app/build/outputs/apk/leanbackArmeabi_v7a/debug/*.apk'
+          require_abi: armeabi-v7a
+          expected_sha256: ${{ env.DEBUG_CERT_SHA256 }}
+          out_dir: artifacts/apk
+
+      - name: Verify arm64 debug APK
+        uses: ./.github/actions/verify-apk
+        with:
+          apk_glob: 'app/build/outputs/apk/leanbackArm64_v8a/debug/*.apk'
+          require_abi: arm64-v8a
+          expected_sha256: ${{ env.DEBUG_CERT_SHA256 }}
+          out_dir: artifacts/apk
+
+      - name: Verify x86_64 debug APK
+        uses: ./.github/actions/verify-apk
+        with:
+          apk_glob: 'app/build/outputs/apk/leanbackX86_64/debug/*.apk'
+          # media fork 的 mpvplayer 只带 arm64/v7a .so，x86_64 flavor 无 native 载荷，跳过 ABI 检查
+          require_abi: ''
+          expected_sha256: ${{ env.DEBUG_CERT_SHA256 }}
+          out_dir: artifacts/apk
+
+      # ---- 存储策略（GitHub Free 只有 500MB artifact 额度，超出会报错）----
+      # 只上传「本次 run 立刻要用」或「用户主动要」的制品：
+      #   x86_64 APK（35MB）→ smoke job 在同一 run 里立刻下载，1 天后自动删；
+      #   ARM debug APK（90MB）→ 只在 dispatch/tag 这种主动要包时留档，push 只编译+校验；
+      #   release（88MB）→ 只在 dispatch/tag 出，保留 3 天。
+      - name: Upload x86_64 debug APK
+        if: always() && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v7
+        with:
+          # 只放 APK：artifact 根目录 = leanbackX86_64/debug，smoke job 直接解到脚本预期路径。
+          name: qbox-ci-headless
+          path: app/build/outputs/apk/leanbackX86_64/debug/*.apk
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Upload ARM Debug APKs for real TV
+        if: always() && (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v'))
+        uses: actions/upload-artifact@v7
+        with:
+          name: qbox-tv-debug-apk
+          path: |
+            app/build/outputs/apk/leanbackArmeabi_v7a/debug/*.apk
+            app/build/outputs/apk/leanbackArm64_v8a/debug/*.apk
+            artifacts/apk/SHA256SUMS
+          if-no-files-found: warn
+          retention-days: 2
+
+      - name: Upload unit test reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: qbox-unit-test-reports
+          path: app/build/reports/tests/**
+          if-no-files-found: warn
+          retention-days: 2
+
+  # 模拟器冒烟单独 job：干净 runner（磁盘/CPU 不与构建抢），与 nightly 的架构一致。
+  # 之前塞在 build-debug 里会因 ~40 分钟构建后磁盘/CPU 紧张，模拟器 30 分钟都起不来。
+  smoke:
+    needs: build-debug
+    # PR 上跳过以省时间；push/main、手动 dispatch 都跑，nightly 每天再兜底。
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+
+      - name: Download x86_64 debug APK
+        uses: actions/download-artifact@v8
+        with:
+          name: qbox-ci-headless
+          # artifact 根就是 APK 目录，直接落到脚本预期位置
+          path: app/build/outputs/apk/leanbackX86_64/debug
+          merge-multiple: true
+
+      - name: Show APK and disk state
+        shell: bash
+        run: |
+          ls -lh app/build/outputs/apk/leanbackX86_64/debug/
+          df -h | head -n 10
+          if [ -w /dev/kvm ]; then echo "KVM: available"; else echo "KVM: NOT available (software emulation, slow boot)"; fi
+
+      - name: Start offline mock content
+        shell: bash
+        timeout-minutes: 5
+        run: |
+          set -e
+          # HttpListener 在 Linux 上按 Host 头匹配前缀：模拟器访问的是 10.0.2.2:8765，
+          # 只注册 127.0.0.1 会被 HttpListener 直接回 404（配置解析报 column 10）。
+          nohup pwsh -NoProfile -File ./smoke/mock-server.ps1 -HostAddress '*' > /tmp/mock.log 2>&1 &
+          for _ in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8765/health | grep -q ok; then echo "mock up"; cat /tmp/mock.log || true; exit 0; fi
+            sleep 0.5
+          done
+          cat /tmp/mock.log || true
+          echo "::error::mock server did not start"
+          exit 1
+
+      - name: Run headless TV emulator and capture home screen
+        timeout-minutes: 45
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          # aosp_atd 是给无头仪器测试裁剪的镜像：screencap 实测 0/921600 非黑像素。
+          # 标准 AOSP (default) 镜像才有正常合成管线，截图可用。
+          target: default
+          arch: x86_64
+          profile: tv_720p
+          cores: 4
+          emulator-boot-timeout: 1800
+          emulator-options: >-
+            -no-window
+            -no-audio
+            -no-boot-anim
+            -no-snapshot
+            -gpu swiftshader_indirect
+          script: pwsh ./smoke/headless-screenshot.ps1 -SkipBuild -ClearData -WaitSeconds 15
+
+      - name: Show mock request log
+        if: always()
+        shell: bash
+        run: |
+          echo "=== /tmp/mock.log ==="
+          cat /tmp/mock.log || true
+
+      - name: Upload screenshots and UI dump
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: qbox-ci-screenshots
+          path: artifacts/headless-screenshots/**
+          if-no-files-found: warn
+          retention-days: 2
+
+  build-release:
+    if: (github.event_name == 'workflow_dispatch' && inputs.build_release == true) || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+
+      - name: Cache Gradle user home
+        uses: actions/cache@v6
+        with:
+          path: ${{ env.GRADLE_USER_HOME }}
+          key: gradle-${{ runner.os }}-release-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties', 'build.gradle', 'settings.gradle', 'app/build.gradle') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-release-
+            gradle-${{ runner.os }}-
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+          # 不用 setup-java 的 gradle cache：GRADLE_USER_HOME 已被指到工作区，
+          # 由前面的 actions/cache 统一缓存，避免 "Path(s) do not exist" 警告。
+
+      - name: Prepare Android SDK + release signing
+        uses: ./.github/actions/android-env
+        with:
+          keystore_b64: ${{ secrets.QBOX_RELEASE_KEYSTORE_B64 }}
+          keystore_password: ${{ secrets.QBOX_RELEASE_STORE_PASSWORD }}
+          key_alias: ${{ secrets.QBOX_RELEASE_KEY_ALIAS }}
+          keystore_path: /tmp/qbox-ci/qbox-release.jks
+          # 强校验：必须与线上用户已安装包的证书一致，否则升级会失败
+          expect_sha256: 84071cd236bbf7a94234cbbaa1af7c849616f2ddbb13800dba61d087c0caa098
+          # release job 不跑单测，不用下 145MB 的 Robolectric jar
+          robolectric_jar: 'false'
+
+      - name: Build media AARs
+        uses: ./.github/actions/media-aars
+        timeout-minutes: 45
+
+      - name: Build signed release APKs
+        shell: bash
+        timeout-minutes: 45
+        run: |
+          set -e
+          version_name=$(sed -n "s/^\s*versionName\s*\"\(.*\)\"/\1/p" app/build.gradle | head -n1)
+          version_code=$(sed -n "s/^\s*versionCode\s*\([0-9]*\)/\1/p" app/build.gradle | head -n1)
+          echo "versionName=$version_name versionCode=$version_code"
+          echo "VERSION_NAME=$version_name" >> "$GITHUB_ENV"
+          echo "VERSION_CODE=$version_code" >> "$GITHUB_ENV"
+
+          chmod +x ./gradlew
+          success=0
+          for attempt in 1 2 3; do
+            if ./gradlew \
+              :app:assembleLeanbackArm64_v8aRelease \
+              :app:assembleLeanbackArmeabi_v7aRelease \
+              --console=plain --no-daemon; then success=1; break; fi
+            echo "::warning::release gradle failed, retrying in 10s..."
+            sleep 10
+          done
+          [ "$success" -eq 1 ] || { echo "::error::release build failed after 3 attempts"; exit 1; }
+          ls -lh app/build/outputs/apk/leanbackArm64_v8a/release/*.apk app/build/outputs/apk/leanbackArmeabi_v7a/release/*.apk
+
+      - name: Verify release APK (arm64)
+        uses: ./.github/actions/verify-apk
+        with:
+          apk_glob: 'app/build/outputs/apk/leanbackArm64_v8a/release/*.apk'
+          require_abi: arm64-v8a
+          expected_sha256: 84071cd236bbf7a94234cbbaa1af7c849616f2ddbb13800dba61d087c0caa098
+          out_dir: artifacts/apk
+
+      - name: Verify release APK (v7a)
+        uses: ./.github/actions/verify-apk
+        with:
+          apk_glob: 'app/build/outputs/apk/leanbackArmeabi_v7a/release/*.apk'
+          require_abi: armeabi-v7a
+          expected_sha256: 84071cd236bbf7a94234cbbaa1af7c849616f2ddbb13800dba61d087c0caa098
+          out_dir: artifacts/apk
+
+      - name: Package source zip
+        shell: bash
+        run: |
+          set -e
+          mkdir -p dist
+          name="QBox-${VERSION_NAME}-source"
+          git archive --format=zip --prefix="${name}/" HEAD -o "dist/${name}.zip"
+          echo "source zip: dist/${name}.zip"
+          ls -lh dist/
+
+      - name: Prepare release assets
+        shell: bash
+        run: |
+          set -e
+          cp app/build/outputs/apk/leanbackArm64_v8a/release/*.apk "dist/QBox-${VERSION_NAME}-arm64-v8a.apk"
+          cp app/build/outputs/apk/leanbackArmeabi_v7a/release/*.apk "dist/QBox-${VERSION_NAME}-armeabi-v7a.apk"
+          cp "dist/QBox-${VERSION_NAME}-arm64-v8a.apk" dist/QBox-latest-arm64-v8a.apk
+          cp "dist/QBox-${VERSION_NAME}-armeabi-v7a.apk" dist/QBox-latest-armeabi-v7a.apk
+          sha256sum dist/*.apk dist/*.zip > dist/SHA256SUMS.txt
+          cat dist/SHA256SUMS.txt
+          ls -lh dist/
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -e
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "release $TAG already exists; skip"
+            exit 0
+          fi
+          notes="docs/RELEASE-NOTES-${VERSION_NAME}.md"
+          args=(--title "QBox ${VERSION_NAME}" --latest dist/*.apk dist/*.zip dist/SHA256SUMS.txt)
+          if [ -f "$notes" ]; then
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" "${args[@]}" --notes-file "$notes"
+          else
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" "${args[@]}" --generate-notes
+          fi
+
+      - name: Upload release APKs and source
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: qbox-release-apk
+          path: |
+            app/build/outputs/apk/leanbackArm64_v8a/release/*.apk
+            app/build/outputs/apk/leanbackArmeabi_v7a/release/*.apk
+            dist/*.zip
+            artifacts/apk/SHA256SUMS
+          if-no-files-found: warn
+          retention-days: 3
+

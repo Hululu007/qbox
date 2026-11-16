@@ -3,6 +3,7 @@ package com.fongmi.android.tv.ui.fragment;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -146,6 +147,17 @@ public class CollectFragment extends BaseFragment implements CustomScroller.Call
     public boolean requestFocus() {
         if (mBinding == null) return false;
         return mBinding.recycler.requestFocus();
+    }
+
+    /** 焦点是否停在结果网格的第一行（聚合页 ↑ 需要回到顶部横向源选择）。 */
+    public boolean isFocusOnTopRow() {
+        if (mBinding == null) return false;
+        View focus = mBinding.recycler.findFocus();
+        if (focus == null) return false;
+        View row = focus;
+        while (row != null && row.getParent() != mBinding.recycler) row = row.getParent() instanceof View ? (View) row.getParent() : null;
+        if (row == null) return false;
+        return mBinding.recycler.getChildAdapterPosition(row) == 0;
     }
 
     @Override

@@ -82,7 +82,7 @@ public abstract class BaseBottomSheetDialog extends BottomSheetDialogFragment {
         return 0;
     }
 
-    /** 底浮式设置层（第 39 轮 P1-3：轨道选择等回 fongmi「从底部浮起」形态）。默认 false = TV 居中面板。 */
+    /** 底浮式设置层。默认 false = TV 居中面板。 */
     protected boolean isSheet() {
         return false;
     }

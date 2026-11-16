@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 首页分类条 tab 项：容器带图标位；文字排版参数全部来自 @style/QBoxTabText
-     （与分类/榜单页同一 token，第 31 轮统一；颜色/药丸也收口到 tab_text / selector_tab）。 -->
+     （与分类/榜单页同一 token，统一；颜色/药丸也收口到 tab_text / selector_tab）。 -->
 <androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"

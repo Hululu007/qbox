@@ -90,7 +90,7 @@ public class SpeedSetting {
     }
 
     private static String formatRawValue(float value) {
-        return isSingleDecimal(value) ? String.format(Locale.getDefault(), "%.1f", value) : String.format(Locale.getDefault(), "%.2f", value);
+        return isSingleDecimal(value) ? String.format(Locale.US, "%.1f", value) : String.format(Locale.US, "%.2f", value);
     }
 
     private static boolean isSingleDecimal(float value) {

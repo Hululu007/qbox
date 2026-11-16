@@ -49,9 +49,9 @@ public class FlagAdapter extends RecyclerView.Adapter<FlagAdapter.ViewHolder> {
         return 0;
     }
 
+    // nextFocus 仅存值；实际重绑由 VideoActivity.updateFocus 统一 notifyItemChanged 触发。
     public void setNextFocusDown(int nextFocusDown) {
         this.nextFocusDown = nextFocusDown;
-        notifyDataSetChanged();
     }
 
     @Override

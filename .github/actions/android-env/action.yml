@@ -1,0 +1,154 @@
+name: android-env
+description: Verify Android SDK, sanitize gradle.properties, decode signing keystore, prepare Robolectric jar
+
+# 三套 workflow（ci / tv-nightly）共用，避免 keystore 变量名或路径再次漂移。
+inputs:
+  keystore_b64:
+    description: base64 of the keystore (.jks)
+    required: true
+  keystore_password:
+    description: store/key password
+    required: true
+  key_alias:
+    description: key alias inside the keystore
+    required: false
+    default: qbox-ci
+  keystore_path:
+    description: where to write the decoded keystore
+    required: false
+    default: /tmp/qbox-ci/signing.jks
+  expect_sha256:
+    description: optional expected certificate SHA-256 (hex, no colons); empty = warn only
+    required: false
+    default: ""
+  robolectric_jar:
+    description: download the Robolectric android-all jar (only needed when unit tests run)
+    required: false
+    default: 'true'
+  allow_ephemeral:
+    description: generate a run-only keystore when secrets are absent (debug/CI builds only)
+    required: false
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Verify Android SDK
+      shell: bash
+      run: |
+        set -e
+        sdk_root="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+        echo "ANDROID_SDK_ROOT=$sdk_root"
+        [ -d "$sdk_root" ] || { echo "::error::Android SDK not found at $sdk_root"; exit 1; }
+        ls "$sdk_root/platforms" "$sdk_root/build-tools"
+        # gradle.properties is Windows-oriented (hardcoded user.home); neutralize for the Linux runner
+        if grep -q "Duser.home=C:" gradle.properties; then
+          sed -i 's/-Duser.home=[^ ]*//' gradle.properties
+          echo "sanitized gradle.properties for Linux runner"
+        fi
+        cat gradle.properties
+
+    - name: Decode signing keystore
+      shell: bash
+      env:
+        IN_B64: ${{ inputs.keystore_b64 }}
+        IN_PASSWORD: ${{ inputs.keystore_password }}
+        IN_ALIAS: ${{ inputs.key_alias }}
+        IN_PATH: ${{ inputs.keystore_path }}
+        IN_SHA256: ${{ inputs.expect_sha256 }}
+        ALLOW_EPHEMERAL: ${{ inputs.allow_ephemeral }}
+      run: |
+        set -e
+        EPHEMERAL=0
+        if [ -z "$IN_B64" ] || [ -z "$IN_PASSWORD" ]; then
+          if [ "$ALLOW_EPHEMERAL" != "true" ]; then
+            echo "::error::Missing keystore Secrets (base64 and/or password). Refusing to fall back to a random key."
+            exit 1
+          fi
+          echo "::warning::No keystore Secrets; generating a run-only CI key (never use it for release)."
+          EPHEMERAL=1
+          IN_PASSWORD="qbox-ci-ephemeral"
+          IN_ALIAS="${IN_ALIAS:-qbox-ci}"
+          mkdir -p "$(dirname "$IN_PATH")"
+          keytool -genkeypair -keystore "$IN_PATH" -storepass "$IN_PASSWORD" -keypass "$IN_PASSWORD" \
+            -alias "$IN_ALIAS" -keyalg RSA -keysize 2048 -validity 3650 \
+            -dname "CN=QBox CI, OU=CI, O=QBox, C=CN" > /dev/null
+        else
+          mkdir -p "$(dirname "$IN_PATH")"
+          echo "$IN_B64" | base64 -d > "$IN_PATH"
+          # Fail fast with a clear message instead of a cryptic KeytoolException deep in :app:package*
+          keytool -list -keystore "$IN_PATH" -storepass "$IN_PASSWORD" -alias "$IN_ALIAS" > /dev/null \
+            || { echo "::error::Keystore password/alias mismatch (alias=$IN_ALIAS). Check the Secrets."; exit 1; }
+        fi
+
+        sdk_root="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+        printf 'sdk.dir=%s\n' "$sdk_root" > local.properties
+        printf 'storeFile=%s\n' "$IN_PATH" >> local.properties
+        printf 'keyAlias=%s\n' "$IN_ALIAS" >> local.properties
+        printf 'storePassword=%s\n' "$IN_PASSWORD" >> local.properties
+        printf 'keyPassword=%s\n' "$IN_PASSWORD" >> local.properties
+
+        actual=$(keytool -list -v -keystore "$IN_PATH" -storepass "$IN_PASSWORD" -alias "$IN_ALIAS" \
+          | awk -F': ' '/SHA256:/{print $2; exit}' | tr -d ':' | tr 'A-F' 'a-f')
+        echo "keystore alias=$IN_ALIAS sha256=$actual"
+        if [ -n "$IN_SHA256" ] && [ "$EPHEMERAL" != "1" ]; then
+          expected=$(echo "$IN_SHA256" | tr -d ':' | tr 'A-F' 'a-f')
+          if [ "$actual" != "$expected" ]; then
+            echo "::error::Keystore fingerprint mismatch: expected $expected but got $actual"
+            exit 1
+          fi
+          echo "keystore fingerprint matches the expected certificate"
+        fi
+
+    - name: Prepare Robolectric android-all jar
+      if: inputs.robolectric_jar == 'true'
+      shell: bash
+      # 注意：composite action 的 step 不支持 timeout-minutes（会报 Unexpected value），
+      # 超时由外层 timeout 命令 + curl 自身的连接/速度上限兜住。
+      # 不做独立的 actions/cache：并发 run 保存同一个 key 时 restore 会一直等写锁，
+      # 实测把 job 卡死 25 分钟以上（日志停在 "Prepare Android SDK + debug signing"）。
+      # 改为放进 GRADLE_USER_HOME 下的子目录——那个目录本来就被 actions/cache 缓存，
+      # 145MB 的 jar 只在缓存未命中时下载一次。
+      run: |
+        set -e
+        dir="${GRADLE_USER_HOME:-${{ github.workspace }}/../.toolchain}/robolectric"
+        jar="$dir/android-all-instrumented-14-robolectric-10818077-i7.jar"
+        expected=3fdac2d463f431c6b8d83b9d0ca739e795de75fffedee648c6761bd4bd864701
+        urls=(
+          "https://repo.maven.apache.org/maven2/org/robolectric/android-all-instrumented/14-robolectric-10818077-i7/android-all-instrumented-14-robolectric-10818077-i7.jar"
+          "https://repo1.maven.org/maven2/org/robolectric/android-all-instrumented/14-robolectric-10818077-i7/android-all-instrumented-14-robolectric-10818077-i7.jar"
+          "https://maven.aliyun.com/repository/public/org/robolectric/android-all-instrumented/14-robolectric-10818077-i7/android-all-instrumented-14-robolectric-10818077-i7.jar"
+        )
+        mkdir -p "$dir"
+        echo "robolectric dir: $dir"
+        actual=""
+        if [ -s "$jar" ]; then
+          actual=$(sha256sum "$jar" | awk '{print $1}')
+        fi
+        if [ "$actual" = "$expected" ]; then
+          echo "Robolectric jar already present and checksum matches"
+        else
+          ok=0
+          for url in "${urls[@]}"; do
+            echo "Downloading $url"
+            # timeout 200：单次尝试的硬上限（连重试一起算在内）。
+            # --speed-limit/--speed-time：带宽停滞时立刻中断，
+            # 否则一次卡住的下载能把整个 job 拖到 30 分钟以上。
+            if timeout 200 curl -fL --retry 1 --retry-delay 3 --connect-timeout 15 \
+                 --max-time 180 --speed-limit 10240 --speed-time 30 \
+                 -o "$jar.part" "$url"; then
+              got=$(sha256sum "$jar.part" | awk '{print $1}')
+              if [ "$got" = "$expected" ]; then
+                mv "$jar.part" "$jar"
+                ok=1
+                break
+              fi
+              echo "::warning::checksum mismatch from $url ($got), trying next"
+            fi
+            rm -f "$jar.part"
+            echo "::warning::download failed from $url, trying next"
+          done
+          [ "$ok" -eq 1 ] || { echo "::error::could not download a valid Robolectric android-all jar"; exit 1; }
+        fi
+        ls -lh "$jar"
+        sha256sum "$jar"

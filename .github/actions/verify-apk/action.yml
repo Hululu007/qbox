@@ -1,0 +1,79 @@
+name: verify-apk
+description: Verify APK signature, package identity, ABI payload and emit checksums
+
+# 打包流程的最后一道闸：证书指纹、包名、versionCode/Name、ABI 与 sha256 全部落到日志里，
+# 这样「构建成功」=「能装、装的是对的包」，而不是只看 Gradle 退出码。
+inputs:
+  apk_glob:
+    description: shell glob for the APKs to verify
+    required: true
+  require_abi:
+    description: ABI that must be present in lib/ (arm64-v8a / armeabi-v7a). Empty = skip (e.g. x86_64 flavor has no native libs).
+    required: false
+    default: ""
+  expected_sha256:
+    description: expected certificate SHA-256 (hex, colon-less). Empty = warn only.
+    required: false
+    default: ""
+  out_dir:
+    description: where to write sha256sums
+    required: false
+    default: artifacts/apk
+
+runs:
+  using: composite
+  steps:
+    - name: Verify APK(s)
+      shell: bash
+      env:
+        APK_GLOB: ${{ inputs.apk_glob }}
+        REQUIRE_ABI: ${{ inputs.require_abi }}
+        EXPECT_SHA256: ${{ inputs.expected_sha256 }}
+        OUT_DIR: ${{ inputs.out_dir }}
+      run: |
+        set -e
+        sdk_root="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+        build_tools=$(ls -d "$sdk_root"/build-tools/* 2>/dev/null | sort -V | tail -n1)
+        [ -n "$build_tools" ] || { echo "::error::no build-tools found"; exit 1; }
+        apksigner="$build_tools/apksigner"
+        aapt2="$build_tools/aapt2"
+        [ -x "$apksigner" ] || { echo "::error::apksigner not found in $build_tools"; exit 1; }
+        [ -x "$aapt2" ] || { echo "::error::aapt2 not found in $build_tools"; exit 1; }
+        echo "using build-tools: $build_tools"
+
+        mkdir -p "$OUT_DIR"
+        shopt -s nullglob
+        found=0
+        for apk in $APK_GLOB; do
+          found=1
+          echo "=== $apk ==="
+          ls -lh "$apk"
+
+          echo "--- signature ---"
+          "$apksigner" verify --verbose --print-certs "$apk" | tee /tmp/apksigner.txt
+          actual=$(grep -oE 'SHA-256 digest: [0-9a-fA-F]+' /tmp/apksigner.txt | head -n1 | awk '{print $3}' | tr 'A-F' 'a-f')
+          [ -n "$actual" ] || { echo "::error::no signer certificate found in $apk"; exit 1; }
+          if [ -n "$EXPECT_SHA256" ]; then
+            expected=$(echo "$EXPECT_SHA256" | tr -d ':' | tr 'A-F' 'a-f')
+            [ "$actual" = "$expected" ] || { echo "::error::$apk signed by $actual, expected $expected"; exit 1; }
+            echo "certificate fingerprint OK"
+          fi
+
+          echo "--- manifest ---"
+          "$aapt2" dump badging "$apk" | grep -E "^package:|^sdkVersion:|^targetSdkVersion:|native-code" || true
+          pkg=$("$aapt2" dump badging "$apk" | sed -n "s/^package: name='\([^']*\)'.*/\1/p")
+          [ "$pkg" = "com.qbox.app" ] || { echo "::error::$apk package is '$pkg', expected com.qbox.app"; exit 1; }
+
+          echo "--- ABI payload ---"
+          if [ -n "$REQUIRE_ABI" ]; then
+            unzip -l "$apk" | grep -q "lib/$REQUIRE_ABI/" || { echo "::error::$apk has no lib/$REQUIRE_ABI payload"; exit 1; }
+            echo "lib/$REQUIRE_ABI present"
+          else
+            echo "ABI check skipped (no native libs expected for this flavor)"
+            unzip -l "$apk" | grep -E "lib/[^/]+/" | head -n 10 || true
+          fi
+
+          sha256sum "$apk" | tee -a "$OUT_DIR/SHA256SUMS"
+        done
+        [ "$found" -eq 1 ] || { echo "::error::no APK matched $APK_GLOB"; exit 1; }
+        cat "$OUT_DIR/SHA256SUMS"

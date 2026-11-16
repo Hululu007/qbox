@@ -93,7 +93,7 @@
         android:paddingTop="10dp"
         android:paddingEnd="24dp"
         android:paddingBottom="10dp"
-        android:text="按 OK 删除当前收藏 · 按 BACK 取消"
+        android:text="@string/keep_delete_hint"
         android:textColor="@color/qbox_text"
         android:textSize="16sp"
         android:visibility="gone"

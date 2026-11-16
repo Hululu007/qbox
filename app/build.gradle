@@ -16,8 +16,8 @@ android {
         applicationId "com.qbox.app"
         minSdk libs.versions.minSdk.get().toInteger()
         targetSdk libs.versions.targetSdk.get().toInteger()
-        versionCode 81
-        versionName "1.9.23"
+        versionCode 100
+        versionName "2.0.0"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString(), "eventBusIndex": "com.fongmi.android.tv.event.EventIndex"]
@@ -58,8 +58,12 @@ android {
         unitTests {
             includeAndroidResources = true
             all { test ->
-                // 沙箱禁止写 ~/.m2，把 Robolectric 的 android-all 下载目录落到工作区
-                test.systemProperty 'robolectric.dependency.dir', rootProject.file('../.toolchain/robolectric').absolutePath
+                // 沙箱禁止写 ~/.m2，把 Robolectric 的 android-all 下载目录落到工作区。
+                // CI 用 -ProbolectricDependencyDir 指向 GRADLE_USER_HOME 里的子目录，
+                // 那个目录随 actions/cache 一起缓存，145MB 的 jar 只下载一次。
+                test.systemProperty 'robolectric.dependency.dir',
+                        (project.findProperty('robolectricDependencyDir')
+                                ?: rootProject.file('../.toolchain/robolectric').absolutePath)
                 test.testLogging { showStandardStreams = true }
             }
         }

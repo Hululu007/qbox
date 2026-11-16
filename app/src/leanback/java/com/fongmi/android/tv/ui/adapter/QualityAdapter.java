@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.databinding.AdapterQualityBinding;
 
@@ -14,6 +15,7 @@ public class QualityAdapter extends RecyclerView.Adapter<QualityAdapter.ViewHold
     private final OnClickListener listener;
     private Result result;
     private int position;
+    private int nextFocusDown = R.id.episode;
 
     public QualityAdapter(OnClickListener listener) {
         this.listener = listener;
@@ -34,6 +36,11 @@ public class QualityAdapter extends RecyclerView.Adapter<QualityAdapter.ViewHold
         notifyDataSetChanged();
     }
 
+    // nextFocus 仅存值；实际重绑由 VideoActivity.updateFocus 统一 notifyItemChanged 触发。
+    public void setNextFocusDown(int nextFocusDown) {
+        this.nextFocusDown = nextFocusDown;
+    }
+
     @Override
     public int getItemCount() {
         return result.getUrl().getValues().size();
@@ -48,6 +55,7 @@ public class QualityAdapter extends RecyclerView.Adapter<QualityAdapter.ViewHold
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.binding.text.setText(result.getUrl().n(position));
+        holder.binding.text.setNextFocusDownId(nextFocusDown);
         holder.binding.text.setOnClickListener(v -> onItemClick(position));
         holder.binding.text.setSelected(result.getUrl().getPosition() == position);
     }

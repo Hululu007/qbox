@@ -32,7 +32,7 @@
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
-    <!-- 品牌化 slider（第 40 轮）：thumb/激活轨 = L1 白，未激活轨 = 30% 白，无 halo 彩晕。 -->
+    <!-- 品牌化 slider：thumb/激活轨 = L1 白，未激活轨 = 30% 白，无 halo 彩晕。 -->
     <com.google.android.material.slider.Slider
         android:id="@+id/slider"
         android:layout_width="match_parent"

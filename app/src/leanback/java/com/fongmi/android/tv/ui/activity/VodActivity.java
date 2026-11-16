@@ -14,13 +14,11 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.leanback.widget.ItemBridgeAdapter;
-import androidx.leanback.widget.OnChildViewHolderSelectedListener;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewpager.widget.ViewPager;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
@@ -120,7 +118,7 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
         updateBackdrop();
     }
 
-    /** DEBUG 收边力度档切换（第 30 轮）：--ei t 0/1/2。第 35 轮加 --ei m 0/1 切导航带变体。 */
+    /** DEBUG 收边力度档切换：--ei t 0/1/2。加 --ei m 0/1 切导航带变体。 */
     private final android.content.BroadcastReceiver mEdgeTierReceiver = new android.content.BroadcastReceiver() {
         @Override
         public void onReceive(android.content.Context context, android.content.Intent intent) {
@@ -132,8 +130,8 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
         }
     };
 
-    /** 按需导航带（第 29 轮起，Netflix 式）：焦点真实位于导航区（顶栏/分类条容器内）时淡入短软渐变带，离开淡出恢复满屏。
-        第 31 轮判据改结构式：不再看焦点 bounds——滚动/落焦动画中 getGlobalVisibleRect 会瞬时说谎
+    /** 按需导航带：焦点真实位于导航区（顶栏/分类条容器内）时淡入短软渐变带，离开淡出恢复满屏。
+        判据改结构式：不再看焦点 bounds——滚动/落焦动画中 getGlobalVisibleRect 会瞬时说谎
         （焦点还在内容区就误报 top<124dp，进「最近观看」偶发触发带子），改为焦点是否挂在 header 容器内。 */
     private boolean navScrimOn;
 
@@ -142,11 +140,12 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
         getWindow().getDecorView().getViewTreeObserver().addOnGlobalFocusChangeListener((o, f) -> updateNavScrim(f));
     }
 
-    /** 导航带变体（第 35 轮起）：0=二次曲线渐变带（190dp），1=Apple TV+ 式「栏」。
-        第 37 轮：栏版改「实色主体（@color/qbox_panel，与控制条面板同材质）+ 4dp 极细收边」；
+    /** 导航带变体：0=二次曲线渐变带（190dp），1=Apple TV+ 式「栏」。
+        ：栏版改「实色主体（@color/qbox_panel，与控制条面板同材质）+ 4dp 极细收边」；
         且在 filter 面板展开时主体向下延展到最后一行 chip（同一块连续表面），收起归位（240ms 过渡）。 */
     private void applyNavVariant() {
-        int v = com.github.catvod.utils.Prefers.getInt("debug_nav_variant", 0);
+        // GS-82 债务清理（B2）：DEBUG 变体只在 debug 生效，release 恒用默认渐变带。
+        int v = com.fongmi.android.tv.BuildConfig.DEBUG ? com.github.catvod.utils.Prefers.getInt("debug_nav_variant", 0) : 0;
         boolean bar = v == 1;
         filterBandOpen = filterBandOpen && bar;
         mBinding.navScrim.setBackgroundResource(bar
@@ -164,9 +163,10 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
     private boolean filterBandOpen;
     private android.animation.ValueAnimator navBandAnim;
 
-    /** filter 面板开关（第 37 轮）：栏版下导航带主体延展/归位，并把它计入显隐判据。 */
+    /** filter 面板开关：栏版下导航带主体延展/归位，并把它计入显隐判据。 */
     private void setFilterBand(boolean open) {
-        boolean bar = com.github.catvod.utils.Prefers.getInt("debug_nav_variant", 0) == 1;
+        // GS-82 债务清理（B2）：与 applyNavVariant 同源守卫，release 不读 DEBUG 变体。
+        boolean bar = com.fongmi.android.tv.BuildConfig.DEBUG && com.github.catvod.utils.Prefers.getInt("debug_nav_variant", 0) == 1;
         filterBandOpen = open && bar;
         if (filterBandOpen) {
             mBinding.getRoot().postDelayed(() -> animateBandToFilter(0), 120);
@@ -204,7 +204,7 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
     }
 
     private void updateNavScrim(View focus) {
-        // 第 37 轮 P0-1：filter 展开时栏只在「焦点位于筛选 chip 行内」时显示；
+        //  P0-1：filter 展开时栏只在「焦点位于筛选 chip 行内」时显示；
         // 焦点移出到海报区，栏与 filter 一起消失（不再留在屏幕上）。
         boolean inFilter = filterBandOpen && focus != null && getFragment() != null && getFragment().isFilterRowFocus(focus);
         boolean inNav = (focus != null && isInHeader(focus)) || inFilter;
@@ -220,7 +220,7 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
         mBinding.navBand.animate().alpha(inNav ? 1f : 0f).setDuration(220).start();
     }
 
-    /** filter 内容滚动时（第 37 轮 P0-1，由 TypeFragment onScrolled 回调）：实色主体高度即时贴住
+    /** filter 内容滚动时：实色主体高度即时贴住
         「当前可见最后一行」底沿——不跑动画、不盖屏幕固定区域，随内容一起走。 */
     public void syncFilterBand() {
         if (!filterBandOpen) return;
@@ -299,7 +299,7 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
         }
         if (TextUtils.isEmpty(url) || url.equals(mBackdropUrl)) return;
         mBackdropUrl = url;
-        // 氛围底图（第 28 轮统一详情页终态）：480×270 小解码 + BackdropBlur 氛围模糊管线。
+        // 氛围底图：480×270 小解码 + BackdropBlur 氛围模糊管线。
         Glide.with(this).asBitmap().load(ImgUtil.getUrl(url)).override(480, 270)
                 .transform(new com.bumptech.glide.load.MultiTransformation<>(new com.bumptech.glide.load.resource.bitmap.CenterCrop(), new com.fongmi.android.tv.utils.BackdropBlur()))
                 .transition(com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions.withCrossFade(500))
@@ -491,11 +491,7 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
     }
 
     private static boolean isInside(View ancestor, View view) {
-        while (view != null) {
-            if (view == ancestor) return true;
-            view = view.getParent() instanceof View ? (View) view.getParent() : null;
-        }
-        return false;
+        return com.fongmi.android.tv.utils.ViewUtil.isInside(ancestor, view);
     }
 
     @Override

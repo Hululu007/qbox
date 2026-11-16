@@ -15,6 +15,7 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.impl.Diffable;
+import com.fongmi.android.tv.playback.vod.EpisodeProgress;
 import com.fongmi.android.tv.utils.Task;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
@@ -27,6 +28,8 @@ import java.util.concurrent.TimeUnit;
 
 @Entity
 public class History implements Diffable<History> {
+
+    public static final long AUTO_SKIP = -1L;
 
     @NonNull
     @PrimaryKey
@@ -106,6 +109,7 @@ public class History implements Diffable<History> {
 
     public static void delete(int cid) {
         AppDatabase.get().getHistoryDao().delete(cid);
+        EpisodeProgress.removeCid(cid);
     }
 
     public static void clear(int cid) {
@@ -202,6 +206,11 @@ public class History implements Diffable<History> {
 
     public long getOpening() {
         return opening;
+    }
+
+    /** FongMi 上游：片头为「未设置 / AUTO_SKIP」时由跳过片段自动决定，不做固定秒数跳过。 */
+    public static boolean isAutoSkip(long value) {
+        return value == C.TIME_UNSET || value == AUTO_SKIP;
     }
 
     public void setOpening(long opening) {
@@ -368,6 +377,7 @@ public class History implements Diffable<History> {
     public History delete() {
         AppDatabase.get().getHistoryDao().delete(getCid(), getKey());
         AppDatabase.get().getTrackDao().delete(getKey());
+        EpisodeProgress.removeVod(getKey());
         return this;
     }
 

@@ -12,6 +12,7 @@ import com.fongmi.android.tv.gson.DanmakuAdapter;
 import com.fongmi.android.tv.gson.FilterAdapter;
 import com.fongmi.android.tv.gson.HeaderAdapter;
 import com.fongmi.android.tv.gson.MsgAdapter;
+import com.fongmi.android.tv.gson.SkipAdapter;
 import com.fongmi.android.tv.gson.UrlAdapter;
 import com.fongmi.android.tv.setting.DanmakuSetting;
 import com.fongmi.android.tv.utils.Util;
@@ -86,6 +87,9 @@ public class Result implements Parcelable {
     private String key;
     @SerializedName("position")
     private Long position;
+    @SerializedName("skipSegments")
+    @JsonAdapter(SkipAdapter.class)
+    private List<SkipSegment> skipSegments;
     @SerializedName("pagecount")
     private Integer pagecount;
     @SerializedName("parse")
@@ -326,6 +330,10 @@ public class Result implements Parcelable {
 
     public boolean hasPosition() {
         return getPosition() != null;
+    }
+
+    public List<SkipSegment> getSkipSegments() {
+        return skipSegments == null ? Collections.emptyList() : skipSegments;
     }
 
     public boolean hasDesc() {

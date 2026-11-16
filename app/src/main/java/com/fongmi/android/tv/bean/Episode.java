@@ -22,7 +22,7 @@ public class Episode implements Parcelable, Diffable<Episode> {
     @SerializedName("url")
     private String url;
 
-    private int index;
+    private int index = -1;
     private int number;
     private boolean selected;
 

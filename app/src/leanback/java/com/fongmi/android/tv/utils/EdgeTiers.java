@@ -7,7 +7,7 @@ import com.fongmi.android.tv.R;
 import com.github.catvod.utils.Prefers;
 
 /**
- * 四边收边力度档（第 30 轮对比用，DEBUG）：
+ * 四边收边力度档：
  * `adb shell am broadcast -a com.qbox.app.DEBUG_BACKDROP --ei t <0|1|2>`，0=极轻(40dp/12%) 1=中(64dp/20%) 2=稍强(96dp/30%)。
  * 详情页仅在 D 版下生效；首页/分类页直接作用于统一收边层。Prefers 持久化。
  */

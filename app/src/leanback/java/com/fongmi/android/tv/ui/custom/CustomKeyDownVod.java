@@ -17,7 +17,7 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
     private boolean changeSpeed;
     private boolean full;
     private long holdTime;
-    /** 进度条拖动模式（第 37 轮）：repeat0 不落位移（首步让给「单点 ±1%」判定），hold 从首个 repeat 起按同一曲线走。 */
+    /** 进度条拖动模式：repeat0 不落位移（首步让给「单点 ±1%」判定），hold 从首个 repeat 起按同一曲线走。 */
     private boolean scrubMode;
 
     public void setScrubMode(boolean scrub) {
@@ -86,7 +86,7 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
     }
 
     /**
-     * 第 38 轮（P1-1，用户拍板）：快进/快退回归 stock fongmi 原生手感——
+     * 快进/快退回归 stock fongmi 原生手感——
      * 每个按键事件（含 repeat）固定 ±Constant.INTERVAL_SEEK（10s），无曲线、无档位、无爬升，
      * 瞬时响应、松开 250ms 落位；QBox 自造的三代模型（阶梯/分档/连续曲线）全部移除。
      * 仅保留一处自有逻辑 = 进度条拖动模式（scrubMode）：repeat0 不位移（让位 Activity 侧「单点 ±1%」判定），

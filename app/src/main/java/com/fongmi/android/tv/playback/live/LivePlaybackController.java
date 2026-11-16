@@ -20,10 +20,12 @@ public class LivePlaybackController {
 
     private final LivePlaybackState state;
     private final LivePlaybackHost host;
+    private final LiveDataSource dataSource;
 
-    public LivePlaybackController(LivePlaybackHost host, LivePlaybackState state) {
+    public LivePlaybackController(LivePlaybackHost host, LiveDataSource dataSource, LivePlaybackState state) {
         this.state = state;
         this.host = host;
+        this.dataSource = dataSource;
     }
 
     public void reset() {
@@ -223,8 +225,9 @@ public class LivePlaybackController {
         state.setPendingRequest(request);
         host.stopPlaybackForRefresh();
         publishPlaybackMetadata(getEpgData(request));
-        host.requestUrl(request);
+        if (request.isCatchup()) host.onCatchupRequested();
         if (showProgress) host.showProgress();
+        dataSource.getUrl(request);
     }
 
     private EpgData getEpgData(LivePlayRequest request) {

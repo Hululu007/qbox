@@ -81,6 +81,19 @@ public abstract class BaseActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * 万能逃生键：任意界面长按返回（连发 3 次以上）直接把 App 退出到电视桌面。
+     * 用于固件待机恢复后黑屏、焦点丢失等「怎么按都退不出去」的极端状态。
+     */
+    @Override
+    public boolean dispatchKeyEvent(android.view.KeyEvent event) {
+        if (event.getKeyCode() == android.view.KeyEvent.KEYCODE_BACK && event.getRepeatCount() >= 3) {
+            com.fongmi.android.tv.App.exitApp();
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
     private Resources hackResources(Resources resources) {
         try {
             AutoSizeCompat.autoConvertDensityOfGlobal(resources);
@@ -121,16 +134,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     private View findFocusable(View view) {
-        if (view == null || view.getVisibility() != View.VISIBLE) return null;
-        if (view.isFocusable() && view.isEnabled()) return view;
-        if (view instanceof ViewGroup) {
-            ViewGroup group = (ViewGroup) view;
-            for (int i = 0; i < group.getChildCount(); i++) {
-                View found = findFocusable(group.getChildAt(i));
-                if (found != null) return found;
-            }
-        }
-        return null;
+        return com.fongmi.android.tv.utils.ViewUtil.findFirstFocusable(view);
     }
 
     protected void onBackInvoked() {

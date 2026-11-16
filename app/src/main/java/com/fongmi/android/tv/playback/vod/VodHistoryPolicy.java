@@ -21,6 +21,9 @@ public class VodHistoryPolicy {
         if (!TextUtils.isEmpty(mark)) history.setVodRemarks(mark);
         if (Setting.isIncognito()) history.delete();
         history.setVodName(item.getName());
+        // 旧版本把进度只存在 History.position 里；升级后一次性迁移到「单集进度」，
+        // 之后 History.position 退化为「最近观看」展示快照，不再是起播依据。
+        EpisodeProgress.migrate(history.getKey(), EpisodeProgress.episodeKey(history.getEpisodeUrl(), history.getVodRemarks()), history.getPosition(), history.getDuration());
         return history;
     }
 
@@ -69,17 +72,39 @@ public class VodHistoryPolicy {
         Task.executeSerial(copy::save);
     }
 
+    /**
+     * 用户主动换集。进度真值在 {@link EpisodeProgress}（按集独立保存），
+     * 旧集进度不丢、也不带到新集；这里只把 History.position/duration 同步成
+     * 「新集」的已存进度，供首页「最近观看」进度条展示（无记录则 TIME_UNSET）。
+     */
+    public void switchEpisode(History history, Flag flag, Episode episode) {
+        if (history == null || flag == null || episode == null) return;
+        syncDisplayProgress(history, episode);
+        setEpisode(history, flag, episode);
+    }
+
+    /** 恢复/重进同一集：同样把展示快照对齐到该集的实际进度。 */
     public void updateEpisode(History history, Flag flag, Episode episode) {
         if (history == null || flag == null || episode == null) return;
-        boolean match = episode.matchesName(history.getEpisode());
-        if (!match) history.setPosition(C.TIME_UNSET);
-        if (!match) history.setDuration(C.TIME_UNSET);
+        syncDisplayProgress(history, episode);
+        setEpisode(history, flag, episode);
+    }
+
+    private void syncDisplayProgress(History history, Episode episode) {
+        String key = EpisodeProgress.episodeKey(episode.getUrl(), episode.getName());
+        history.setPosition(EpisodeProgress.position(history.getKey(), key));
+        history.setDuration(EpisodeProgress.duration(history.getKey(), key));
+    }
+
+    private void setEpisode(History history, Flag flag, Episode episode) {
         history.setVodFlag(flag.getFlag());
         history.setVodRemarks(episode.getName());
         history.setEpisodeUrl(episode.getUrl());
     }
 
+    /** 守卫对齐 FongMi 上游：非法进度（未就绪的 position/duration）不写、也不触发冗余 saveCurrent。 */
     public void updateProgress(History history, long time, long position, long duration) {
+        if (position < 0 || duration <= 0) return;
         applyProgress(history, time, position, duration);
         if (history != null && history.canSave() && history.canScheduleSave()) saveCurrent(history);
     }
@@ -89,6 +114,10 @@ public class VodHistoryPolicy {
         history.setCreateTime(time);
         history.setPosition(position);
         history.setDuration(duration);
+        // 进度的真值按「集」独立保存；History.position 只是最近观看展示快照。
+        if (!Setting.isIncognito()) {
+            EpisodeProgress.put(history.getKey(), EpisodeProgress.episodeKey(history.getEpisodeUrl(), history.getVodRemarks()), position, duration);
+        }
     }
 
     private History copyForSave(History history) {
@@ -96,7 +125,18 @@ public class VodHistoryPolicy {
         return history.copy();
     }
 
+    /**
+     * 「这一集看到哪」的续播位置（每集独立进度），不含片头策略 ——
+     * 片头/自动跳过/源站起点统一由 {@link VodSkipPolicy#startPositionMs} 合成（FongMi 上游分层）。
+     */
     public long startPositionMs(History history) {
-        return history == null ? C.TIME_UNSET : Math.max(history.getOpening(), history.getPosition());
+        if (history == null) return C.TIME_UNSET;
+        String key = EpisodeProgress.episodeKey(history.getEpisodeUrl(), history.getVodRemarks());
+        long position = EpisodeProgress.position(history.getKey(), key);
+        long duration = EpisodeProgress.duration(history.getKey(), key);
+        // GS-79：已播完（位置到/接近结尾）→ 从头重播。否则点已播完的当前集会从结尾续播，
+        // 瞬间又触发 playbackEnded → 自动下一集，导致「想重看某一集永远点不进去」。
+        if (duration > 0 && position >= duration - 1000) return C.TIME_UNSET;
+        return position;
     }
 }

@@ -54,6 +54,19 @@ public class CollectActivity extends BaseActivity {
         return (CollectFragment) mBinding.pager.getAdapter().instantiateItem(mBinding.pager, 0);
     }
 
+    /** 当前页（当前源）对应的结果 fragment——焦点路由必须看这一页，不能用固定的第 0 页。 */
+    private CollectFragment getCurrentFragment() {
+        try {
+            int position = mBinding.pager.getCurrentItem();
+            Fragment fragment = getSupportFragmentManager().findFragmentByTag("android:switcher:" + mBinding.pager.getId() + ":" + position);
+            if (fragment instanceof CollectFragment) return (CollectFragment) fragment;
+            Object item = mBinding.pager.getAdapter().instantiateItem(mBinding.pager, position);
+            return item instanceof CollectFragment ? (CollectFragment) item : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     private String getKeyword() {
         return getIntent().getStringExtra("keyword");
     }
@@ -103,6 +116,33 @@ public class CollectActivity extends BaseActivity {
                 onChildSelected(child);
             }
         });
+    }
+
+    /**
+     * 焦点显式路由（GS 焦点闭环）：
+     * Leanback 的几何焦点搜索只允许「进入 tab 行时落到已选中 tab」，
+     * 海报第一列（x 离开选中 tab 的 beam）按 ↑ 会跳到返回按钮、从返回按钮按 ↓ 会跳过 tab 行直接到海报，
+     * 用户因此「回不到横向源选择」。这里按层级显式收口：
+     * 返回/工具栏 ↓ → tab 行；海报首行 ↑ → tab 行；tab 行 ↑ → 工具栏（返回）。
+     */
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            View focus = getCurrentFocus();
+            if (focus != null) {
+                if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP && !isInside(mBinding.recycler, focus) && !isInside(mBinding.toolbar, focus)) {
+                    CollectFragment fragment = getCurrentFragment();
+                    if (fragment != null && fragment.isFocusOnTopRow()) return mBinding.recycler.requestFocus();
+                } else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN && isInside(mBinding.toolbar, focus)) {
+                    return mBinding.recycler.requestFocus();
+                }
+            }
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
+    private static boolean isInside(View ancestor, View view) {
+        return com.fongmi.android.tv.utils.ViewUtil.isInside(ancestor, view);
     }
 
     private void setRecyclerView() {

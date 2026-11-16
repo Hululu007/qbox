@@ -65,15 +65,24 @@ QBox 只负责把配置源里的内容展示出来并播放，本身不生产、
 - 两个包使用相同签名，可以直接覆盖安装，数据不会丢失
 - **签名已更换**：装过 1.9.12 或更早版本的用户，需要先卸载旧版再安装
   （配置、播放记录、收藏会清空）；1.9.13 及之后的版本签名一致，可直接覆盖
+- 1.9.13 及之后的老客户端，启动弹窗或「设置 → 版本」检查更新，点「更新」即可升级到 2.0.0
 - 更早的安装包已从 Releases 移除，请只使用本页最新版本
 
 ## 源码
 
-QBox 基于 FongMi/TV 二次开发，遵循 GPL-3.0。
+QBox 是 [FongMi/TV](https://github.com/FongMi/TV) 5.6.1 的二次开发，遵循 GPL-3.0。
 
+- 本仓库 `zqs1qiwan/qbox` 是 QBox 的**唯一源码仓与发布仓**，`main` 是长期维护分支
+- 上游版本、对齐范围和 QBox 的改动见 [`docs/UPSTREAM.md`](docs/UPSTREAM.md)
 - 每个 Release 都附带对应版本的源码包 `QBox-<版本>-source.zip`
-- 源码包内含构建说明；media 相关 AAR 由公开的 [FongMi/media](https://github.com/FongMi/media) 分支构建
-- 本仓库只用于发布安装包与源码包
+- media 相关 AAR 由公开的 [FongMi/media](https://github.com/FongMi/media) `release-1.11.0-fongmi` 分支构建
+- 旧私有开发仓 `qbox-tv` 已归档为只读；后续开发、Issue、Release 都在本仓库进行
+
+## 维护
+
+- 源码、Issue、Release 统一在 `zqs1qiwan/qbox`
+- 发布方式：`main` 打 `v*` tag → GitHub Release；资产名 `QBox-<版本>-<abi>.apk` 与 `QBox-<版本>-source.zip`
+- 私有仓 `qbox-tv` 已归档，只读，不再接收提交
 
 ## 安装
 
@@ -157,7 +166,9 @@ QBox 是面向 Android TV / 电视盒子的播放器，基于 [FongMi/TV 5.6.1](
 **QBox 只提供播放器本身，不提供、不内置、不附带任何影视内容或配置源**，所有内容由用户自行导入配置后显示。
 
 - 应用 ID：`com.qbox.app`
-- 发布分支：`ui-cinema`（`main` 跟随发布）
+- 当前版本：`2.0.0`（versionCode 100）
+- 发布分支：`main`（唯一长期分支）
+- 播放内核：FongMi/TV `125468f0`（5.6.1，2026-08-27）；媒体层保持 media3 1.11.0，不升级
 - 许可：GPL-3.0，见 `LICENSE.md`
 
 ## 目录
@@ -171,7 +182,7 @@ QBox 是面向 Android TV / 电视盒子的播放器，基于 [FongMi/TV 5.6.1](
 | `thunder/` `tvbus/` `hook/` `jianpian/` `forcetech/` `zlive/` | 对应 AAR 的源码模块，不参与主工程构建 |
 | `docs/` | 上游配置与使用文档 |
 | `smoke/` | 离线 mock、无头截图与基线（合成占位内容，仅调试） |
-| `.github/workflows/ci.yml` | 自动构建/测试；启动无头 AVD 并截首页（CI 临时 keystore） |
+| `.github/workflows/ci.yml` | 自动构建/测试；启动无头 AVD 并截首页（签名策略见 `docs/HEADLESS.md`） |
 
 Python 爬虫（Chaquopy）已移除，`com.fongmi.chaquo.Loader` 是空实现，py 站点回退到 `SpiderNull`。
 
@@ -209,7 +220,7 @@ Windows 下可以用 `.toolchain/build.ps1 -Abi all -Variant Release`（脚本�
 
 ## 无头测试 / CI
 
-详见 `docs/HEADLESS.md`。`.github/workflows/ci.yml` 在 Linux runner 上从 FongMi/media `release-1.11.0-fongmi` 构建 18 个 `lib-*-release.aar`，生成仅用于 CI 的临时 keystore，跑 Robolectric 单测并打 `leanbackX86_64Debug`；随后以 `smoke/` 中纯合成占位内容启动 720p 无头 AVD，截取 `qbox-home.png` 和 `qbox-home.xml`。
+详见 `docs/HEADLESS.md`。`.github/workflows/ci.yml` 在 Linux runner 上从 FongMi/media `release-1.11.0-fongmi` 构建 18 个 `lib-*-release.aar`，配了 Secrets 时用固定签名、否则生成本次运行专用临时 keystore，跑 Robolectric 单测并打 `leanbackX86_64Debug`；随后以 `smoke/` 中纯合成占位内容启动 720p 无头 AVD，截取 `qbox-home.png` 和 `qbox-home.xml`。
 
 ```powershell
 .\smoke\mock-server.ps1
@@ -220,10 +231,12 @@ CI 通过 `-PqboxTestConfig=<url>` 覆盖 debug 首启配置；不传时默认�
 
 ## 发布
 
-1. 修改 `app/build.gradle` 的 `versionCode` / `versionName`
-2. 构建两个 ABI 的 release APK
+1. 在 `main` 修改 `app/build.gradle` 的 `versionCode` / `versionName`
+2. 构建两个 ABI 的 release APK，并用正式签名验证证书指纹
 3. `git archive` 导出源码包 `QBox-<版本>-source.zip`
-4. 上传到公开仓库 `zqs1qiwan/qbox` 的 GitHub Release（安装包 + 源码包）
+4. 打 `v<版本>` tag，在本仓库创建 GitHub Release
+5. 资产命名为 `QBox-<版本>-arm64-v8a.apk`、`QBox-<版本>-armeabi-v7a.apk`、`QBox-<版本>-source.zip`；
+   `QBox-latest-*.apk` 为固定下载链接的副本
 
 ## 约束
 

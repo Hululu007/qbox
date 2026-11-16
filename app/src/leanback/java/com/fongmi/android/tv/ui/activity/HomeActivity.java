@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,7 +14,6 @@ import androidx.core.splashscreen.SplashScreen;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.FocusHighlight;
 import androidx.leanback.widget.HeaderItem;
-import androidx.leanback.widget.HorizontalGridView;
 import androidx.leanback.widget.ItemBridgeAdapter;
 import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.OnChildViewHolderSelectedListener;
@@ -24,7 +22,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.BuildConfig;
 import com.fongmi.android.tv.Product;
@@ -52,7 +49,6 @@ import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.player.extractor.Source;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.service.DLNARendererService;
-import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.ui.adapter.BaseDiffCallback;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.CustomRowPresenter;
@@ -298,7 +294,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     /** 首页内容请求失败时自动重试，避免只剩一个「点播」入口的空壳状态。 */
     private void retryHome() {
         if (homeRetry >= 3) {
-            Toast.makeText(this, "首页内容加载失败，可在设置里换源或稍后重进", Toast.LENGTH_LONG).show();
+            Notify.show(getString(R.string.home_retry_failed));
             return;
         }
         homeRetry++;
@@ -427,7 +423,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             }
             if (TextUtils.isEmpty(url) || url.equals(mBackdropUrl)) return;
             mBackdropUrl = url;
-            // 氛围底图（第 28 轮统一详情页终态）：480×270 小解码 + BackdropBlur（降采 72×40→盒式×3→抖动），
+            // 氛围底图：480×270 小解码 + BackdropBlur（降采 72×40→盒式×3→抖动），
             // 焦点连续移动时每张新图 Glide 后台一次性 ~110-150ms 且磁盘缓存，渲染线程零开销。
             Glide.with(this).asBitmap().load(ImgUtil.getUrl(url)).override(480, 270)
                     .transform(new com.bumptech.glide.load.MultiTransformation<>(new com.bumptech.glide.load.resource.bitmap.CenterCrop(), new com.fongmi.android.tv.utils.BackdropBlur()))
@@ -438,7 +434,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         }
     }
 
-    /** DEBUG 收边力度档切换（第 30 轮）：--ei t 0/1/2。第 35 轮加 --ei m 0/1 切导航带变体。 */
+    /** DEBUG 收边力度档切换：--ei t 0/1/2。加 --ei m 0/1 切导航带变体。 */
     private final android.content.BroadcastReceiver mEdgeTierReceiver = new android.content.BroadcastReceiver() {
         @Override
         public void onReceive(android.content.Context context, android.content.Intent intent) {
@@ -450,8 +446,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         }
     };
 
-    /** 按需导航带（第 29 轮起，Netflix 式）：焦点真实位于导航区（顶栏/分类条容器内）时淡入短软渐变带，离开淡出恢复满屏。
-        第 31 轮判据改结构式：不再看焦点 bounds——滚动/落焦动画中 getGlobalVisibleRect 会瞬时说谎
+    /** 按需导航带：焦点真实位于导航区（顶栏/分类条容器内）时淡入短软渐变带，离开淡出恢复满屏。
+        判据改结构式：不再看焦点 bounds——滚动/落焦动画中 getGlobalVisibleRect 会瞬时说谎
         （焦点还在内容区就误报 top<124dp，进「最近观看」偶发触发带子），改为焦点是否挂在 header 容器内。 */
     private boolean navScrimOn;
 
@@ -460,12 +456,14 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         getWindow().getDecorView().getViewTreeObserver().addOnGlobalFocusChangeListener((o, f) -> updateNavScrim(f));
     }
 
-    /** 导航带变体（第 35 轮起）：0=二次曲线渐变带（190dp），1=Apple TV+ 式「栏」。
-        第 37 轮：栏版改「实色主体 136dp（@color/qbox_panel，与控制条面板同材质）+ 4dp 极细收边」，
+    /** 导航带变体：0=二次曲线渐变带（190dp），1=Apple TV+ 式「栏」。
+        ：栏版改「实色主体 136dp（@color/qbox_panel，与控制条面板同材质）+ 4dp 极细收边」，
         不再用 134dp+12dp 渐变尾巴的 shape_nav_scrim_bar（用户：边缘不够柔和、不如均匀干净收边）。
         DEBUG 广播 com.qbox.app.DEBUG_BACKDROP --ei m 0/1，Prefers debug_nav_variant 持久化。 */
     private void applyNavVariant() {
-        int v = com.github.catvod.utils.Prefers.getInt("debug_nav_variant", 0);
+        // GS-82 债务清理（B2）：DEBUG 变体只在 debug 生效，release 恒用默认渐变带，
+        // 防止装过 debug 的用户把「Apple TV+ 栏」变体 Persist 带进正式包。
+        int v = com.fongmi.android.tv.BuildConfig.DEBUG ? com.github.catvod.utils.Prefers.getInt("debug_nav_variant", 0) : 0;
         boolean bar = v == 1;
         mBinding.navScrim.setBackgroundResource(bar
                 ? com.fongmi.android.tv.R.color.qbox_nav_bar
@@ -559,12 +557,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private boolean isInside(View parent, View child) {
-        View view = child;
-        while (view != null) {
-            if (view == parent) return true;
-            view = view.getParent() instanceof View ? (View) view.getParent() : null;
-        }
-        return false;
+        return com.fongmi.android.tv.utils.ViewUtil.isInside(parent, child);
     }
 
     /**
@@ -848,7 +841,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                 // 有「最近观看」时它是第 0 行，「更新推荐」首行是第 1 行：
                 // 从推荐首行按 ↑ 必须先回到最近观看，而不是直接跳到分类条（用户实测的跳级）。
                 if (pos == 1 && historyShown) {
-                    // 第 30 轮：回到最近观看要按列落位（x 最近），不再落行首。
+                    // 回到最近观看要按列落位（x 最近），不再落行首。
                     View target = mBinding.recycler.nearestColumnInRow(0, getCurrentFocus());
                     mBinding.recycler.setSelectedPosition(0);
                     if (target != null) target.requestFocus();
@@ -947,8 +940,9 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         } else if (mBinding.recycler.getSelectedPosition() != 0) {
             mBinding.recycler.scrollToPosition(0);
         } else {
-            if (PlaybackService.isRunning()) Util.moveToBackground(this);
-            else super.onBackInvoked();
+            // 安全退出：首页再按返回就真的退出 App（停后台播放 + 移除任务回电视桌面），
+            // 不再「只切后台」——否则某些固件回到前台后黑屏，按多少次返回都退不出去。
+            App.exitApp();
         }
     }
 

@@ -239,7 +239,7 @@ final class DanmakuSettingPanel {
     }
 
     private void setupFloat(Slider slider, TextView label, float value, String format, FloatSetter setter) {
-        setupSlider(slider, label, value, sliderValue -> String.format(Locale.getDefault(), format, sliderValue), setter::set);
+        setupSlider(slider, label, value, sliderValue -> String.format(Locale.US,format, sliderValue), setter::set);
     }
 
     private void setupInt(Slider slider, TextView label, int value, IntFunction<String> formatter, IntConsumer setter) {
@@ -247,7 +247,7 @@ final class DanmakuSettingPanel {
     }
 
     private void setupMs(Slider slider, TextView label, long valueMs, LongConsumer setter) {
-        setupSlider(slider, label, valueMs, sliderValue -> String.format(Locale.getDefault(), "%.1fs", sliderValue / 1000f), sliderValue -> setter.accept(sliderValue.longValue()));
+        setupSlider(slider, label, valueMs, sliderValue -> String.format(Locale.US,"%.1fs", sliderValue / 1000f), sliderValue -> setter.accept(sliderValue.longValue()));
     }
 
     private void setupSlider(Slider slider, TextView label, float initial, Function<Float, String> formatter, Consumer<Float> setter) {
