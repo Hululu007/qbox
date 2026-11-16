@@ -165,15 +165,20 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.ViewHold
             root.setLayoutParams(margins);
         }
         if (info == null) {
-            holder.binding.prefix.setText(item.getDesc().concat(item.getName()));
-            holder.binding.text.setText("");
+            holder.binding.prefix.setText(item.getDesc());
+            holder.binding.text.setText(item.getName());
             holder.binding.badge.setVisibility(View.GONE);
             holder.binding.channel.setVisibility(View.GONE);
         } else {
-            // 前缀 = 识别到的时间/集数，固定不滚；text = 原资源全名(+编码)，独立持续滚动。
-            holder.binding.prefix.setText(info.label);
-            String name = info.rest.isEmpty() ? info.codecTail() : info.rest + (info.codecTail().isEmpty() ? "" : " " + info.codecTail());
-            holder.binding.text.setText(name);
+            // 没有识别出日期/集数时，EpisodeInfo 会把整段清理后的文件名当成 label、rest 为空。
+            // 此时若仍把 label 放在固定前缀里，长资源名会被前缀宽度截断且永远不会进入 marquee。
+            // 把这种「无结构长名」移到可滚动 text，前缀只保留源的 desc（通常为空/集号）。
+            String tail = info.codecTail();
+            String scrollName = info.rest.isEmpty() ? info.label : info.rest;
+            if (!tail.isEmpty()) scrollName = scrollName + (scrollName.isEmpty() ? "" : " ") + tail;
+            String fixedPrefix = info.rest.isEmpty() && tail.isEmpty() ? item.getDesc() : info.label;
+            holder.binding.prefix.setText(fixedPrefix);
+            holder.binding.text.setText(scrollName);
             // 右上两排：分辨率 / 动态范围（DV·HDR）。
             String top = info.resolution() + (info.dynamicRange().isEmpty() ? "" : "\n" + info.dynamicRange());
             holder.binding.badge.setText(top);

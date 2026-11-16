@@ -1,9 +1,11 @@
 package com.qbox;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.TextView;
@@ -46,6 +48,9 @@ public class EpisodeCellTest {
         TextView text = holder.itemView.findViewById(R.id.text);
         TextView badge = holder.itemView.findViewById(R.id.badge);
         TextView channel = holder.itemView.findViewById(R.id.channel);
+        // 回归：text 不能复制父状态，否则 setSelected(true) 会被 pill/root 覆盖，marquee 不启动。
+        assertFalse("scrolling text must own its selected state", text.isDuplicateParentStateEnabled());
+        assertEquals(TextUtils.TruncateAt.MARQUEE, text.getEllipsize());
         // 前缀 = 识别到的时间/集数，固定不滚（不含编码）
         assertTrue("prefix should be the recognized label: " + prefix.getText(), prefix.getText().length() > 0);
         // 滚动名 = 原资源全名 + 编码尾部（保留 H265 供人类判断）
@@ -60,6 +65,26 @@ public class EpisodeCellTest {
         adapter.onBindViewHolder(holder, 1);
         assertEquals(View.GONE, badge.getVisibility());
         assertEquals(View.GONE, channel.getVisibility());
+    }
+
+    /** 长资源名没有日期/集数结构时，不能整段塞进固定前缀；必须交给可滚动 text。 */
+    @Test
+    public void unstructuredLongNameGoesToScrollableText() {
+        Context context = RuntimeEnvironment.getApplication();
+        FrameLayout parent = new FrameLayout(context);
+        EpisodeAdapter adapter = new EpisodeAdapter(item -> {
+        });
+        Episode episode = new Episode();
+        episode.setName("[4.30GB] 逃出布迪秀Buddy2026(1) 【佬友 LY-96】逃出布迪秀.Buddy.2026.1080p.AMZN.WEB-DL-LYZM.mkv");
+        adapter.addAll(java.util.Collections.singletonList(episode));
+
+        EpisodeAdapter.ViewHolder holder = adapter.onCreateViewHolder(parent, 0);
+        adapter.onBindViewHolder(holder, 0);
+        TextView prefix = holder.itemView.findViewById(R.id.prefix);
+        TextView text = holder.itemView.findViewById(R.id.text);
+        assertEquals("", prefix.getText().toString());
+        assertTrue("long unstructured name must be scrollable: " + text.getText(), text.getText().toString().contains("逃出布迪秀Buddy2026"));
+        assertFalse(text.isDuplicateParentStateEnabled());
     }
 
     /** GS-79：稳定 id = 页内槽位 position，跨页稳定，是「换页保持焦点」的前提。 */
