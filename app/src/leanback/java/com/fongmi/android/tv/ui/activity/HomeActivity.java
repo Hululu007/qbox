@@ -933,6 +933,38 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            // 首页根位置的双击返回由 Activity 先接管，避免 Leanback 把 BACK 吃掉只移动焦点。
+            if (event.getRepeatCount() >= 3) {
+                App.exitApp();
+                return true;
+            }
+            boolean atHome = mBinding != null
+                    && mPresenter != null
+                    && !mBinding.progressLayout.isProgress()
+                    && !mPresenter.isDelete()
+                    && mBinding.recycler.getSelectedPosition() == 0;
+            if (atHome && event.getRepeatCount() == 0) {
+                if (event.getAction() == KeyEvent.ACTION_UP) handleHomeBack();
+                return true;
+            }
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
+    private void handleHomeBack() {
+        // 与 FongMi 首页一致：第一次返回只提示，短时间内再按一次才真正退出。
+        long now = System.currentTimeMillis();
+        if (now - mLastBackPressed > 2000) {
+            mLastBackPressed = now;
+            Notify.show(R.string.home_exit_again);
+        } else {
+            App.exitApp();
+        }
+    }
+
+    @Override
     protected void onBackInvoked() {
         if (mBinding.progressLayout.isProgress()) {
             showContent();
@@ -941,15 +973,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         } else if (mBinding.recycler.getSelectedPosition() != 0) {
             mBinding.recycler.scrollToPosition(0);
         } else {
-            // 与 FongMi 首页一致：第一次返回只提示，短时间内再按一次才真正退出，
-            // 避免误触返回直接结束 App；长按返回仍有 BaseActivity 的逃生逻辑。
-            long now = System.currentTimeMillis();
-            if (now - mLastBackPressed > 2000) {
-                mLastBackPressed = now;
-                Notify.show(R.string.home_exit_again);
-            } else {
-                App.exitApp();
-            }
+            handleHomeBack();
         }
     }
 
