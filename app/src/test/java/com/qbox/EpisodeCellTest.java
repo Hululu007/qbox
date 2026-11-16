@@ -75,7 +75,7 @@ public class EpisodeCellTest {
         EpisodeAdapter adapter = new EpisodeAdapter(item -> {
         });
         Episode episode = new Episode();
-        episode.setName("[4.30GB] 逃出布迪秀Buddy2026(1) 【佬友 LY-96】逃出布迪秀.Buddy.2026.1080p.AMZN.WEB-DL-LYZM.mkv");
+        episode.setName("[4.30GB] 这是一部名字非常长的示例剧集(1) 【示例压制组】Example.Show.2026.1080p.WEB-DL.MKV.mkv");
         adapter.addAll(java.util.Collections.singletonList(episode));
 
         EpisodeAdapter.ViewHolder holder = adapter.onCreateViewHolder(parent, 0);

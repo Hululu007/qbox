@@ -38,7 +38,7 @@ public class QuarkNamingTest {
         assertEquals("4K", item.badge);
     }
 
-    /** 2. 夸父（夸克转存）：剧名 + 第N集 + 清晰度。 */
+    /** 2. 网盘转存：剧名 + 第N集 + 清晰度。 */
     @Test
     public void source2_kuaFu_chineseEpisode() {
         EpisodeInfo.Item item = parse("嫁金钗 第01集 2160p H265 AAC 5.1.mp4");

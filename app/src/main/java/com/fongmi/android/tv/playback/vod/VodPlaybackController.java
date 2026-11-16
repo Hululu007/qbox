@@ -225,7 +225,7 @@ public class VodPlaybackController {
             for (Flag item : items) mergeFlag(activated, item);
             host.renderFlags(state.getFlags());
             // FlagAdapter.addAll 会丢失 RecyclerView 的 selectedPosition；这里把当前线路重新选中，
-            // 否则详情页在 Vod 更新后视觉上会落回第一项（典型：夸父智 → 夸父原）。
+            // 否则详情页在 Vod 更新后视觉上会落回第一项（典型：切到备用线路后跳回默认线路）。
             host.renderFlagSelection(state.getFlag());
         } else {
             state.setFlags(items);
@@ -466,8 +466,8 @@ public class VodPlaybackController {
 
     private void restoreDetail(VodPlayRequest activeRequest, History history, boolean freshDetail) {
         // 从「最近观看」进入时，history 里保存的 vodFlag/集数就是用户上次的选择。
-        // 先按 history 精确恢复，避免一个携带旧线路的 activeRequest（或首个 Flag）把「夸父智」
-        // 覆盖回列表第一项「夸父原」；刷新/换源再走 activeRequest 路径。
+        // 先按 history 精确恢复，避免一个携带旧线路的 activeRequest（或首个 Flag）把用户
+        // 上次选择的线路覆盖回列表第一项；刷新/换源再走 activeRequest 路径。
         if (freshDetail && restoreHistorySelection(history)) {
             publishPlaybackMetadata(state.getEpisode());
         } else {
@@ -558,7 +558,7 @@ public class VodPlaybackController {
         History history = state.getHistory();
         Episode episode = history == null ? null : flag.find(history.getVodRemarks(), host.getVodMark().isEmpty());
         // 手动切线路时，历史里的集名通常来自另一路；不能因为找不到同名集就只改视觉选中、
-        // 把历史线路留在旧路（用户实测：切到「夸父智」后退出再进又回到「夸父原」）。
+        // 把历史线路留在旧路（实机表现为切到备用线路后退出再进又回到默认线路）。
         // 找不到同名集就取该线路的当前/首集，至少把线路和该集一起写回历史。
         if (episode == null && !flag.getEpisodes().isEmpty()) episode = flag.getEpisodes().get(0);
         if (episode == null) return;

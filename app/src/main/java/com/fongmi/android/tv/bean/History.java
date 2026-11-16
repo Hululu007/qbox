@@ -383,8 +383,8 @@ public class History implements Diffable<History> {
 
     public void findEpisode(List<Flag> flags) {
         if (flags.isEmpty()) return;
-        // 先在同名历史里找一条能对上的集；匹配成功前不要把第一 Flag（常见是「夸父原」）
-        // 写进当前 history，否则新建/收编历史会静默丢掉用户上次选的「夸父智」。
+        // 先在同名历史里找一条能对上的集；匹配成功前不要把第一线路
+        // 写进当前 history，否则新建/收编历史会静默丢掉用户上次选的线路。
         for (History item : findByName(getVodName())) {
             if (item.equals(this) || item.getPosition() < 0) continue;
             for (Flag flag : flags) {
