@@ -83,7 +83,8 @@ public class EpisodeCellTest {
         TextView prefix = holder.itemView.findViewById(R.id.prefix);
         TextView text = holder.itemView.findViewById(R.id.text);
         assertEquals("", prefix.getText().toString());
-        assertTrue("long unstructured name must be scrollable: " + text.getText(), text.getText().toString().contains("逃出布迪秀Buddy2026"));
+        assertTrue("long unstructured name must be scrollable: " + text.getText(), text.getText().toString().contains("[4.30GB]"));
+        assertTrue("long unstructured name must keep extension: " + text.getText(), text.getText().toString().endsWith(".mkv"));
         assertFalse(text.isDuplicateParentStateEnabled());
     }
 

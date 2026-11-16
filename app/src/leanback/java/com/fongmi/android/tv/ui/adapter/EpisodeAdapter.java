@@ -174,8 +174,10 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.ViewHold
             // 此时若仍把 label 放在固定前缀里，长资源名会被前缀宽度截断且永远不会进入 marquee。
             // 把这种「无结构长名」移到可滚动 text，前缀只保留源的 desc（通常为空/集号）。
             String tail = info.codecTail();
-            String scrollName = info.rest.isEmpty() ? info.label : info.rest;
-            if (!tail.isEmpty()) scrollName = scrollName + (scrollName.isEmpty() ? "" : " ") + tail;
+            // rest 为空说明没有可拆出的结构化标题；此时用原始文件名（含大小/扩展名）作为滚动内容，
+            // 保证用户能读到完整的资源名，而不是只看到清理后的半截标签。
+            String scrollName = info.rest.isEmpty() ? item.getName() : info.rest;
+            if (!info.rest.isEmpty() && !tail.isEmpty()) scrollName = scrollName + " " + tail;
             String fixedPrefix = info.rest.isEmpty() && tail.isEmpty() ? item.getDesc() : info.label;
             holder.binding.prefix.setText(fixedPrefix);
             holder.binding.text.setText(scrollName);
