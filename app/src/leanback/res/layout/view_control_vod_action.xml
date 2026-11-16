@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 第 39 轮：播放菜单完全对齐 fongmi——单行、等宽权重铺满、不滚动，无独立播放/暂停按钮
+<!-- 播放菜单完全对齐 fongmi——单行、等宽权重铺满、不滚动，无独立播放/暂停按钮
      （OK 直接暂停，暂停只出快进快退那种时间状态精简显示）；行尾 = 详情（顶替 fongmi 的「指令」位）。
      差异仅三处：循环点击变色（selector_chip_toggle）、倍速 ↑/↓ 快捷调档 + OK 进详细配置、行尾详情。
      fongmi 没有的选项（更多/二级行/倍速设置入口）一律删除。 -->
@@ -55,7 +55,7 @@
         android:layout_marginEnd="4dp"
         android:text="@string/play_replay" />
 
-    <!-- 循环（第 43 轮）：聚焦 = 与其它按钮完全一致的白药丸（selector_repeat_bg 复用 shape_chip_focused）；
+    <!-- 循环：聚焦 = 与其它按钮完全一致的白药丸（selector_repeat_bg 复用 shape_chip_focused）；
          开/关只靠文字变色（control_toggle_text），selected 不再画 12% 白底（去掉的就是这层「圈」）。 -->
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/repeat"

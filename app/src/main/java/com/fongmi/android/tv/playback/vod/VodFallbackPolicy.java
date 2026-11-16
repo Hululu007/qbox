@@ -18,12 +18,14 @@ class VodFallbackPolicy {
     private final VodPlaybackController controller;
     private final VodPlaybackState state;
     private final VodPlaybackHost host;
+    private final VodDataSource dataSource;
     private int autoFallbackCount;
 
-    VodFallbackPolicy(VodPlaybackController controller, VodPlaybackState state, VodPlaybackHost host) {
+    VodFallbackPolicy(VodPlaybackController controller, VodPlaybackState state, VodPlaybackHost host, VodDataSource dataSource) {
         this.controller = controller;
         this.state = state;
         this.host = host;
+        this.dataSource = dataSource;
     }
 
     void playbackError() {
@@ -48,7 +50,7 @@ class VodFallbackPolicy {
         state.setAutoFallback(autoFallback);
         state.setSelectFirstSource(autoFallback);
         host.onSearchStarted(keyword);
-        host.requestSearch(getSearchableSites(), keyword);
+        dataSource.searchContent(getSearchableSites(), keyword, true);
     }
 
     void onSearchResult(Result result) {

@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
 public class Util {
 
     /**
-     * 站点名/标签清洗（第 43 轮重做）：用户拍板「要支持 emoji，源上 emoji 更好肉眼识别」——
+     * 站点名/标签清洗：用户拍板「要支持 emoji，源上 emoji 更好肉眼识别」——
      * emoji 与装饰符号一律保留（设备 /system/fonts 有 NotoColorEmoji.ttf，TextView 默认字体链可渲染彩色 emoji）；
      * ZWJ/VS15/VS16 保留（emoji 序列组成符，如 👨‍👩‍👧 不断裂）；
      * 只删私有区 0xE000–0xF8FF（图标字体私有码位，任何字体都画不出，必豆腐）。CJK 与常用标点不受影响。

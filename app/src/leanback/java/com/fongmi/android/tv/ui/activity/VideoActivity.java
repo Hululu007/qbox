@@ -20,6 +20,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
+import androidx.leanback.widget.HorizontalGridView;
 import androidx.leanback.widget.OnChildViewHolderSelectedListener;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.media3.common.C;
@@ -65,16 +66,14 @@ import com.fongmi.android.tv.playback.vod.VodDetailResult;
 import com.fongmi.android.tv.playback.vod.VodPlayRequest;
 import com.fongmi.android.tv.playback.vod.VodPlaybackController;
 import com.fongmi.android.tv.playback.vod.VodPlaybackHost;
-import com.fongmi.android.tv.playback.vod.VodPlaybackMedia;
 import com.fongmi.android.tv.player.media.PlaySpec;
 import com.fongmi.android.tv.service.PlaybackService;
-import com.fongmi.android.tv.setting.DanmakuSetting;
 import com.fongmi.android.tv.setting.DecodeSetting;
 import com.fongmi.android.tv.setting.PlayerSetting;
 import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.setting.SpeedSetting;
-import com.fongmi.android.tv.ui.adapter.ArrayAdapter;
 import com.fongmi.android.tv.ui.adapter.EpisodeAdapter;
+import com.fongmi.android.tv.ui.adapter.EpisodeGroupAdapter;
 import com.fongmi.android.tv.ui.adapter.FlagAdapter;
 import com.fongmi.android.tv.ui.adapter.PartAdapter;
 import com.fongmi.android.tv.ui.adapter.QualityAdapter;
@@ -91,6 +90,7 @@ import com.fongmi.android.tv.ui.dialog.PlayerEngineDialog;
 import com.fongmi.android.tv.ui.dialog.SpeedSettingDialog;
 import com.fongmi.android.tv.ui.dialog.TrackDialog;
 import com.fongmi.android.tv.utils.Clock;
+import com.fongmi.android.tv.utils.EpisodeInfo;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.KeyUtil;
@@ -112,16 +112,16 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
-public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, CustomKeyDownVod.Listener, ParseDialog.Listener, ArrayAdapter.OnClickListener, FlagAdapter.OnClickListener, EpisodeAdapter.OnClickListener, QualityAdapter.OnClickListener, QuickAdapter.OnClickListener, Clock.Callback {
+public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, CustomKeyDownVod.Listener, ParseDialog.Listener, EpisodeGroupAdapter.OnClickListener, FlagAdapter.OnClickListener, EpisodeAdapter.OnClickListener, QualityAdapter.OnClickListener, QuickAdapter.OnClickListener, Clock.Callback {
 
     private ActivityVideoBinding mBinding;
     private VideoViewModel mViewModel;
     private VodPlaybackController mVod;
     private FlagAdapter mFlagAdapter;
     private EpisodeAdapter mEpisodeAdapter;
+    private EpisodeGroupAdapter mEpisodeGroupAdapter;
     private java.util.List<com.fongmi.android.tv.bean.Episode> mEpisodeItems;
     private QualityAdapter mQualityAdapter;
-    private ArrayAdapter mArrayAdapter;
     private PartAdapter mPartAdapter;
     private QuickAdapter mQuickAdapter;
     private ViewGroup.LayoutParams mFrameParams;
@@ -135,6 +135,11 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private Runnable mR3;
     private Runnable mR4;
     private Runnable mR5;
+    private long mLastFlip;
+    private int mKeepGroup = -1;
+    // GS-78：renderDetail 只在首次进入设一次初始焦点；点集重入不再把焦点抢到播放框。
+    private boolean mDetailFocusSet;
+    private int mFlagSwitchPosition = -1;
     private History mHistory;
     private boolean fullscreen;
     private boolean useParse;
@@ -241,10 +246,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         return VodConfig.get().getSite(getKey());
     }
 
-    private Episode getEpisode() {
-        return mEpisodeAdapter.getActivated();
-    }
-
     private int getScale() {
         return mHistory != null && mHistory.getScale() != -1 ? mHistory.getScale() : PlayerSetting.getScale();
     }
@@ -303,7 +304,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mVideoBg = mBinding.video.getBackground();
         mClock = Clock.create(mBinding.widget.clock);
         mKeyDown = CustomKeyDownVod.create(this);
-        // 第 35 轮定案 B：curveMode/setCurveMode 已删，无需再读 debug_seek_curve。
+        // B：curveMode/setCurveMode 已删，无需再读 debug_seek_curve。
         if (com.fongmi.android.tv.BuildConfig.DEBUG) {
             androidx.core.content.ContextCompat.registerReceiver(this, mBackdropVariantReceiver, new android.content.IntentFilter("com.qbox.app.DEBUG_BACKDROP"), androidx.core.content.ContextCompat.RECEIVER_EXPORTED);
             applyBackdropVariant(com.github.catvod.utils.Prefers.getInt("debug_backdrop_variant", BACKDROP_VARIANT_DEFAULT));
@@ -358,39 +359,40 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.control.action.statsButton.setOnClickListener(view -> onStats());
         mBinding.stats.getRoot().setOnClickListener(view -> onStats());
         mBinding.video.setOnTouchListener((view, event) -> mKeyDown.onTouchEvent(event));
+        // 换源：光标停在某个源上「停稳」才切，快速左右扫过不切，避免跟光标抢（用户 2026-11-13 反馈）。
         mBinding.flag.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
             @Override
             public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
-                if (mFlagAdapter.getItemCount() > 0) onItemClick(mFlagAdapter.get(position));
-            }
-        });
-        mBinding.episode.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
-            @Override
-            public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
-                if (child != null && mBinding.video != mFocus1) mFocus1 = child.itemView;
-            }
-        });
-        mBinding.array.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
-            @Override
-            public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
-                if (mEpisodeAdapter.getItemCount() > 20 && position > 1) mBinding.episode.setSelectedPosition((position - 2) * 20);
+                scheduleFlagSwitch(position);
             }
         });
     }
+
+    /** 焦点在源的胶囊上停 600ms 才真正换源；期间再移动就取消，人的控制权优先。 */
+    private void scheduleFlagSwitch(int position) {
+        App.removeCallbacks(mFlagSwitch);
+        mFlagSwitchPosition = position;
+        App.post(mFlagSwitch, 600);
+    }
+
+    private final Runnable mFlagSwitch = () -> {
+        if (mFlagAdapter == null || mFlagSwitchPosition < 0 || mFlagSwitchPosition >= mFlagAdapter.getItemCount()) return;
+        if (mBinding.flag.hasFocus() || mBinding.flag.getSelectedPosition() == mFlagSwitchPosition) {
+            onItemClick(mFlagAdapter.get(mFlagSwitchPosition));
+        }
+    };
 
     private void setRecyclerView() {
         mBinding.flag.setHorizontalSpacing(ResUtil.dp2px(12));
         mBinding.flag.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
         mBinding.flag.setAdapter(mFlagAdapter = new FlagAdapter(this));
-        mBinding.episode.setHorizontalSpacing(ResUtil.dp2px(12));
-        mBinding.episode.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+        mBinding.episodeGroup.setHorizontalSpacing(ResUtil.dp2px(12));
+        mBinding.episodeGroup.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+        mBinding.episodeGroup.setAdapter(mEpisodeGroupAdapter = new EpisodeGroupAdapter(this));
         mBinding.episode.setAdapter(mEpisodeAdapter = new EpisodeAdapter(this));
         mBinding.quality.setHorizontalSpacing(ResUtil.dp2px(12));
         mBinding.quality.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
         mBinding.quality.setAdapter(mQualityAdapter = new QualityAdapter(this));
-        mBinding.array.setHorizontalSpacing(ResUtil.dp2px(12));
-        mBinding.array.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-        mBinding.array.setAdapter(mArrayAdapter = new ArrayAdapter(this));
         mBinding.part.setHorizontalSpacing(ResUtil.dp2px(12));
         mBinding.part.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
         mBinding.part.setAdapter(mPartAdapter = new PartAdapter(item -> mVod.search(item)));
@@ -415,7 +417,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         PlayerEngineDialog.setText(mBinding.control.action.player);
         // QBox: 不提供弹幕入口。
         mBinding.control.action.danmaku.setVisibility(View.GONE);
-        // 进度条拖动选中态（第 37 轮 P0-3 重做）：只用颜色表达——已播放段与圆球变标记色（qbox_accent），
+        // 进度条拖动选中态：只用颜色表达——已播放段与圆球变标记色（qbox_accent），
         // 圆球保持原尺寸；禁缩放整个控件（会把文字/圆球拉变形）、禁白边框（P0 用户打回）。
         mBinding.control.seekBox.setOnFocusChangeListener((v, hasFocus) -> {
             if (mBinding.control.seek.getTimeBar() instanceof androidx.media3.ui.DefaultTimeBar bar) {
@@ -543,25 +545,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     @Override
-    public void requestDetail(String key, String id) {
-        mViewModel.detailContent(key, id);
-    }
-
-    @Override
-    public void requestPlayer(VodPlayRequest request) {
-        mViewModel.playerContent(request);
+    public void onPlaybackRequested() {
         showProgress();
-    }
-
-    @Override
-    public void requestPreload(VodPlayRequest request) {
-        mViewModel.preloadContent(request);
-    }
-
-    @Override
-    public void requestSearch(List<Site> sites, String keyword) {
-        mQuickAdapter.clear();
-        mViewModel.searchContent(sites, keyword, true);
     }
 
     @Override
@@ -619,7 +604,12 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mHistory = history;
         mBinding.progressLayout.showContent();
         mBinding.name.setText(item.getName());
-        mBinding.video.requestFocus();
+        // GS-78：只在首次进入设一次初始焦点（GS-15）。点集/换源重入 renderDetail 时不再抢焦点，
+        // 否则每次切集焦点都被拉回播放框（GS-19：自动逻辑不得改变用户当前焦点）。
+        if (!mDetailFocusSet) {
+            mDetailFocusSet = true;
+            mBinding.video.requestFocus();
+        }
         App.removeCallbacks(mR4);
         setArtwork(item.getPic());
         checkKeepImg();
@@ -656,6 +646,12 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     public void renderFlags(List<Flag> items) {
         mBinding.flag.setVisibility(items.isEmpty() ? View.GONE : View.VISIBLE);
         mFlagAdapter.addAll(items);
+        if (com.fongmi.android.tv.BuildConfig.DEBUG) {
+            Site site = getSite();
+            StringBuilder sb = new StringBuilder();
+            for (Flag item : items) sb.append("[").append(item.getFlag()).append("] ");
+            android.util.Log.d("QBoxFlags", "site=" + (site == null ? "?" : site.getName()) + " count=" + items.size() + " " + sb);
+        }
     }
 
     @Override
@@ -673,14 +669,22 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     @Override
     public void renderEpisodeSelection(Episode item) {
-        notifyItemChanged(mBinding.episode, mEpisodeAdapter);
-        mBinding.episode.setSelectedPosition(mEpisodeAdapter.getPosition());
+        // GS-78：不用 notifyDataSetChanged（会重建 ViewHolder 丢焦点，被系统就近挑到 video 播放框）。
+        // 只就地刷新可见格的 activated 态，焦点自然保持在原地，方便用户连续切换集。
+        for (int i = 0; i < mBinding.episode.getChildCount(); i++) {
+            View cell = mBinding.episode.getChildAt(i);
+            int pos = mBinding.episode.getChildAdapterPosition(cell);
+            if (pos != RecyclerView.NO_POSITION) cell.setActivated(mEpisodeAdapter.isSelectedAt(pos));
+        }
+        showEpisodePage(mEpisodeAdapter.getPosition());
+        // GS-79：setPage 的 notifyDataSetChanged 因 EpisodeAdapter 稳定 id 让焦点格被 scrap 复用、
+        // 不被 dispatchLayoutStep3 清除，框架不发生 rootViewRequestFocus，焦点自然保持原地。
     }
 
     @Override
     public void renderReverseEpisodes(List<Episode> items, boolean scroll) {
         setEpisodeAdapter(items);
-        if (scroll) mBinding.episode.setSelectedPosition(mEpisodeAdapter.getPosition());
+        if (scroll) showEpisodePage(mEpisodeAdapter.getPosition());
     }
 
     @Override
@@ -751,6 +755,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     @Override
     public void onSearchStarted(String keyword) {
         mBinding.part.setTag(keyword);
+        mQuickAdapter.clear();
     }
 
     @Override
@@ -871,7 +876,24 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     @Override
     public void onItemClick(Flag item) {
+        // 换源会重建线路/分组/选集三块数据，notifyDataSetChanged 会把焦点整个丢掉——
+        // 丢掉的焦点会被系统重新就近挑一个，于是「一移过去就被切到下一个」，跟光标抢。
+        // 这里在重建后把焦点还给用户原来所在的行（GS-72②）。
+        View before = getCurrentFocus();
+        boolean inFlag = before != null && isInside(mBinding.flag, before);
+        boolean inGroup = before != null && isInside(mBinding.episodeGroup, before);
+        boolean inEpisode = before != null && isInside(mBinding.episode, before);
         mVod.selectFlag(item);
+        if (!inFlag && !inGroup && !inEpisode) return;
+        App.post(() -> {
+            // notifyDataSetChanged 之后旧 View 会先保持住焦点、再被回收，所以这里要二次确认：
+            // 只要焦点不在原来那三行里（说明被丢掉了），就把焦点还给原来的行。
+            View now = getCurrentFocus();
+            if (now != null && (isInside(mBinding.flag, now) || isInside(mBinding.episodeGroup, now) || isInside(mBinding.episode, now))) return;
+            if (inFlag) focusGrid(mBinding.flag);
+            else if (inGroup) focusGrid(mBinding.episodeGroup);
+            else focusEpisodeGrid();
+        });
     }
 
     private void setEpisodeAdapter(List<Episode> items) {
@@ -879,20 +901,121 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mBinding.episode.setVisibility(items.isEmpty() ? View.GONE : View.VISIBLE);
         // 只有一集时不需要「选集」入口。
         mBinding.control.action.chapter.setVisibility(items.size() > 1 ? View.VISIBLE : View.GONE);
+        // 播放顺序始终跟随显示顺序（不再有单独的「正序播放/倒序播放」开关）。
+        if (mHistory != null && mHistory.isRevPlay()) mVod.setRevPlay(false);
         mEpisodeAdapter.addAll(items);
-        setArrayAdapter(items.size());
+        // 分组条：0 号是「正序/倒序」小标志，后面才是各组。
+        applyEpisodeLayoutManager();
+        setEpisodeGroups();
+        mEpisodeGroupAdapter.setDesc(mHistory != null && mHistory.isRevSort());
+        mBinding.episodeGroup.setVisibility(items.size() > 1 ? View.VISIBLE : View.GONE);
+        if (mKeepGroup >= 0) {
+            int group = Math.min(mKeepGroup, Math.max(0, mEpisodeGroupAdapter.getGroupCount() - 1));
+            mKeepGroup = -1;
+            showEpisodePage(group, 0, false);
+        } else {
+            showEpisodePage(mEpisodeAdapter.getPosition());
+        }
         setR2Callback();
+    }
+
+    /** 选集网格用纵向 GridLayoutManager：第一排从左往右填满，再换第二排（不是 Leanback 的按列填）。
+     *  列数随排版方案变化时只调 spanCount，不再重建 LayoutManager（重建会丢掉 RecyclerView 的焦点/滚动状态）。 */
+    private void applyEpisodeLayoutManager() {
+        int columns = Math.max(1, mEpisodeAdapter.getColumns());
+        androidx.recyclerview.widget.RecyclerView.LayoutManager current = mBinding.episode.getLayoutManager();
+        if (current instanceof androidx.recyclerview.widget.GridLayoutManager) {
+            ((androidx.recyclerview.widget.GridLayoutManager) current).setSpanCount(columns);
+            return;
+        }
+        androidx.recyclerview.widget.GridLayoutManager manager = new androidx.recyclerview.widget.GridLayoutManager(this, columns);
+        manager.setOrientation(androidx.recyclerview.widget.GridLayoutManager.VERTICAL);
+        mBinding.episode.setLayoutManager(manager);
+        mBinding.episode.setItemAnimator(null);
+    }
+
+    /** 选集分组：按排版方案实时计算，一组 = 一页（几列 × 几行）。 */
+    private void setEpisodeGroups() {
+        List<EpisodeGroupAdapter.Group> groups = new ArrayList<>();
+        EpisodeInfo.Plan plan = mEpisodeAdapter.getPlan();
+        if (plan != null) {
+            int count = mEpisodeAdapter.getTotalCount();
+            for (int start = 0; start < count; start += plan.groupSize) {
+                int end = Math.min(start + plan.groupSize, count);
+                int low = start + 1;
+                String label = low == end ? String.valueOf(end) : low + "-" + end;
+                groups.add(new EpisodeGroupAdapter.Group(label, start, end));
+            }
+        }
+        mEpisodeGroupAdapter.addAll(groups);
+    }
+
+    /** 当前集所在分组即当前页：切页时同步上方组标和选集网格。 */
+    private void showEpisodePage(int absolutePosition) {
+        if (mEpisodeGroupAdapter == null || mEpisodeGroupAdapter.getGroupCount() == 0) return;
+        int index = mEpisodeGroupAdapter.indexOf(absolutePosition);
+        if (index < 0) return;
+        EpisodeGroupAdapter.Group group = mEpisodeGroupAdapter.get(index);
+        mEpisodeGroupAdapter.setSelected(index);
+        mEpisodeAdapter.setPage(group.getStart(), group.getEnd());
+        int local = Math.max(0, Math.min(absolutePosition - group.getStart(), group.getEnd() - group.getStart() - 1));
+        focusEpisode(local, false);
+        if (isVisible(mBinding.episodeGroup)) mBinding.episodeGroup.setSelectedPosition(index + EpisodeGroupAdapter.OFFSET);
+    }
+
+    /** 按组切页并聚焦指定页内位置；翻页、点组标都走这里。 */
+    private void showEpisodePage(int groupIndex, int localPosition, boolean focus) {
+        if (mEpisodeGroupAdapter == null || groupIndex < 0 || groupIndex >= mEpisodeGroupAdapter.getGroupCount()) return;
+        EpisodeGroupAdapter.Group group = mEpisodeGroupAdapter.get(groupIndex);
+        mEpisodeGroupAdapter.setSelected(groupIndex);
+        int size = group.getEnd() - group.getStart();
+        int local = Math.max(0, Math.min(localPosition, size - 1));
+        // GS-79：换页会改变 itemCount。只有当前焦点格会被裁掉（local 超出新 itemCount）时，
+        // 才先把焦点移到目标格（目标 < size，必存活），避免焦点被 remove 后由框架
+        // rootViewRequestFocus 挑到 video；否则保持焦点不动，避免「中间落点」造成视觉跳动
+        // （不满页↔满页切换时 target 在旧页会被 clamp 成另一格，形成闪）。
+        if (focus) {
+            int current = getEpisodePosition(getCurrentFocus());
+            if (current >= size) focusEpisode(local, true);
+        }
+        mEpisodeAdapter.setPage(group.getStart(), group.getEnd());
+        if (isVisible(mBinding.episodeGroup)) mBinding.episodeGroup.setSelectedPosition(groupIndex + EpisodeGroupAdapter.OFFSET);
+        if (focus) focusEpisode(local, true);
+        else focusEpisode(local, false);
+    }
+
+    @Override
+    public void onGroupClick(EpisodeGroupAdapter.Group item) {
+        if (mEpisodeGroupAdapter == null || mEpisodeAdapter.getTotalCount() == 0) return;
+        int index = mEpisodeGroupAdapter.indexOf(item.getStart());
+        if (index < 0) return;
+        showEpisodePage(index, 0, true);
+    }
+
+    @Override
+    public void onSortClick() {
+        onRevSort();
     }
 
     /** 主按钮「播放」：直接播第一个可播剧集；没有剧集时先选中第一条线路。 */
     private void onPrimaryPlay() {
-        if (mEpisodeItems != null && !mEpisodeItems.isEmpty()) onItemClick(mEpisodeItems.get(0));
-        else if (mFlagAdapter != null && mFlagAdapter.getItemCount() > 0) onItemClick(mFlagAdapter.get(0));
+        if (mEpisodeItems != null && !mEpisodeItems.isEmpty()) {
+            // 播放按钮：当前集已在播，直接进全屏；否则播第一集（原语义保留）。
+            Episode first = mEpisodeItems.get(0);
+            if (!isFullscreen() && first.isSelected()) enterFullscreen();
+            else onItemClick(first);
+        } else if (mFlagAdapter != null && mFlagAdapter.getItemCount() > 0) onItemClick(mFlagAdapter.get(0));
     }
 
     @Override
     public void onItemClick(Episode item) {
-        if (shouldEnterFullscreen(item)) return;
+        // GS-78/79：选集格只切集，焦点保持原地方便连续切换；不抢焦点、不自动进全屏。
+        // 焦点保持由 EpisodeAdapter 稳定 id（GS-79）从机制上保证，无需守卫/状态位。
+        // 但若点击的集就是当前正在播放的集，则进入全屏（恢复原交互语义）。
+        if (item.isSelected() && !isFullscreen()) {
+            enterFullscreen();
+            return;
+        }
         mVod.selectEpisode(item);
     }
 
@@ -906,55 +1029,43 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mVod.selectQuality(result);
     }
 
-    private void setArrayAdapter(int size) {
-        List<String> items = new ArrayList<>();
-        items.add(getString(R.string.play_reverse));
-        items.add(getString(mHistory.getRevPlayText()));
-        mBinding.array.setVisibility(size > 1 ? View.VISIBLE : View.GONE);
-        if (mHistory.isRevSort()) for (int i = size; i > 0; i -= 20) items.add(i + "-" + Math.max(i - 19, 1));
-        else for (int i = 0; i < size; i += 20) items.add((i + 1) + "-" + Math.min(i + 20, size));
-        mArrayAdapter.addAll(items);
-    }
-
     private int findFocusDown(int index) {
-        List<Integer> orders = Arrays.asList(R.id.flag, R.id.quality, R.id.episode, R.id.array, R.id.part, R.id.quick);
+        List<Integer> orders = Arrays.asList(R.id.flag, R.id.quality, R.id.episode_group, R.id.episode, R.id.part, R.id.quick);
         for (int i = 0; i < orders.size(); i++) if (i > index) if (isVisible(findViewById(orders.get(i)))) return orders.get(i);
         return 0;
     }
 
     private int findFocusUp(int index) {
-        List<Integer> orders = Arrays.asList(R.id.flag, R.id.quality, R.id.episode, R.id.array, R.id.part, R.id.quick);
+        List<Integer> orders = Arrays.asList(R.id.flag, R.id.quality, R.id.episode_group, R.id.episode, R.id.part, R.id.quick);
         for (int i = orders.size() - 1; i >= 0; i--) if (i < index) if (isVisible(findViewById(orders.get(i)))) return orders.get(i);
         return 0;
     }
 
     private void updateFocus() {
         mPartAdapter.setNextFocusUp(findFocusUp(4));
-        mEpisodeAdapter.setNextFocusUp(findFocusUp(2));
+        mEpisodeAdapter.setNextFocusUp(findFocusUp(3));
+        mEpisodeAdapter.setNextFocusDown(findFocusDown(3));
+        mEpisodeGroupAdapter.setNextFocusUp(findFocusUp(2));
+        mEpisodeGroupAdapter.setNextFocusDown(findFocusDown(2));
+        mQualityAdapter.setNextFocusDown(findFocusDown(1));
         mFlagAdapter.setNextFocusDown(findFocusDown(0));
-        mEpisodeAdapter.setNextFocusDown(findFocusDown(2));
+        notifyItemChanged(mBinding.episodeGroup, mEpisodeGroupAdapter);
+        notifyItemChanged(mBinding.quality, mQualityAdapter);
         notifyItemChanged(mBinding.episode, mEpisodeAdapter);
         notifyItemChanged(mBinding.part, mPartAdapter);
         notifyItemChanged(mBinding.flag, mFlagAdapter);
     }
 
-    @Override
+    /** 排序标志（分组条最前面的小按钮）：切换正序 / 倒序排列，播放顺序始终跟随显示顺序。 */
     public void onRevSort() {
-        mVod.setRevSort(!mHistory.isRevSort());
-        mVod.reverseEpisode(false);
-    }
-
-    @Override
-    public void onRevPlay(TextView view) {
-        mVod.setRevPlay(!mHistory.isRevPlay());
-        view.setText(mHistory.getRevPlayText());
-        Notify.show(mHistory.getRevPlayHint());
-    }
-
-    private boolean shouldEnterFullscreen(Episode item) {
-        boolean enter = !isFullscreen() && item.isSelected();
-        if (enter) enterFullscreen();
-        return enter;
+        int group = mEpisodeGroupAdapter == null ? 0 : mEpisodeGroupAdapter.getSelected();
+        boolean desc = mHistory == null || !mHistory.isRevSort();
+        mVod.setRevSort(desc);
+        mKeepGroup = group;
+        mVod.sortEpisodes(desc);
+        mEpisodeGroupAdapter.setDesc(desc);
+        // 排序后保持焦点在「正序/倒序」小标志上，不跳到组标或选集。
+        mBinding.episodeGroup.setSelectedPosition(0, holder -> holder.itemView.requestFocus());
     }
 
     private void enterFullscreen() {
@@ -1008,7 +1119,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         Setting.putRepeatOne(player().isRepeatOne());
         mBinding.control.action.repeat.setSelected(player().isRepeatOne());
         // 循环是开关型按钮，之前没有任何文案反馈，用户不知道按了发生什么。
-        Notify.show(getString(R.string.play_repeat) + (player().isRepeatOne() ? "：开" : "：关"));
+        Notify.show(getString(R.string.play_repeat) + getString(player().isRepeatOne() ? R.string.play_repeat_on : R.string.play_repeat_off));
     }
 
     @Override
@@ -1026,18 +1137,6 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     private void checkPrev() {
         mVod.prevEpisode(true);
-    }
-
-    private void onNext(boolean notify) {
-        Episode item = mEpisodeAdapter.getNext();
-        if (!item.isSelected()) onItemClick(item);
-        else if (notify) Notify.show(mHistory.isRevPlay() ? R.string.error_play_prev : R.string.error_play_next);
-    }
-
-    private void onPrev(boolean notify) {
-        Episode item = mEpisodeAdapter.getPrev();
-        if (!item.isSelected()) onItemClick(item);
-        else if (notify) Notify.show(mHistory.isRevPlay() ? R.string.error_play_next : R.string.error_play_prev);
     }
 
     private void onScale() {
@@ -1059,7 +1158,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         player().setSpeed(next);
         SpeedSetting.putPlayback(next);
         updateSpeedButton();
-        Notify.show("倍速 " + SpeedSetting.formatValue(next) + "x");
+        Notify.show(getString(R.string.play_speed_toast, SpeedSetting.formatValue(next)));
     }
 
     private void updateSpeedButton() {
@@ -1160,7 +1259,14 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void onChapter() {
-        ChapterDialog.create().player(player()).show(this);
+        // 用户拍板（2026-11-14）：播放中的「章节」入口必须是选集——媒体章节（player chapters）基本为空，
+        // 点了什么都不出现，这就是「全屏里无法选集」的死路。有多集时退回详情页并聚焦当前集所在格。
+        if (mEpisodeAdapter != null && mEpisodeAdapter.getTotalCount() > 1) {
+            if (isFullscreen()) exitFullscreen();
+            App.post(() -> focusEpisodeGrid(), 250);
+        } else {
+            ChapterDialog.create().player(player()).show(this);
+        }
         hideControl();
     }
 
@@ -1175,35 +1281,13 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private void showProgress() {
-        // 第 38 轮：补上转圈——include 进来的 view_progress 的立方体从没被喂过图
-        // （WebP 解码发生在 ProgressLayout 自己的 mProgressBinding 上，这份 include 是另一实例），
-        // 所以此前只剩 KB/s。转圈与速度文字垂直叠放（view_progress 布局原位），互不挤压。
-        if (!mCubeLoaded) {
-            mCubeLoaded = true;
-            try {
-                if (android.os.Build.VERSION.SDK_INT >= 28) {
-                    android.graphics.ImageDecoder.Source src = android.graphics.ImageDecoder.createSource(getResources(), com.fongmi.android.tv.R.raw.qbox_loading);
-                    android.graphics.drawable.Drawable d = android.graphics.ImageDecoder.decodeDrawable(src, (decoder, info, source) -> {
-                        int p = (int) (112 * getResources().getDisplayMetrics().density);
-                        decoder.setTargetSize(p, p);
-                    });
-                    mBinding.progress.loadingCube.setImageDrawable(d);
-                    if (d instanceof android.graphics.drawable.AnimatedImageDrawable) ((android.graphics.drawable.AnimatedImageDrawable) d).start();
-                } else {
-                    mBinding.progress.loadingCube.setImageResource(com.fongmi.android.tv.R.drawable.ic_logo);
-                }
-            } catch (Throwable ignored) {
-                mBinding.progress.loadingCube.setImageResource(com.fongmi.android.tv.R.drawable.ic_logo);
-            }
-        }
+        // 加载态 = 简易转圈（view_progress.loading_cube 为 CircularProgressIndicator）+ 实时网速（mR3/setTraffic）。
+        // 详情页点播放（requestPlayer）与 buffering/快进（onSeeking）共用此入口。
         mBinding.progress.getRoot().setVisibility(View.VISIBLE);
         App.post(mR3, 0);
         hideCenter();
         hideError();
     }
-
-    /** 播放器转圈 WebP 是否已解码（惰性一次）。 */
-    private boolean mCubeLoaded;
 
     private void hideProgress() {
         mBinding.progress.getRoot().setVisibility(View.GONE);
@@ -1282,7 +1366,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         final int seq = ++mControlAnimSeq;
         root.animate().cancel();
         action.animate().cancel();
-        // 分段渐隐（第 24 轮）：先收下面按钮列，再整体（标题 + 进度条）渐隐，不一次性整块消失。
+        // 分段渐隐：先收下面按钮列，再整体（标题 + 进度条）渐隐，不一次性整块消失。
         // 结束回调带代次守卫：渐隐途中重新展开时旧回调不得把面板 GONE 掉（cancel 也会触发 withEndAction）。
         if (action.getVisibility() == View.VISIBLE) action.animate().alpha(0f).setDuration(150).start();
         root.animate().alpha(0f).setStartDelay(action.getVisibility() == View.VISIBLE ? 120 : 0).setDuration(180).withEndAction(() -> {
@@ -1307,6 +1391,16 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private void hideCenter() {
         mBinding.widget.action.setImageResource(R.drawable.ic_widget_play);
         hideInfo();
+    }
+
+    /** 暂停中央标志：只保留暂停图标；进度条本身已显示时间，不再重复时间和背景。 */
+    private void showPausedCenter() {
+        if (mBinding == null) return;
+        try {
+            mBinding.widget.action.setImageResource(R.drawable.ic_widget_pause);
+            mBinding.widget.center.setVisibility(View.VISIBLE);
+        } catch (Throwable ignored) {
+        }
     }
 
     private void setTraffic() {
@@ -1473,9 +1567,9 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         setBackdrop(mHistory.getVodPic());
     }
 
-    /** 详情页氛围底图：源海报中心 16:9 横带，保持 480×270 小尺寸解码（第 27 轮方向：不提清晰度，
+    /** 详情页氛围底图：源海报中心 16:9 横带，保持 480×270 小尺寸解码（方向：不提清晰度，
      *  用 BackdropBlur 多级降采样+模糊+抖动把放大颗粒抹平，只要色调/明暗氛围）。
-     *  第 25 轮：fitCenter 完整海报叠加层被用户判为「牛皮癣」，已整体移除，回到纯模糊铺满。 */
+     *  fitCenter 完整海报叠加层被用户判为「牛皮癣」，已整体移除，回到纯模糊铺满。 */
     private void setBackdrop(String url) {
         try {
             if (TextUtils.isEmpty(url)) return;
@@ -1603,6 +1697,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
                 hideProgress();
                 player().reset();
                 mClock.setCallback(this);
+                // seek/buffering 期间暂停中央标志被 showProgress 收起，READY 后若仍暂停恢复它。
+                if (isPaused() && !isEnded()) showPausedCenter();
                 break;
             case Player.STATE_ENDED:
                 hideProgress();
@@ -1620,11 +1716,13 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
             mBinding.poster.setVisibility(View.GONE);
             hideCenter();
         } else if (isPaused()) {
-            // 第 41 轮：暂停顶部去标题留时钟——标题/时间底部精简态已有（第 40 轮去冗余），
+            // 暂停顶部去标题留时钟——标题/时间底部精简态已有，
             // 但右上角时钟用户明确要留：top 只亮时钟，标题/分辨率保持 GONE。
             mBinding.widget.title.setVisibility(View.GONE);
             mBinding.widget.size.setVisibility(View.GONE);
             mBinding.widget.top.setVisibility(View.VISIBLE);
+            // 暂停中央标志（用户拍板）：屏幕中央显示暂停图标 + 当前/总时长，用户一眼知道已暂停。
+            showPausedCenter();
         }
     }
 
@@ -1752,46 +1850,163 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         return super.dispatchKeyEvent(event);
     }
 
-    /** 详情页纵向焦点闭环：播放器/动作行 → 线路 → 选集 → 倒序/线路分页 → 快捷行，反向逐级回退。 */
+    /** 详情页纵向焦点闭环：播放器/动作行 → 线路 → 分组（含排序标志）→ 选集 → 线路分页 → 快捷行，反向逐级回退。 */
     private boolean routeDetailFocus(KeyEvent event) {
         View focus = getCurrentFocus();
         if (focus == null) return false;
         boolean down = event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN;
         boolean up = event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP;
+        boolean left = event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT;
+        boolean right = event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT;
+        if (left || right) return isInside(mBinding.episode, focus) && routeEpisodePage(right);
         if (!down && !up) return false;
         if (down) {
             if (isInside(mBinding.video, focus) || isInside(mBinding.row2, focus))
-                return focusRow(mBinding.flag) || focusRow(mBinding.quality) || focusRow(mBinding.episode) || focusRow(mBinding.array);
+                return focusGrid(mBinding.flag) || focusGrid(mBinding.quality) || focusGrid(mBinding.episodeGroup) || focusEpisodeGrid() || focusGrid(mBinding.part);
             if (isInside(mBinding.flag, focus) || isInside(mBinding.quality, focus))
-                return focusRow(mBinding.episode) || focusRow(mBinding.array) || focusRow(mBinding.part);
-            if (isInside(mBinding.episode, focus))
-                return focusRow(mBinding.array) || focusRow(mBinding.part) || focusRow(mBinding.quick);
-            if (isInside(mBinding.array, focus))
-                return focusRow(mBinding.part) || focusRow(mBinding.quick);
-            if (isInside(mBinding.part, focus)) return focusRow(mBinding.quick);
+                return focusGrid(mBinding.episodeGroup) || focusEpisodeGrid() || focusGrid(mBinding.part);
+            if (isInside(mBinding.episodeGroup, focus))
+                return focusEpisodeGrid() || focusGrid(mBinding.part) || focusGrid(mBinding.quick);
+            if (isInside(mBinding.episode, focus)) {
+                int local = getEpisodePosition(focus);
+                int columns = Math.max(1, mEpisodeAdapter.getColumns());
+                if (local >= 0 && local + columns < mEpisodeAdapter.getPageSize()) {
+                    focusEpisode(local + columns, true);
+                    return true;
+                }
+                return focusGrid(mBinding.part) || focusGrid(mBinding.quick);
+            }
+            if (isInside(mBinding.part, focus)) return focusGrid(mBinding.quick);
             return false;
         }
-        if (isInside(mBinding.episode, focus)) return focusRow(mBinding.flag) || focusRow(mBinding.quality) || mBinding.video.requestFocus();
+        if (isInside(mBinding.episode, focus)) {
+            int local = getEpisodePosition(focus);
+            int columns = Math.max(1, mEpisodeAdapter.getColumns());
+            if (local - columns >= 0) {
+                focusEpisode(local - columns, true);
+                return true;
+            }
+            return focusGrid(mBinding.episodeGroup) || focusGrid(mBinding.quality) || focusGrid(mBinding.flag) || mBinding.video.requestFocus();
+        }
+        if (isInside(mBinding.episodeGroup, focus))
+            return focusGrid(mBinding.quality) || focusGrid(mBinding.flag) || mBinding.video.requestFocus();
         if (isInside(mBinding.flag, focus) || isInside(mBinding.quality, focus)) return mBinding.video.requestFocus();
         if (isInside(mBinding.row2, focus) || isInside(mBinding.video, focus)) return mBinding.video.requestFocus();
-        if (isInside(mBinding.array, focus)) return focusRow(mBinding.episode) || focusRow(mBinding.flag) || mBinding.video.requestFocus();
-        if (isInside(mBinding.part, focus)) return focusRow(mBinding.array) || focusRow(mBinding.episode);
-        if (isInside(mBinding.quick, focus)) return focusRow(mBinding.part) || focusRow(mBinding.array);
+        if (isInside(mBinding.part, focus)) return focusEpisodeGrid() || focusGrid(mBinding.episodeGroup) || focusGrid(mBinding.flag) || mBinding.video.requestFocus();
+        if (isInside(mBinding.quick, focus)) return focusGrid(mBinding.part) || focusEpisodeGrid();
         return false;
     }
 
-    /** 聚焦到某个横向行里的第一个可聚焦 item（网格容器本身不可聚焦，不能直接 requestFocus）。 */
-    private boolean focusRow(ViewGroup row) {
-        if (row == null || row.getVisibility() != View.VISIBLE) return false;
-        for (int i = 0; i < row.getChildCount(); i++) {
-            View child = row.getChildAt(i);
-            if (child.getVisibility() == View.VISIBLE && child.isFocusable() && child.requestFocus()) return true;
+    /** 选集格子在当前页内的位置（逻辑序号：第一排从左到右）。 */
+    private int getEpisodePosition(View focus) {
+        if (focus == null) return -1;
+        int position = mBinding.episode.getChildAdapterPosition(focus);
+        if (position < 0) {
+            RecyclerView.ViewHolder holder = mBinding.episode.findContainingViewHolder(focus);
+            if (holder != null) position = holder.getBindingAdapterPosition();
         }
-        return false;
+        return position;
+    }
+
+    /** 从别的行进入选集网格：落在当前集；当前集不在本页时先切到它所在的页再聚焦（GS-72：焦点不落错格）。 */
+    private boolean focusEpisodeGrid() {
+        if (mEpisodeAdapter == null || mEpisodeAdapter.getPageSize() <= 0) {
+            logFocus("focusEpisodeGrid SKIP adapter=" + (mEpisodeAdapter == null ? "null" : "pageSize=" + mEpisodeAdapter.getPageSize()) + " episodeVis=" + (mBinding.episode.getVisibility() == View.VISIBLE));
+            return false;
+        }
+        int local = mEpisodeAdapter.getLocalPosition();
+        if (local < 0) {
+            showEpisodePage(mEpisodeAdapter.getPosition());
+            local = mEpisodeAdapter.getLocalPosition();
+        }
+        return focusEpisode(Math.max(0, local), true);
+    }
+
+    /** 页内第 local 个选集（逻辑序号：第一排从左到右，满了接第二排）；focus=true 时把焦点落上去。
+     *  先 scrollToPosition 保证目标格被布局出来（页面高度不够时 findViewHolder 会拿不到）。 */
+    private boolean focusEpisode(int local, boolean focus) {
+        if (mEpisodeAdapter == null || mEpisodeAdapter.getPageSize() <= 0) return false;
+        int target = Math.max(0, Math.min(local, mEpisodeAdapter.getPageSize() - 1));
+        if (!focus) return true;
+        mBinding.episode.scrollToPosition(target);
+        RecyclerView.ViewHolder holder = mBinding.episode.findViewHolderForAdapterPosition(target);
+        if (holder != null && holder.itemView.requestFocus()) return true;
+        logFocus("focusEpisode retry target=" + target + " holder=" + (holder == null ? "null" : "ok") + " vis=" + (mBinding.episode.getVisibility() == View.VISIBLE));
+        // 落点必须在「布局完成之后」再交给目标格：setPage 的 notifyDataSetChanged 会让目标格
+        // 尚未创建，post/postOnAnimation 都早于本次 layout（Choreographer 的 ANIMATION 相位在
+        // TRAVERSAL 之前），findViewHolderForAdapterPosition 仍返回 null，requestFocus 静默失败，
+        // 光标会停在旧页被 scrap 复用的格子上。OneShotPreDrawListener 在 layout 后、draw 前触发。
+        androidx.core.view.OneShotPreDrawListener.add(mBinding.episode, () -> {
+            RecyclerView.ViewHolder item = mBinding.episode.findViewHolderForAdapterPosition(target);
+            if (item != null) item.itemView.requestFocus();
+            logFocus("focusEpisode preDrawRetry target=" + target + " holder=" + (item == null ? "null" : "ok") + " focused=" + (getCurrentFocus() != null));
+        });
+        return true;
+    }
+
+    private static void logFocus(String msg) {
+        if (com.fongmi.android.tv.BuildConfig.DEBUG) android.util.Log.d("QBoxFocus", msg);
     }
 
     /**
-     * 控制栏焦点闭环：左右到行尾不丢焦点；上键进入进度条（第 37 轮恢复并升级为可拖动选中态），下键回到动作行。
+     * 选集左右移动/翻页：页内同一排左右移动；本页最右再按右 → 下一组同一排第一集；
+     * 本页最左再按左 → 上一组同一排最后一集。组标亮度同步。
+     */
+    private boolean routeEpisodePage(boolean forward) {
+        if (mEpisodeGroupAdapter == null || mEpisodeGroupAdapter.getGroupCount() == 0) return false;
+        View focus = getCurrentFocus();
+        int local = getEpisodePosition(focus);
+        if (local < 0) return false;
+        int columns = Math.max(1, mEpisodeAdapter.getColumns());
+        int row = local / columns;
+        int col = local % columns;
+        int pageSize = mEpisodeAdapter.getPageSize();
+        int groupIndex = mEpisodeGroupAdapter.getSelected();
+        // GS-78「立体运动」：左右只在「本行」内走（col 推进），上下换行交给 routeDetailFocus；
+        // 走到本行最右/最左（或页末/页首）即在分组边缘翻到相邻分组「同排」临近位置。
+        // 旧实现用 local±1 页内线性推进，把「第一行最右 →」错跳到第二行第一，而不是翻页。
+        if (forward) {
+            if (col < columns - 1 && local + 1 < pageSize) {
+                focusEpisode(local + 1, true);
+                return true;
+            }
+            long now = android.os.SystemClock.uptimeMillis();
+            if (now - mLastFlip < 350) return true;
+            int next = groupIndex + 1;
+            if (next >= mEpisodeGroupAdapter.getGroupCount()) return true;
+            int size = mEpisodeAdapter.getGroupSize(next);
+            // 下一组「同行第一集」；若下一组没有该行（不满页），退化到组开头（相邻），见 EpisodeInfo.forwardLanding。
+            showEpisodePage(next, com.fongmi.android.tv.utils.EpisodeInfo.forwardLanding(row, columns, size), true);
+            mLastFlip = now;
+        } else {
+            if (col > 0) {
+                focusEpisode(local - 1, true);
+                return true;
+            }
+            long now = android.os.SystemClock.uptimeMillis();
+            if (now - mLastFlip < 350) return true;
+            int prev = groupIndex - 1;
+            if (prev < 0) return true;
+            int size = mEpisodeAdapter.getGroupSize(prev);
+            showEpisodePage(prev, com.fongmi.android.tv.utils.EpisodeInfo.backwardLanding(row, columns, size), true);
+            mLastFlip = now;
+        }
+        return true;
+    }
+
+
+    /** 聚焦到某个横向行里的当前选中 item（网格容器本身不可聚焦，不能直接 requestFocus）。 */
+    private boolean focusGrid(HorizontalGridView grid) {
+        if (grid == null || grid.getVisibility() != View.VISIBLE) return false;
+        int position = Math.max(0, grid.getSelectedPosition());
+        RecyclerView.ViewHolder holder = grid.findViewHolderForAdapterPosition(position);
+        if (holder != null && holder.itemView.requestFocus()) return true;
+        grid.setSelectedPosition(position, h -> h.itemView.requestFocus());
+        return true;
+    }
+
+    /**
+     * 控制栏焦点闭环：左右到行尾不丢焦点；上键进入进度条，下键回到动作行。
      * CustomUpDownView（倍速/字幕/片头片尾）自己要吃上下键调值，这里直接放行。
      */
     private boolean onControlKey(KeyEvent event) {
@@ -1805,14 +2020,14 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
             case KeyEvent.KEYCODE_DPAD_RIGHT: {
                 boolean forward = event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT;
                 View target = findFocusable(mBinding.control.action.main, focus, forward);
-                // 第 43 轮：行内巡回——最左再按左跳到最右，最右再按右回到最左（仅限本动作行，其它行边界行为不动）。
+                // 行内巡回——最左再按左跳到最右，最右再按右回到最左（仅限本动作行，其它行边界行为不动）。
                 if (target == null) target = findEdgeFocusable(mBinding.control.action.main, forward);
                 if (target != null) target.requestFocus();
                 return true;
             }
             case KeyEvent.KEYCODE_DPAD_UP:
                 // 可调值类（倍速/片头/片尾，CustomUpDownView）：↑ 放行给控件就地调档（其 dispatch 消费，不串键）。
-                // 其余按钮：↑ 进进度条拖动选中态（第 37 轮：从功能列表按上聚焦到进度条）。
+                // 其余按钮：↑ 进进度条拖动选中态。
                 if (focus instanceof CustomUpDownView) return false;
                 enterScrubFocus(focus);
                 return true;
@@ -1824,7 +2039,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         }
     }
 
-    /** 控制条「上」进进度条（第 37 轮）：记住来处按钮，进入拖动选中态（变色 + 圆球放大由 focus 监听统一施加）。 */
+    /** 控制条「上」进进度条：记住来处按钮，进入拖动选中态（变色 + 圆球放大由 focus 监听统一施加）。 */
     private void enterScrubFocus(View from) {
         mScrubReturn = from;
         seekFocus = true;
@@ -1841,7 +2056,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mScrubReturn = null;
     }
 
-    /** 进度条聚焦后的按键（第 37 轮重做）：
+    /** 进度条聚焦后的按键：
         按住左右 = 与全局快进同一条阻尼曲线（CustomKeyDownVod 拖动模式，逐 tick 落位、progress 实时跟随）；
         单点（DOWN→UP 无 repeat）= 固定百分比步长：±1% 片长，钳 5-30s（依据见 uiux-review-log 36/37 业内对照与选型）；
         ↓/BACK 退出并回到进入前按钮；OK=播放/暂停；左右被消费不脱离进度条焦点。 */
@@ -1914,7 +2129,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         return null;
     }
 
-    /** 巡回端点（第 43 轮）：forward=true 取行内第一个可见可聚焦（最右再按右回最左），否则取最后一个（最左再按左跳最右）。 */
+    /** 巡回端点：forward=true 取行内第一个可见可聚焦（最右再按右回最左），否则取最后一个（最左再按左跳最右）。 */
     private static View findEdgeFocusable(ViewGroup row, boolean forward) {
         int count = row.getChildCount();
         for (int k = 0; k < count; k++) {
@@ -1925,11 +2140,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     private static boolean isInside(View ancestor, View view) {
-        while (view != null) {
-            if (view == ancestor) return true;
-            view = view.getParent() instanceof View ? (View) view.getParent() : null;
-        }
-        return false;
+        return com.fongmi.android.tv.utils.ViewUtil.isInside(ancestor, view);
     }
 
     @Override
@@ -1939,18 +2150,19 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
             seeking = true;
             seekBase = player().getPosition();
         }
-        // 第 32 轮：曲线 cap 片长挂钩（模式 B），每 tick 都注入（duration 就绪时序不定，只首 tick 注入实测会拿到 0）。
+        // 曲线 cap 片长挂钩（模式 B），每 tick 都注入（duration 就绪时序不定，只首 tick 注入实测会拿到 0）。
         mKeyDown.setDuration(Math.max(0, player().getDuration()));
         long duration = Math.max(0, player().getDuration());
         long target = Math.max(0, seekBase + time);
         if (duration > 0) target = Math.min(duration, target);
         controller().seekTo(target);
         mBinding.widget.center.setVisibility(View.GONE);
-        hideProgress();
+        // 快进/快退时显示转圈 + 实时网速（KB/s），让用户能判断是否已载入（fongmi 加载态同类）。
+        showProgress();
     }
 
     /** 左右快进时把控制条「借」出来显示进度，但不抢焦点，方向键继续走快进。
-     *  第 24 轮：seek 触发的是精简态——只留「名称/信息行 + 进度条」，整排按钮 GONE，不占屏幕。 */
+     *  seek 触发的是精简态——只留「名称/信息行 + 进度条」，整排按钮 GONE，不占屏幕。 */
     private void enterSeekMode() {
         if (isVisible(mBinding.control.getRoot())) return;
         seeking = true;
@@ -1967,7 +2179,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         setSubtitleLift(true);
     }
 
-    /** 名称行右侧的源质量胶囊（第 26 轮分组：视频一枚、音频一枚）：分辨率/视频编码/HDR｜音频编码/声道。
+    /** 名称行右侧的源质量胶囊：分辨率/视频编码/HDR｜音频编码/声道。
      *  只显示能从 ExoPlayer Format 可靠拿到的项（sampleMimeType/height/channelCount/colorTransfer），
      *  拿不到或映射表外的一律不显示，不猜写、不凑占位；Atmos 只在 E-AC-3 JOC（audio/eac3-joc）时标出（码流级可靠信号）。 */
     private void updateTrackLabels() {
@@ -2049,6 +2261,9 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     public void onSeekEnd(long time) {
         seeking = false;
         mKeyDown.reset();
+        // seek 结束收起转圈/网速；若仍在 buffering，onStateChanged 会重新 showProgress。
+        hideProgress();
+        if (isPaused() && !isEnded()) showPausedCenter();
         App.removeCallbacks(mHideControl);
         // 进度条拖动释放：控制条是用户显式呼出的，回常规 5s 计时，不按「借出显示」1.8s 收起。
         if (seekFocus) setR1Callback();
@@ -2079,7 +2294,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     @Override
     public void onKeyCenter() {
-        // 第 39 轮定案（完全对齐 fongmi）：OK 直接暂停/播放，菜单不再有独立播放/暂停按钮。
+        // （完全对齐 fongmi）：OK 直接暂停/播放，菜单不再有独立播放/暂停按钮。
         // 暂停时只出「快进快退那种」时间/状态精简显示（enterSeekMode：按钮行 GONE），恢复播放即收起。
         if (service() == null) return;
         boolean wasPlaying = !isEnded() && player().isPlayWhenReady();
@@ -2138,15 +2353,15 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     private static final int[] BACKDROP_SCRIM_VARIANTS = {R.drawable.shape_backdrop_scrim_a, R.drawable.shape_backdrop_scrim_b, R.drawable.shape_backdrop_scrim_c, R.drawable.shape_backdrop_scrim_d};
     private static final int[] DETAIL_SCRIM_VARIANTS = {R.drawable.shape_detail_scrim, R.drawable.shape_detail_scrim, R.drawable.shape_detail_scrim_light, R.drawable.shape_detail_scrim_d};
     private static final float[] BACKDROP_ALPHA_VARIANTS = {0.80f, 0.72f, 0.85f, 0.85f};
-    /** 默认 D 版（第 24 轮用户指令：铺满海报 + 四边轻收边；25 轮再减弱收边）；改默认只动这里与 layout 三处引用。 */
+    /** 默认 D 版；改默认只动这里与 layout 三处引用。 */
     private static final int BACKDROP_VARIANT_DEFAULT = 3;
 
     private final android.content.BroadcastReceiver mBackdropVariantReceiver = new android.content.BroadcastReceiver() {
         @Override
         public void onReceive(android.content.Context context, android.content.Intent intent) {
-            // --ei t 0/1/2：D 版四边收边力度档（第 30 轮对比用），只对 D 生效并持久化。
+            // --ei t 0/1/2：D 版四边收边力度档，只对 D 生效并持久化。
             if (intent.hasExtra("t")) com.github.catvod.utils.Prefers.put("debug_edge_tier", Math.max(0, Math.min(2, intent.getIntExtra("t", 0))));
-            // 第 35 轮：快进曲线定案 B（片长挂钩），A 模式与 --ei s 切换入口移除。
+            // 快进曲线定案 B（片长挂钩），A 模式与 --ei s 切换入口移除。
             applyBackdropVariant(intent.getIntExtra("v", com.github.catvod.utils.Prefers.getInt("debug_backdrop_variant", BACKDROP_VARIANT_DEFAULT)));
         }
     };

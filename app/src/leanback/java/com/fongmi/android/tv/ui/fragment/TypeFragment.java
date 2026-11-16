@@ -130,7 +130,7 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     protected void initEvent() {
         mBinding.swipeLayout.setOnRefreshListener(this);
         mBinding.recycler.addOnScrollListener(mScroller);
-        // 第 37 轮 P0-1：filter 面板可见时，内容滚动要同步导航栏实色主体高度（贴住可见最后一行底沿）。
+        //  P0-1：filter 面板可见时，内容滚动要同步导航栏实色主体高度（贴住可见最后一行底沿）。
         mBinding.recycler.addOnScrollListener(new androidx.recyclerview.widget.RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@androidx.annotation.NonNull androidx.recyclerview.widget.RecyclerView recyclerView, int dx, int dy) {
@@ -147,7 +147,7 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         selector.addPresenter(ListRow.class, new CustomRowPresenter(8, FocusHighlight.ZOOM_FACTOR_NONE), FilterPresenter.class);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
         applyRowMetrics(Style.rect());
-        // 第 38 轮：持续跟踪焦点所在的 chip 行——mLastFilterRow 原来只在「点击」时记，
+        // 持续跟踪焦点所在的 chip 行——mLastFilterRow 原来只在「点击」时记，
         // 光移动焦点不点击就记不到，从海报按 ↑ 回 filter 才会总跳第一行。
         mBinding.recycler.addOnChildViewHolderSelectedListener(new androidx.leanback.widget.OnChildViewHolderSelectedListener() {
             @Override
@@ -310,7 +310,7 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         for (Filter filter : mFilters) rows.add(getRow(filter));
         // 先把内容起点压低，再插行：顺序反了会让列表先按 144dp 布局一次再重排，
         // 焦点在这两次布局之间容易被带到第二排去。
-        // 第 29 轮：子行与 tab 间距 28dp → ~10dp（约 1/3），贴近 tab 但留 4dp 固定垫层保住分组感。
+        // 子行与 tab 间距 28dp → ~10dp（约 1/3），贴近 tab 但留 4dp 固定垫层保住分组感。
         mBinding.recycler.setContentTopTemp(getHeaderBottomPx());
         // 筛选行间距收紧：全局行距是为海报墙算的（≥24dp），chip 行沿用会显得稀疏。
         // 面板展开期间改 8dp（chip 34dp + 行间 16dp ≈ chip 半高，不拥挤的下限），
@@ -339,19 +339,10 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     }
 
     private View firstFocusable(View view) {
-        if (view == null || view.getVisibility() != View.VISIBLE) return null;
-        if (view.isFocusable() && view.isEnabled()) return view;
-        if (view instanceof ViewGroup) {
-            ViewGroup group = (ViewGroup) view;
-            for (int i = 0; i < group.getChildCount(); i++) {
-                View found = firstFocusable(group.getChildAt(i));
-                if (found != null) return found;
-            }
-        }
-        return null;
+        return com.fongmi.android.tv.utils.ViewUtil.findFirstFocusable(view);
     }
 
-    /** 筛选面板「当前可见最后一行」的屏幕底缘（px）：第 37 轮栏版向下延展的停点。
+    /** 筛选面板「当前可见最后一行」的屏幕底缘（px）：栏版向下延展的停点。
         只统计已布局的可见行（滚动中始终贴住可见最后一行）；一行都量不到/未展开返回 0。 */
     public int getFilterBottomPx() {
         if (!filterVisible || mBinding == null || mFilters == null || mFilters.isEmpty()) return 0;
@@ -369,7 +360,7 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         return bottom;
     }
 
-    /** 焦点是否落在筛选面板的 chip 行内（第 37 轮 P0-1）：导航栏显隐判据之一——
+    /** 焦点是否落在筛选面板的 chip 行内：导航栏显隐判据之一——
         焦点进海报区时栏必须随 filter 一起消失，不能留在屏幕上。 */
     public boolean isFilterRowFocus(android.view.View focus) {
         if (!filterVisible || mBinding == null || focus == null) return false;
@@ -424,7 +415,7 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         App.post(() -> {
             if (mBinding == null) return;
             androidx.recyclerview.widget.RecyclerView.ViewHolder holder = mBinding.recycler.findViewHolderForAdapterPosition(row);
-            // 第 38 轮：行内列位置也还给用户离开时的那枚 chip——HorizontalGridView 自己记着选中位，
+            // 行内列位置也还给用户离开时的那枚 chip——HorizontalGridView 自己记着选中位，
             // 不再 firstFocusable 一律落行首；找不到该行再退回行首。
             View target = null;
             if (holder != null) {

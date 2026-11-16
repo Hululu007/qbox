@@ -55,7 +55,7 @@ public abstract class BaseAlertDialog extends DialogFragment {
      * cutout 标志与主窗口一致：部分电视盒子上报假刘海安全区（实测左侧 320px），
      * 不设则面板内容被向右推且右缘被裁。
      */
-    /** 紧凑弹窗：不套 560dp 统一宽，按 factor 取屏幕比例（第 40 轮，来源选择回退紧凑形态）。 */
+    /** 紧凑弹窗：不套 560dp 统一宽，按 factor 取屏幕比例。 */
     protected boolean isCompact() {
         return false;
     }

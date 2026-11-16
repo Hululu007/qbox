@@ -65,7 +65,7 @@
         android:scrollbars="none">
 
         <!-- 两列布局：一列放内容源/播放，一列放系统/维护。
-             第 43 轮方案 A（Apple TV 式）：分组标题挪出块外上方，块只包行——
+             方案 A（Apple TV 式）：分组标题挪出块外上方，块只包行——
              标题在上、内容成块、组间大留白；行高放宽（SettingRow 12dp）。 -->
         <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="match_parent"

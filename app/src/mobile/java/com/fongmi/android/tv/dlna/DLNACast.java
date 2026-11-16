@@ -21,8 +21,6 @@ import org.jupnp.support.model.Res;
 import org.jupnp.support.model.SeekMode;
 import org.jupnp.support.model.item.VideoItem;
 
-import java.util.Locale;
-
 public record DLNACast(CastVideo video, Runnable runnable) {
 
     public void cast(Device item) {
@@ -90,8 +88,6 @@ public record DLNACast(CastVideo video, Runnable runnable) {
     }
 
     private String formatMs(long ms) {
-        if (ms <= 0) return "00:00:00";
-        long s = ms / 1000;
-        return String.format(Locale.US, "%02d:%02d:%02d", s / 3600, (s % 3600) / 60, s % 60);
+        return com.fongmi.android.tv.utils.Formatters.formatMs(ms);
     }
 }

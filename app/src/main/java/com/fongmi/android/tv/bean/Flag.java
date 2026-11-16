@@ -96,6 +96,14 @@ public class Flag implements Parcelable, Diffable<Flag> {
             Episode episode = split.length > 1 ? Episode.create(split[0].isEmpty() ? number : split[0].trim(), split[1]) : Episode.create(number, urls[i]);
             if (!getEpisodes().contains(episode)) getEpisodes().add(episode);
         }
+        indexNewEpisodes(getEpisodes());
+    }
+
+    /** 记录每个选集在源里的原始位置；按时间/倒序重排后仍可恢复「正序」。 */
+    private void indexNewEpisodes(List<Episode> items) {
+        int next = 0;
+        for (Episode episode : getEpisodes()) if (episode.getIndex() >= next) next = episode.getIndex() + 1;
+        for (Episode episode : items) if (episode.getIndex() < 0) episode.setIndex(next++);
     }
 
     public boolean isSelected() {
@@ -140,11 +148,14 @@ public class Flag implements Parcelable, Diffable<Flag> {
     }
 
     public void mergeEpisodes(List<Episode> items, boolean rev) {
+        List<Episode> added = new ArrayList<>();
         for (Episode item : items) {
             if (getEpisodes().contains(item)) continue;
+            added.add(item);
             if (rev) getEpisodes().add(0, item);
             else getEpisodes().add(item);
         }
+        indexNewEpisodes(added);
     }
 
     public Flag trans() {

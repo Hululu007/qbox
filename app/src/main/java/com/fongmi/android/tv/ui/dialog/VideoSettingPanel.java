@@ -370,6 +370,6 @@ final class VideoSettingPanel {
     }
 
     private String format(float value, String format) {
-        return String.format(Locale.getDefault(), format, value);
+        return String.format(Locale.US,format, value);
     }
 }

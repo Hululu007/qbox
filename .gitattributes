@@ -1,0 +1,9 @@
+# 源码 zip（QBox-<版本>-source.zip）随公开 Release 发布，只放给用户有用的内容。
+# AGENTS.md 是内部协作文档（机agent 的工作约定、仓库外路径），不进公开产物。
+AGENTS.md export-ignore
+
+# 二进制/图片保持原样，不要做换行转换，否则 zip 里的资源会损坏。
+*.png binary
+*.jpg binary
+*.aar binary
+*.jar binary

@@ -36,9 +36,9 @@ public class PartAdapter extends RecyclerView.Adapter<PartAdapter.ViewHolder> {
         notifyDataSetChanged();
     }
 
+    // nextFocus 仅存值；实际重绑由 VideoActivity.updateFocus 统一 notifyItemChanged 触发。
     public void setNextFocusUp(int nextFocusUp) {
         this.nextFocusUp = nextFocusUp;
-        notifyDataSetChanged();
     }
 
     @Override

@@ -14,6 +14,7 @@ import androidx.core.os.HandlerCompat;
 
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.utils.Notify;
+import com.fongmi.android.tv.utils.ScreenGuard;
 import com.fongmi.hook.Hook;
 import com.github.catvod.Init;
 import com.google.gson.Gson;
@@ -82,14 +83,56 @@ public class App extends Application implements Application.ActivityLifecycleCal
     @Override
     public void onCreate() {
         super.onCreate();
-        // 第 43 轮：源站名 emoji 支持（用户拍板「源上 emoji 更好肉眼识别」）——盒子固件字体链
+        // 源站名 emoji 支持（用户拍板「源上 emoji 更好肉眼识别」）——盒子固件字体链
         // 渲染不出 emoji（实测 ▯），bundled NotoColorEmoji 随包内嵌；异步加载不阻塞启动。
         androidx.emoji2.text.EmojiCompat.init(new androidx.emoji2.bundled.BundledEmojiCompatConfig(this));
         Notify.createChannel();
         registerActivityLifecycleCallbacks(this);
+        registerScreenGuard();
         // 本地 HTTP 服务（推送页/代理）进程启动即拉起：此前只在配置加载时启动，
         // 新装无配置的用户进推送页会拿到未启动的端口 -1（.130 实测复现）。幂等，bind 失败自带端口递增与系统分配兜底。
         Server.get().start();
+    }
+
+    /** 熄屏/亮屏安全阀：熄屏超过 30 分钟，亮屏后直接退出 App，避免固件恢复后黑屏又退不出去。 */
+    private void registerScreenGuard() {
+        android.content.IntentFilter filter = new android.content.IntentFilter();
+        filter.addAction(android.content.Intent.ACTION_SCREEN_OFF);
+        filter.addAction(android.content.Intent.ACTION_SCREEN_ON);
+        registerReceiver(new android.content.BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, android.content.Intent intent) {
+                if (intent == null) return;
+                if (android.content.Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) ScreenGuard.onScreenOff();
+                else if (android.content.Intent.ACTION_SCREEN_ON.equals(intent.getAction()) && ScreenGuard.onScreenOn()) post(App::exitApp);
+            }
+        }, filter);
+        if (BuildConfig.DEBUG) registerReceiver(new android.content.BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, android.content.Intent intent) {
+                // adb shell am broadcast -a com.qbox.app.DEBUG_SIMULATE_WAKE --el ms 1800000
+                if (ScreenGuard.simulateSleep(intent == null ? 0 : intent.getLongExtra("ms", 0))) post(App::exitApp);
+            }
+        }, new android.content.IntentFilter(DEBUG_SIMULATE_WAKE));
+    }
+
+    public static final String DEBUG_SIMULATE_WAKE = "com.qbox.app.DEBUG_SIMULATE_WAKE";
+
+    /** 退出整个 App：停掉后台播放/媒体服务并移除任务，回到电视桌面。 */
+    public static void exitApp() {
+        Activity activity = activity();
+        // 没有前台 Activity 时保留退出标记，等 onActivityResumed 再处理。
+        if (activity == null) return;
+        // 清掉待处理的退出请求，避免下次启动时 onActivityResumed 又踢一次。
+        ScreenGuard.consumeExit();
+        try {
+            activity.stopService(new android.content.Intent(activity, com.fongmi.android.tv.service.PlaybackService.class));
+        } catch (Throwable ignored) {
+        }
+        try {
+            activity.finishAndRemoveTask();
+        } catch (Throwable ignored) {
+        }
     }
 
     @Override
@@ -105,6 +148,14 @@ public class App extends Application implements Application.ActivityLifecycleCal
     @Override
     public void onActivityResumed(@NonNull Activity activity) {
         if (activity != activity()) this.activity = activity;
+        // 熄屏过久（>30 分钟）后亮屏：直接退出到电视桌面，避免黑屏状态退不出去。
+        if (ScreenGuard.consumeExit()) {
+            try {
+                activity.stopService(new android.content.Intent(activity, com.fongmi.android.tv.service.PlaybackService.class));
+            } catch (Throwable ignored) {
+            }
+            activity.finishAndRemoveTask();
+        }
     }
 
     @Override

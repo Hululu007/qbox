@@ -31,7 +31,6 @@ import org.jupnp.support.model.TransportStatus;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 public class DLNAAvTransportImpl extends AbstractAVTransportService {
@@ -299,8 +298,6 @@ public class DLNAAvTransportImpl extends AbstractAVTransportService {
     }
 
     private String formatMs(long ms) {
-        if (ms <= 0) return "00:00:00";
-        long s = ms / 1000;
-        return String.format(Locale.US, "%02d:%02d:%02d", s / 3600, (s % 3600) / 60, s % 60);
+        return com.fongmi.android.tv.utils.Formatters.formatMs(ms);
     }
 }

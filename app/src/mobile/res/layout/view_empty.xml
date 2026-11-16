@@ -22,4 +22,14 @@
         android:textColor="@color/white"
         android:textSize="16sp" />
 
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:alpha="0.6"
+        android:text="@string/empty_hint"
+        android:textColor="@color/white"
+        android:textSize="14sp" />
+
 </androidx.appcompat.widget.LinearLayoutCompat>

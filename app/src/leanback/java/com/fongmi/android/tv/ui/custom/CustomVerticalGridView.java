@@ -2,11 +2,6 @@ package com.fongmi.android.tv.ui.custom;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.LinearGradient;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -39,8 +34,6 @@ public class CustomVerticalGridView extends VerticalGridView {
 
     /** 内容区顶边（顶栏 + 分类条下沿），px。低于这条线的内容一律不画。 */
     private int contentTop = -1;
-    /** 裁剪处的渐隐高度，px。只柔化切换，绝不越过第一行顶边。 */
-    private int fadeHeight;
     /** 是否启用「动态裁剪到当前行顶边」。 */
     private boolean alignTop;
     /** 正在播放贴顶校正动画。校正期间不再叠加新的校正，防止抖动。 */
@@ -156,14 +149,6 @@ public class CustomVerticalGridView extends VerticalGridView {
         setFocusScrollStrategy(keepVisible ? FOCUS_SCROLL_ITEM : FOCUS_SCROLL_ALIGNED);
     }
 
-    /** 只设固定裁剪线：适合 header 不在浮层里、自己算好 padding 的页面。 */
-    public void setClipTop(int clipTop) {
-        this.contentTop = clipTop;
-        this.fadeHeight = 0;
-        alignTop = false;
-        invalidate();
-    }
-
     public void applyContentTop(int topPx, int rowHeightPx) {
         applyContentTop(topPx, rowHeightPx, true);
     }
@@ -191,9 +176,6 @@ public class CustomVerticalGridView extends VerticalGridView {
         this.headerBottom = bottomPx;
         int zoomPad = zoom ? Math.max(ResUtil.dp2px(6), Math.round(rowHeightPx * 0.055f)) : ResUtil.dp2px(4);
         this.zoomPad = zoomPad;
-        // 裁剪线正好落在「放大后卡片的上边缘」，那里本来是空的，不需要再淡出；
-        // 加了渐隐反而会把放大后海报的顶边擦掉一条。
-        this.fadeHeight = 0;
         int spacing = Math.max(ResUtil.dp2px(24), Math.round(rowHeightPx * 0.075f));
         if (spacing <= zoomPad) spacing = zoomPad + ResUtil.dp2px(4);
         this.rowHeight = rowHeightPx;
@@ -334,15 +316,6 @@ public class CustomVerticalGridView extends VerticalGridView {
         canvas.clipRect(0, clip, getWidth(), getHeight());
         super.dispatchDraw(canvas);
         canvas.restoreToCount(save);
-        if (fadeHeight <= 0) return;
-        // 只在裁剪处把列表自己的绘制淡出，背景从缺口透出来，避免切换瞬间出现硬切黑边。
-        int layer = canvas.saveLayer(0, clip, getWidth(), clip + fadeHeight, null);
-        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        paint.setShader(new LinearGradient(0, clip, 0, clip + fadeHeight,
-                0xFFFFFFFF, 0x02FFFFFF, Shader.TileMode.CLAMP));
-        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_OUT));
-        canvas.drawRect(0, clip, getWidth(), clip + fadeHeight, paint);
-        canvas.restoreToCount(layer);
     }
 
     public void hideHeader() {
@@ -380,10 +353,10 @@ public class CustomVerticalGridView extends VerticalGridView {
     }
 
     /**
-     * 海报墙上下移动保持列对齐（第 30 轮：↑↓ 双向 + 按 x 坐标定向）。
+     * 海报墙上下移动保持列对齐。
      *
      * <p>Leanback 默认把焦点交给相邻行的「该行 selectedPosition」（未访问过/被回收重绑的行是 0），
-     * 所以从第 3 列按 ↑/↓ 会跳到相邻行第 1 列（此前只修了 ↓，↑ 漏网——第 30 轮用户实机抓到）。
+     * 所以从第 3 列按 ↑/↓ 会跳到相邻行第 1 列（此前只修了 ↓，↑ 漏网——用户实机抓到）。
      * 两条路径：① 目标行已布局——焦点搜索阶段直接返回 x 最近列的子项；② 目标行在屏外未布局——
      * 记下 pending 列 x 交回 Leanback 滚动落焦，焦点落地瞬间由全局焦点监听器修正到最近列
      * （同一 vsync 内完成，无可见跳动）。列宽不一致的行（16:9 历史卡 vs 竖版海报）按 x 最近而非下标对齐。

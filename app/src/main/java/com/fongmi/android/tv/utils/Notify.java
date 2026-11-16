@@ -1,12 +1,17 @@
 package com.fongmi.android.tv.utils;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.Notification;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.text.TextUtils;
+import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.widget.Toast;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.NotificationChannelCompat;
@@ -14,6 +19,7 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.databinding.ViewProgressBinding;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -22,7 +28,8 @@ public class Notify {
     public static final String DEFAULT = "default";
     public static final int ID = 9527;
     private AlertDialog mDialog;
-    private Toast mToast;
+    private View mOverlay;
+    private Runnable mHideOverlay;
 
     private static class Loader {
         static volatile Notify INSTANCE = new Notify();
@@ -75,15 +82,36 @@ public class Notify {
     }
 
     private void makeText(String text) {
-        if (mToast != null) mToast.cancel();
-        // 第 43 轮：系统 Toast 不经 AppCompat，emoji 需显式过 EmojiCompat.process 才能用内嵌字体渲染
+        // 系统 Toast 不经 AppCompat，emoji 需显式过 EmojiCompat.process 才能用内嵌字体渲染
         // （实测换源 toast 站名 emoji 豆腐块）；字体未加载完时返回原文，不受影响。
         CharSequence cs = text;
         try {
             if (androidx.emoji2.text.EmojiCompat.get().getLoadState() == androidx.emoji2.text.EmojiCompat.LOAD_STATE_SUCCEEDED) cs = androidx.emoji2.text.EmojiCompat.get().process(text);
         } catch (Exception ignored) {
         }
-        mToast = Toast.makeText(App.get(), cs, Toast.LENGTH_LONG);
-        mToast.show();
+        // 系统文本 Toast 在 TV 上会带应用图标；改成当前 Activity 内的纯文字浮层，只保留信息本身。
+        Activity activity = App.activity();
+        if (activity == null || activity.isFinishing()) return;
+        ViewGroup content = activity.findViewById(android.R.id.content);
+        if (!(content instanceof FrameLayout)) return;
+        FrameLayout frame = (FrameLayout) content;
+        if (mHideOverlay != null) App.removeCallbacks(mHideOverlay);
+        if (mOverlay != null && mOverlay.getParent() instanceof ViewGroup) ((ViewGroup) mOverlay.getParent()).removeView(mOverlay);
+        View view = LayoutInflater.from(activity).inflate(R.layout.view_toast, frame, false);
+        TextView contentText = view.findViewById(R.id.text);
+        contentText.setText(cs);
+        view.setClickable(false);
+        view.setFocusable(false);
+        view.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
+        params.bottomMargin = ResUtil.dp2px(96);
+        frame.addView(view, params);
+        mOverlay = view;
+        mHideOverlay = () -> {
+            if (mOverlay == view) mOverlay = null;
+            if (view.getParent() instanceof ViewGroup) ((ViewGroup) view.getParent()).removeView(view);
+        };
+        App.post(mHideOverlay, 2800);
     }
 }

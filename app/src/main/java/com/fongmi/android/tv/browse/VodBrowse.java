@@ -16,6 +16,7 @@ import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.db.AppDatabase;
+import com.fongmi.android.tv.playback.vod.EpisodeProgress;
 import com.fongmi.android.tv.playback.vod.VodHistoryPolicy;
 import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.utils.Task;
@@ -129,8 +130,8 @@ class VodBrowse {
     static long consumeResumePosition() {
         if (browseHistory == null) return C.TIME_UNSET;
         History history = browseHistory;
-        long position = history.getPosition();
-        history.setPosition(0);
+        String key = EpisodeProgress.episodeKey(history.getEpisodeUrl(), history.getVodRemarks());
+        long position = EpisodeProgress.position(history.getKey(), key);
         return position > 0 ? position : C.TIME_UNSET;
     }
 
@@ -140,6 +141,7 @@ class VodBrowse {
         history.setPosition(position);
         history.setDuration(duration);
         history.setCreateTime(System.currentTimeMillis());
+        EpisodeProgress.put(history.getKey(), EpisodeProgress.episodeKey(history.getEpisodeUrl(), history.getVodRemarks()), position, duration);
         policy.save(history);
         return true;
     }

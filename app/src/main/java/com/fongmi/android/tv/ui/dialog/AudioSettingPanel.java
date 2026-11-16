@@ -531,11 +531,11 @@ final class AudioSettingPanel {
 
     private String formatFrequency(int milliHz) {
         int hz = milliHz / 1000;
-        return hz >= 1000 ? String.format(Locale.getDefault(), "%.1f kHz", hz / 1000.0f) : String.format(Locale.getDefault(), "%d Hz", hz);
+        return hz >= 1000 ? String.format(Locale.US,"%.1f kHz", hz / 1000.0f) : String.format(Locale.US,"%d Hz", hz);
     }
 
     private String formatLevel(float milliBel) {
-        return String.format(Locale.getDefault(), "%+.1f dB", milliBel / 100.0f);
+        return String.format(Locale.US,"%+.1f dB", milliBel / 100.0f);
     }
 
     private String formatPreamp(float attenuation) {
@@ -543,7 +543,7 @@ final class AudioSettingPanel {
     }
 
     private String formatPercent(float value) {
-        return String.format(Locale.getDefault(), "%.0f%%", value);
+        return String.format(Locale.US,"%.0f%%", value);
     }
 
     private String formatStability(float value) {
@@ -561,7 +561,7 @@ final class AudioSettingPanel {
     }
 
     private String formatOffset(float value) {
-        return String.format(Locale.getDefault(), "%+.1fs", value / 1000.0f);
+        return String.format(Locale.US,"%+.1fs", value / 1000.0f);
     }
 
     private interface ValueFormatter {

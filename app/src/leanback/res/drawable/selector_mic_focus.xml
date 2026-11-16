@@ -4,10 +4,10 @@
     <!-- 语音图标焦点态：36dp 的图标本身没有底色，不描边用户看不出焦点在哪。 -->
     <item android:state_focused="true">
         <shape android:shape="oval">
-            <solid android:color="#26FFFFFF" />
+            <solid android:color="@color/white_15" />
             <stroke
                 android:width="2dp"
-                android:color="#CCFFFFFF" />
+                android:color="@color/white_80" />
         </shape>
     </item>
 

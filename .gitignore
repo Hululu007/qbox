@@ -1,44 +1,41 @@
-# ===== 开发环境（ui-cinema 历史） =====
-.idea
-.vscode
-.gradle
-.github
-.settings
+# ===== 本地环境 / 编辑器 =====
+.idea/
+.vscode/
+.settings/
 .DS_Store
 *.iml
-*build
-*.jks
-*.properties
-lib-*.aar
-/Release
-/docs
 captures/
 .cxx/
 .kotlin/
-*.log
-tmp-*
 
-# ===== 发布仓本地文件（qbox main 历史） =====
-# 本机/代理笔记，不公开
-AGENTS.md
-STATUS.md
-
-# 签名与本地配置
+# ===== 签名与本地配置（绝不提交） =====
+local.properties
+keystore.properties
 *.jks
 *.keystore
-keystore.properties
-local.properties
-
-# DSH 本地技能（含引擎二进制），每个开发者自己装
 .dsh/
 
-# 构建产物与本地目录
+# ===== 构建产物 =====
 .gradle/
 build/
+*/build/
+/Release/
 dist/
-fongmi/
-fongmi-561/
-media/
-.toolchain/
+artifacts/
 *.log
 tmp-*
+.tmp/
+.tmp_*.java
+
+# 由 FongMi/media 自编的媒体 AAR（不随源码提交，CI 负责构建）
+lib-*.aar
+
+# ===== 本地开发目录（不属于本仓库，仅锚定仓库根） =====
+/.toolchain/
+/fongmi/
+/fongmi-561/
+/media/
+/.workbuddy/
+/AGENTS.md
+/STATUS.md
+/internal-docs/

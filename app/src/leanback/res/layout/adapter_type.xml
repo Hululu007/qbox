@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 分类/榜单页 tab 项：排版参数全部来自 @style/QBoxTabText（与首页分类条同一 token，第 31 轮统一）。 -->
+<!-- 分类/榜单页 tab 项：排版参数全部来自 @style/QBoxTabText（与首页分类条同一 token，统一）。 -->
 <com.fongmi.android.tv.ui.custom.CustomTypeView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/text"

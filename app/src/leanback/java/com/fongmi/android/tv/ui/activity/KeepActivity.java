@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.Product;
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Keep;
@@ -56,7 +57,7 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     private void getKeep() {
         mAdapter.setItems(Keep.getVod(), () -> {
             if (mAdapter.getItemCount() == 0) {
-                mBinding.progressLayout.showEmpty("还没有收藏内容，在详情页点「收藏」加入", null);
+                mBinding.progressLayout.showEmpty(getString(R.string.keep_empty), null);
             } else {
                 mBinding.progressLayout.showContent();
                 // 有收藏时焦点交给第一张卡（之前停在返回键上，要按一次下才进内容，和首页/分类页不一致）。
@@ -98,7 +99,7 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
             if (mAdapter.getItemCount() == 0) {
                 setDeleteMode(false);
                 // 删掉最后一条后要回到空态，否则留一整页空白（既没卡片也没提示）。
-                mBinding.progressLayout.showEmpty("还没有收藏内容，在详情页点「收藏」加入", null);
+                mBinding.progressLayout.showEmpty(getString(R.string.keep_empty), null);
             }
         });
     }

@@ -289,7 +289,7 @@ final class SubtitleSettingPanel {
     }
 
     private void setupTransparency(ViewSettingSliderBinding item, int titleRes, float opacity, Consumer<Float> setter) {
-        setupSlider(item, titleRes, SubtitleSetting.MIN_OPACITY, SubtitleSetting.MAX_OPACITY, STEP_OPACITY, toTransparency(opacity), this::formatPercent, value -> setter.accept(toOpacity(value)));
+        setupSlider(item, titleRes, SubtitleSetting.MIN_OPACITY, SubtitleSetting.MAX_OPACITY, STEP_OPACITY, toTransparency(opacity), this::formatSize, value -> setter.accept(toOpacity(value)));
     }
 
     private void setupChip(ChipGroup group, int initialValue, IntUnaryOperator chipForValue, IntUnaryOperator valueForChip, IntConsumer setter) {
@@ -630,19 +630,15 @@ final class SubtitleSettingPanel {
     }
 
     private String formatSize(float value) {
-        return String.format(Locale.getDefault(), "%.0f%%", value * 100.0f);
+        return String.format(Locale.US,"%.0f%%", value * 100.0f);
     }
 
     private String formatPosition(float value) {
-        return String.format(Locale.getDefault(), "%+.1f%%", value);
+        return String.format(Locale.US,"%+.1f%%", value);
     }
 
     private String formatOffset(float offsetMs) {
-        return String.format(Locale.getDefault(), "%+.1fs", offsetMs / 1000.0f);
-    }
-
-    private String formatPercent(float value) {
-        return String.format(Locale.getDefault(), "%.0f%%", value * 100.0f);
+        return String.format(Locale.US,"%+.1fs", offsetMs / 1000.0f);
     }
 
     private float toTransparency(float opacity) {
@@ -654,11 +650,11 @@ final class SubtitleSettingPanel {
     }
 
     private String formatDecimal(float value) {
-        return String.format(Locale.getDefault(), "%.1f", value);
+        return String.format(Locale.US,"%.1f", value);
     }
 
     private String formatSecondaryPosition(float value) {
-        return String.format(Locale.getDefault(), "%.0f%%", value);
+        return String.format(Locale.US,"%.0f%%", value);
     }
 
     private float getTextOffsetMs() {
