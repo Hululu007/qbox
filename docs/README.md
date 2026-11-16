@@ -9,6 +9,8 @@
 | [SPIDER.md](SPIDER.md) | 爬虫（spider）接口约定 |
 | [LOCAL.md](LOCAL.md) | 本地 / 局域网内容播放 |
 | [HEADLESS.md](HEADLESS.md) | CI 与无头 Android TV 测试（合成 mock，不能替代真机验收） |
+| [UPSTREAM.md](UPSTREAM.md) | 上游 FongMi/TV、FongMi/media 版本与 QBox 的改动范围 |
+| [RELEASE-NOTES-2.0.0.md](RELEASE-NOTES-2.0.0.md) | QBox 2.0.0 发布说明 |
 
 播放内核基于 [FongMi/TV](https://github.com/FongMi/TV) 5.6.1，媒体层（media3 1.11.0）由
 [FongMi/media](https://github.com/FongMi/media) 的 `release-1.11.0-fongmi` 分支自编，
