@@ -134,7 +134,7 @@ public class PlaybackPositionTest {
     public void switchingLineUpdatesHistoryFlagAndEpisode() {
         History h = history("ep58", "ep58");
         h.setVodFlag("夸父原");
-        Episode ep = Episode.create("ep-zhi", "【佬友 LY-96】逃出布迪秀.mkv");
+        Episode ep = Episode.create("【佬友 LY-96】逃出布迪秀.mkv", "ep-zhi");
         policy.updateEpisode(h, Flag.create("夸父智"), ep);
         assertEquals("夸父智", h.getVodFlag());
         assertEquals("ep-zhi", h.getEpisodeUrl());
