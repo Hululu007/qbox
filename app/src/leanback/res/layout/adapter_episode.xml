@@ -45,12 +45,11 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="6dp"
-            android:duplicateParentState="true"
             android:ellipsize="marquee"
             android:marqueeRepeatLimit="marquee_forever"
             android:scrollHorizontally="true"
             android:singleLine="true"
-            android:textColor="@color/text"
+            android:textColor="@color/episode_text"
             android:textSize="15sp"
             tools:text="某某剧场版原资源完整名称" />
 

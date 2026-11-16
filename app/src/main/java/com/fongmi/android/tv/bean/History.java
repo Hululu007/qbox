@@ -383,10 +383,10 @@ public class History implements Diffable<History> {
 
     public void findEpisode(List<Flag> flags) {
         if (flags.isEmpty()) return;
-        setVodFlag(flags.get(0).getFlag());
-        if (!flags.get(0).getEpisodes().isEmpty()) setVodRemarks(flags.get(0).getEpisodes().get(0).getName());
+        // 先在同名历史里找一条能对上的集；匹配成功前不要把第一 Flag（常见是「夸父原」）
+        // 写进当前 history，否则新建/收编历史会静默丢掉用户上次选的「夸父智」。
         for (History item : findByName(getVodName())) {
-            if (getPosition() >= 0) break;
+            if (item.equals(this) || item.getPosition() < 0) continue;
             for (Flag flag : flags) {
                 Episode episode = flag.find(item.getVodRemarks(), true);
                 if (episode == null) continue;
@@ -395,9 +395,11 @@ public class History implements Diffable<History> {
                 setPosition(item.getPosition());
                 setEpisodeUrl(episode.getUrl());
                 setVodRemarks(episode.getName());
-                break;
+                return;
             }
         }
+        setVodFlag(flags.get(0).getFlag());
+        if (!flags.get(0).getEpisodes().isEmpty()) setVodRemarks(flags.get(0).getEpisodes().get(0).getName());
     }
 
     @Override

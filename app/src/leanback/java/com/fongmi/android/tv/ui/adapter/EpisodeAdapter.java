@@ -187,7 +187,8 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.ViewHold
         // 每一排只有首行向上跳出网格、末行向下跳出网格；左右由详情页显式路由。
         root.setNextFocusUpId(topRow ? nextFocusUp : 0);
         root.setNextFocusDownId(bottomRow ? nextFocusDown : 0);
-        // 焦点/选中态由 root 承载，pill 与内部文字通过 duplicateParentState 复制实现白药丸 + 文字反色。
+        // 焦点/选中态由 root 承载，pill 复制父状态实现白药丸；text 不能复制父状态，
+        // 否则 TextView 的 selected 会被父容器覆盖，marquee 不会启动。
         root.setActivated(item.isSelected());
         // 聚焦时 selected=true 只驱动 text（原资源全名）marquee 滚动，前缀 prefix 保持静止。
         root.setOnFocusChangeListener((v, hasFocus) -> holder.binding.text.setSelected(hasFocus));

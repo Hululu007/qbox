@@ -224,9 +224,13 @@ public class VodPlaybackController {
             Flag activated = state.getFlag();
             for (Flag item : items) mergeFlag(activated, item);
             host.renderFlags(state.getFlags());
+            // FlagAdapter.addAll 会丢失 RecyclerView 的 selectedPosition；这里把当前线路重新选中，
+            // 否则详情页在 Vod 更新后视觉上会落回第一项（典型：夸父智 → 夸父原）。
+            host.renderFlagSelection(state.getFlag());
         } else {
             state.setFlags(items);
             host.renderFlags(state.getFlags());
+            host.renderFlagSelection(state.getFlag());
         }
     }
 
@@ -437,8 +441,11 @@ public class VodPlaybackController {
 
     private void detailLoaded(Vod item) {
         VodPlayRequest activeRequest = state.getActiveRequest();
+        // 首次打开详情时 state 里还没有 history；此时 history 才是「最近观看」的权威状态。
+        // 刷新/换源后 state 已有 history + request，继续以正在使用的 request 优先。
+        boolean freshDetail = state.getHistory() == null;
         History history = applyDetail(item);
-        if (state.hasFlags()) restoreDetail(activeRequest, history);
+        if (state.hasFlags()) restoreDetail(activeRequest, history, freshDetail);
         else fallbackPolicy.emptyFlag();
     }
 
@@ -457,8 +464,15 @@ public class VodPlaybackController {
         return history;
     }
 
-    private void restoreDetail(VodPlayRequest activeRequest, History history) {
-        restoreDetailSelection(activeRequest, history);
+    private void restoreDetail(VodPlayRequest activeRequest, History history, boolean freshDetail) {
+        // 从「最近观看」进入时，history 里保存的 vodFlag/集数就是用户上次的选择。
+        // 先按 history 精确恢复，避免一个携带旧线路的 activeRequest（或首个 Flag）把「夸父智」
+        // 覆盖回列表第一项「夸父原」；刷新/换源再走 activeRequest 路径。
+        if (freshDetail && restoreHistorySelection(history)) {
+            publishPlaybackMetadata(state.getEpisode());
+        } else {
+            restoreDetailSelection(activeRequest, history);
+        }
         restoreEpisodeOrder(history);
         resumePlaybackIfNeeded();
     }
@@ -484,10 +498,35 @@ public class VodPlaybackController {
         if (state.getPlayingRequest() != null && !host.hasPlaybackSession()) requestSelectedEpisode();
     }
 
+    private boolean restoreHistorySelection(History history) {
+        if (history == null) return false;
+        Flag flag = findFlag(history.getFlag());
+        if (flag == null || flag.getEpisodes().isEmpty()) return false;
+        Episode episode = findHistoryEpisode(flag, history);
+        if (episode == null) return false;
+        applySelection(flag, episode);
+        return true;
+    }
+
+    private Episode findHistoryEpisode(Flag flag, History history) {
+        if (history == null) return null;
+        String url = history.getEpisodeUrl();
+        if (!url.isEmpty()) for (Episode episode : flag.getEpisodes()) if (url.equals(episode.getUrl())) return episode;
+        // URL 在源更新后可能变化；再用历史里的集名做严格匹配，最后才宽松回落到位置/首集。
+        Episode episode = flag.find(history.getVodRemarks(), true);
+        return episode != null ? episode : flag.find(history.getVodRemarks(), false);
+    }
+
     private boolean restorePlaybackSelection(VodPlayRequest request) {
         Flag flag = state.findFlag(host.getVodKey(), request);
         Episode episode = state.findEpisode(host.getVodKey(), flag, request);
         if (flag == null || episode == null) return false;
+        applySelection(flag, episode);
+        return true;
+    }
+
+    private void applySelection(Flag flag, Episode episode) {
+        if (flag == null || episode == null) return;
         for (Flag item : state.getFlags()) item.setSelected(flag);
         // GS-70：历史恢复路径同样套默认排序，保证显示顺序与播放顺序一致。
         sortEpisodes(flag, isRevSort());
@@ -497,7 +536,6 @@ public class VodPlaybackController {
         host.renderEpisodes(flag.getEpisodes());
         host.renderEpisodeSelection(episode);
         host.renderQualityVisible(state.getQuality().getUrl().isMulti());
-        return true;
     }
 
     private void requestPlayer(Flag flag, Episode episode) {
@@ -545,7 +583,13 @@ public class VodPlaybackController {
     }
 
     private Flag findFlag(Flag item) {
-        if (item != null) for (Flag flag : state.getFlags()) if (flag.equals(item)) return flag;
+        if (item == null) return null;
+        for (Flag flag : state.getFlags()) if (flag.equals(item)) return flag;
+        // 某些源/历史会在名称前后带空格；历史恢复不能被这种差异悄悄降级到第一个 Flag。
+        String name = item.getFlag() == null ? "" : item.getFlag().trim();
+        if (!name.isEmpty()) for (Flag flag : state.getFlags()) {
+            if (flag.getFlag() != null && name.equals(flag.getFlag().trim())) return flag;
+        }
         return null;
     }
 
