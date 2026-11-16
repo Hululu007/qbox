@@ -4,7 +4,6 @@ import static org.junit.Assert.assertTrue;
 
 import com.fongmi.android.tv.api.Decoder;
 import com.github.catvod.utils.Json;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import org.junit.Test;
@@ -52,9 +51,9 @@ public class ConfigPipelineTest {
             json = out.toString("UTF-8");
         }
         JsonObject object = Json.parse(json).getAsJsonObject();
-        JsonArray sites = object.getAsJsonArray("sites");
-        assertTrue("fallback sites too small: " + sites.size(), sites.size() >= 10);
-        assertTrue("fallback spider missing md5", object.get("spider").getAsString().contains(";md5;"));
-        System.out.println("QBOX_FALLBACK_OK sites=" + sites.size());
+        assertTrue("missing sites", object.has("sites"));
+        // 公开仓的 debug 兜底只保留可解析的空白骨架，不再内置任何真实内容源。
+        assertTrue("fallback should be empty", object.getAsJsonArray("sites").size() == 0);
+        System.out.println("QBOX_FALLBACK_OK");
     }
 }

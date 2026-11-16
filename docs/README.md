@@ -9,7 +9,9 @@
 | [SPIDER.md](SPIDER.md) | 爬虫（spider）接口约定 |
 | [LOCAL.md](LOCAL.md) | 本地 / 局域网内容播放 |
 | [HEADLESS.md](HEADLESS.md) | CI 与无头 Android TV 测试（合成 mock，不能替代真机验收） |
+| [DEVELOPING.md](DEVELOPING.md) | 开发、构建、发布与仓库约束 |
 | [UPSTREAM.md](UPSTREAM.md) | 上游 FongMi/TV、FongMi/media 版本与 QBox 的改动范围 |
+| [RELEASE-NOTES-2.0.2.md](RELEASE-NOTES-2.0.2.md) | QBox 2.0.2 发布说明（选集滚动与线路恢复修复） |
 | [RELEASE-NOTES-2.0.1.md](RELEASE-NOTES-2.0.1.md) | QBox 2.0.1 发布说明（图标与文档更新） |
 | [RELEASE-NOTES-2.0.0.md](RELEASE-NOTES-2.0.0.md) | QBox 2.0.0 发布说明（内核大对齐） |
 

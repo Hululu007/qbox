@@ -129,51 +129,13 @@ QBox 会检查 GitHub 最新版本：
 
 QBox 是 [FongMi/TV](https://github.com/FongMi/TV) 5.6.1 的二次开发，遵循 **GPL-3.0**。
 
-- 本仓库 `zqs1qiwan/qbox` 是 QBox 的**唯一源码仓与发布仓**，`main` 是长期维护分支
-- 当前版本：**2.0.1**（versionCode 101）
-- TV 源码对齐 **FongMi/TV 5.6.1（`125468f0`，2026-08-27）**
-- 媒体层来自 [FongMi/media](https://github.com/FongMi/media) 的 `release-1.11.0-fongmi` 分支，保持 media3 **1.11.0**，不升级
-- 上游版本、改动范围与 Tier B 说明见 [`docs/UPSTREAM.md`](docs/UPSTREAM.md)
+- 源码与发布：**<https://github.com/zqs1qiwan/qbox>**（唯一源码仓与发布仓，`main` 长期维护）
+- 当前版本：**2.0.2**（versionCode 102）
+- 播放内核来自 FongMi/TV；媒体层来自 FongMi/media 的兼容分支，保持 media3 **1.11.0**
 - 每个 Release 都附带对应版本的源码包 `QBox-<版本>-source.zip`
-- 旧私有开发仓 `qbox-tv` 已归档为只读；后续开发、Issue、Release 都在本仓库进行
+- QBox 只做界面与交互重构，不涉及任何视频源、账号或配置接口
 
-## 构建
-
-1. JDK 21、Android SDK（compileSdk 37）、Gradle Wrapper（仓库自带，当前 9.6.1）
-2. 自编媒体 AAR：使用 FongMi/media 的 `release-1.11.0-fongmi` 分支，按 `move.txt` 生成 `lib-*-release.aar`，放进 `app/libs/`
-3. 在仓库根目录创建 `local.properties`（**不要提交**）：
-
-```properties
-sdk.dir=/path/to/android-sdk
-storeFile=/path/to/keystore.jks
-keyAlias=your-alias
-storePassword=******
-keyPassword=******
-```
-
-4. 构建：
-
-```bash
-./gradlew :app:assembleLeanbackArmeabi_v7aRelease
-./gradlew :app:assembleLeanbackArm64_v8aRelease
-```
-
-Windows 下用 `gradlew.bat` 执行同样的两个任务即可。
-
-## 发布
-
-1. 修改 `app/build.gradle` 的 `versionCode` / `versionName`
-2. 更新 `docs/RELEASE-NOTES-<版本>.md`
-3. 构建两个 ABI 的 release APK，并用正式签名验证证书指纹
-4. `git archive` 导出源码包 `QBox-<版本>-source.zip`
-5. 提交并打 `v<版本>` tag，CI 自动创建 GitHub Release
-6. 资产命名：`QBox-<版本>-arm64-v8a.apk`、`QBox-<版本>-armeabi-v7a.apk`、`QBox-<版本>-source.zip`；`QBox-latest-*.apk` 是固定下载链接的副本
-
-## 约束
-
-- **release 包不包含任何内容源**：`QBOX_TEST_CONFIG` 只在 debug 构建注入，`qbox_default.json` 只放在 `src/debug/assets`
-- 不接入统计、广告或账号 SDK
-- 提交前确认没有把 `local.properties`、`*.jks`、`build/`、`Release/` 带进仓库
+开发、构建与发布说明见 [`docs/DEVELOPING.md`](docs/DEVELOPING.md)。
 
 ## 致谢与许可
 
