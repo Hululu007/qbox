@@ -557,8 +557,16 @@ public class VodPlaybackController {
     private void seamless(Flag flag) {
         History history = state.getHistory();
         Episode episode = history == null ? null : flag.find(history.getVodRemarks(), host.getVodMark().isEmpty());
-        host.renderQualityVisible(episode != null && episode.isSelected() && state.getQuality().getUrl().isMulti());
-        if (episode == null || episode.isSelected()) return;
+        // 手动切线路时，历史里的集名通常来自另一路；不能因为找不到同名集就只改视觉选中、
+        // 把历史线路留在旧路（用户实测：切到「夸父智」后退出再进又回到「夸父原」）。
+        // 找不到同名集就取该线路的当前/首集，至少把线路和该集一起写回历史。
+        if (episode == null && !flag.getEpisodes().isEmpty()) episode = flag.getEpisodes().get(0);
+        if (episode == null) return;
+        host.renderQualityVisible(episode.isSelected() && state.getQuality().getUrl().isMulti());
+        if (episode.isSelected()) {
+            historyPolicy.updateEpisode(history, flag, episode);
+            return;
+        }
         history.setVodRemarks(episode.getName());
         selectEpisode(episode);
     }

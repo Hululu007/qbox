@@ -129,6 +129,18 @@ public class PlaybackPositionTest {
         assertEquals(C.TIME_UNSET, policy.startPositionMs(h));
     }
 
+    /** 手动切换线路后，历史必须把线路和可对应的集一起写回；否则退出再进会落回旧线路。 */
+    @Test
+    public void switchingLineUpdatesHistoryFlagAndEpisode() {
+        History h = history("ep58", "ep58");
+        h.setVodFlag("夸父原");
+        Episode ep = Episode.create("ep-zhi", "【佬友 LY-96】逃出布迪秀.mkv");
+        policy.updateEpisode(h, Flag.create("夸父智"), ep);
+        assertEquals("夸父智", h.getVodFlag());
+        assertEquals("ep-zhi", h.getEpisodeUrl());
+        assertEquals("【佬友 LY-96】逃出布迪秀.mkv", h.getVodRemarks());
+    }
+
     /** 同集刷新/恢复仍要能续播，不能被「两部分分离」破坏。 */
     @Test
     public void sameEpisodeUpdateKeepsProgress() {

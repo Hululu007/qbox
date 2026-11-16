@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -101,6 +102,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     private Result mResult;
     private Clock mClock;
     private String mBackdropUrl;
+    private long mLastBackPressed;
     private String mFallbackPic;
     /** 当前内容区行高（px），用来判断海报尺寸是否真的变了。 */
     private int mRowHeight = -1;
@@ -940,9 +942,15 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         } else if (mBinding.recycler.getSelectedPosition() != 0) {
             mBinding.recycler.scrollToPosition(0);
         } else {
-            // 安全退出：首页再按返回就真的退出 App（停后台播放 + 移除任务回电视桌面），
-            // 不再「只切后台」——否则某些固件回到前台后黑屏，按多少次返回都退不出去。
-            App.exitApp();
+            // 与 FongMi 首页一致：第一次返回只提示，短时间内再按一次才真正退出，
+            // 避免误触返回直接结束 App；长按返回仍有 BaseActivity 的逃生逻辑。
+            long now = System.currentTimeMillis();
+            if (now - mLastBackPressed > 2000) {
+                mLastBackPressed = now;
+                Toast.makeText(this, R.string.home_exit_again, Toast.LENGTH_SHORT).show();
+            } else {
+                App.exitApp();
+            }
         }
     }
 

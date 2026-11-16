@@ -376,6 +376,7 @@
     <string name="play_repeat_off">：关</string>
     <string name="play_speed_toast">倍速 %1$sx</string>
     <string name="home_retry_failed">首页内容加载失败，可在设置里换源或稍后重进</string>
+    <string name="home_exit_again">再按一次返回退出 QBox</string>
     <string name="keep_empty">还没有收藏内容，在详情页点「收藏」加入</string>
 
     <!-- Update -->
