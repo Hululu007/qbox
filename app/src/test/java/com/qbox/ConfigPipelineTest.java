@@ -4,6 +4,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.fongmi.android.tv.api.Decoder;
 import com.github.catvod.utils.Json;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import org.junit.Test;
