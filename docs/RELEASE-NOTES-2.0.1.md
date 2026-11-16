@@ -8,6 +8,7 @@
 
 - 沿用实际 APK 使用的 QBox 立方体 Q 标识：启动器、设置页、首页头部、启动图和 Android TV 横幅使用同一套视觉。旧的蓝红六边形标识废弃，不再使用。
 - 保留实际 APK 使用的立方体 Q 图标资源：各密度启动图标、自适应图标与启动图保持一致；旧的蓝红六边形标识废弃，不再使用。
+- 修复快进/拖动进度时暂停图标残留：seek 过程中播放器短暂 `isPlaying=false`，旧逻辑误判为暂停，自动恢复播放后中央暂停标志仍不消失；现在只在 `playWhenReady=false` 的用户主动暂停状态显示。
 - `AndroidManifest.xml` 显式配置 `android:icon` / `android:roundIcon`，并在 `HomeActivity` 上声明图标，避免部分电视系统在 Toast、安装器或启动器中回退到默认 Android 机器人图标。
 - 同时保留 `mipmap-anydpi-v26` 自适应图标与各密度 PNG，兼容不同 Android TV 版本的图标读取链路。
 - 重写 README：补充项目性质、上游来源、截图、构建与发布说明。

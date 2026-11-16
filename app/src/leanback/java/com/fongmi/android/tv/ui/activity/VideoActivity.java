@@ -1393,9 +1393,15 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         hideInfo();
     }
 
+    /** 用户主动暂停：必须已离开 buffering/idle/ended，且 playWhenReady 确实为 false。
+     *  seek 过程中播放器会短暂 isPlaying=false，但 playWhenReady 仍为 true，不能当成暂停。 */
+    private boolean isPausedByUser() {
+        return service() != null && !isIdle() && !isBuffering() && !isEnded() && !player().isPlayWhenReady();
+    }
+
     /** 暂停中央标志：只保留暂停图标；进度条本身已显示时间，不再重复时间和背景。 */
     private void showPausedCenter() {
-        if (mBinding == null) return;
+        if (mBinding == null || !isPausedByUser()) return;
         try {
             mBinding.widget.action.setImageResource(R.drawable.ic_widget_pause);
             mBinding.widget.center.setVisibility(View.VISIBLE);
@@ -1697,8 +1703,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
                 hideProgress();
                 player().reset();
                 mClock.setCallback(this);
-                // seek/buffering 期间暂停中央标志被 showProgress 收起，READY 后若仍暂停恢复它。
-                if (isPaused() && !isEnded()) showPausedCenter();
+                // seek/buffering 期间暂停中央标志被 showProgress 收起，READY 后仅在用户确实暂停时恢复它。
+                if (isPausedByUser()) showPausedCenter();
                 break;
             case Player.STATE_ENDED:
                 hideProgress();
@@ -1715,7 +1721,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         if (isPlaying) {
             mBinding.poster.setVisibility(View.GONE);
             hideCenter();
-        } else if (isPaused()) {
+        } else if (isPausedByUser()) {
             // 暂停顶部去标题留时钟——标题/时间底部精简态已有，
             // 但右上角时钟用户明确要留：top 只亮时钟，标题/分辨率保持 GONE。
             mBinding.widget.title.setVisibility(View.GONE);
@@ -2263,7 +2269,7 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
         mKeyDown.reset();
         // seek 结束收起转圈/网速；若仍在 buffering，onStateChanged 会重新 showProgress。
         hideProgress();
-        if (isPaused() && !isEnded()) showPausedCenter();
+        if (isPausedByUser()) showPausedCenter();
         App.removeCallbacks(mHideControl);
         // 进度条拖动释放：控制条是用户显式呼出的，回常规 5s 计时，不按「借出显示」1.8s 收起。
         if (seekFocus) setR1Callback();
