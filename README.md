@@ -27,7 +27,7 @@ QBox 是 **FongMi/TV 的 UI / 交互重构版 TVBox 客户端**，面向 Android
   <img src="docs/screenshots/ui-cinema/v202-home.jpg" width="49%" alt="首页">
   <img src="docs/screenshots/ui-cinema/v201-class.jpg" width="49%" alt="分类与筛选">
   <img src="docs/screenshots/ui-cinema/v201-detail.jpg" width="49%" alt="详情页">
-  <img src="docs/screenshots/ui-cinema/v202-episodes.jpg" width="49%" alt="长资源名选集滚动">
+  <img src="docs/screenshots/ui-cinema/v202-episodes.jpg" width="100%" alt="长资源名选集滚动">
   <img src="docs/screenshots/ui-cinema/v201-player.jpg" width="49%" alt="播放控制条">
   <img src="docs/screenshots/ui-cinema/v201-pause.jpg" width="49%" alt="暂停精简态">
   <img src="docs/screenshots/ui-cinema/v202-setting.jpg" width="49%" alt="设置页">
