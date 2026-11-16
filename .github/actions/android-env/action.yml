@@ -25,6 +25,10 @@ inputs:
     description: download the Robolectric android-all jar (only needed when unit tests run)
     required: false
     default: 'true'
+  allow_ephemeral:
+    description: generate a run-only keystore when secrets are absent (debug/CI builds only)
+    required: false
+    default: 'false'
 
 runs:
   using: composite
@@ -52,17 +56,30 @@ runs:
         IN_ALIAS: ${{ inputs.key_alias }}
         IN_PATH: ${{ inputs.keystore_path }}
         IN_SHA256: ${{ inputs.expect_sha256 }}
+        ALLOW_EPHEMERAL: ${{ inputs.allow_ephemeral }}
       run: |
         set -e
+        EPHEMERAL=0
         if [ -z "$IN_B64" ] || [ -z "$IN_PASSWORD" ]; then
-          echo "::error::Missing keystore Secrets (base64 and/or password). Refusing to fall back to a random key."
-          exit 1
+          if [ "$ALLOW_EPHEMERAL" != "true" ]; then
+            echo "::error::Missing keystore Secrets (base64 and/or password). Refusing to fall back to a random key."
+            exit 1
+          fi
+          echo "::warning::No keystore Secrets; generating a run-only CI key (never use it for release)."
+          EPHEMERAL=1
+          IN_PASSWORD="qbox-ci-ephemeral"
+          IN_ALIAS="${IN_ALIAS:-qbox-ci}"
+          mkdir -p "$(dirname "$IN_PATH")"
+          keytool -genkeypair -keystore "$IN_PATH" -storepass "$IN_PASSWORD" -keypass "$IN_PASSWORD" \
+            -alias "$IN_ALIAS" -keyalg RSA -keysize 2048 -validity 3650 \
+            -dname "CN=QBox CI, OU=CI, O=QBox, C=CN" > /dev/null
+        else
+          mkdir -p "$(dirname "$IN_PATH")"
+          echo "$IN_B64" | base64 -d > "$IN_PATH"
+          # Fail fast with a clear message instead of a cryptic KeytoolException deep in :app:package*
+          keytool -list -keystore "$IN_PATH" -storepass "$IN_PASSWORD" -alias "$IN_ALIAS" > /dev/null \
+            || { echo "::error::Keystore password/alias mismatch (alias=$IN_ALIAS). Check the Secrets."; exit 1; }
         fi
-        mkdir -p "$(dirname "$IN_PATH")"
-        echo "$IN_B64" | base64 -d > "$IN_PATH"
-        # Fail fast with a clear message instead of a cryptic KeytoolException deep in :app:package*
-        keytool -list -keystore "$IN_PATH" -storepass "$IN_PASSWORD" -alias "$IN_ALIAS" > /dev/null \
-          || { echo "::error::Keystore password/alias mismatch (alias=$IN_ALIAS). Check the Secrets."; exit 1; }
 
         sdk_root="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
         printf 'sdk.dir=%s\n' "$sdk_root" > local.properties
@@ -74,7 +91,7 @@ runs:
         actual=$(keytool -list -v -keystore "$IN_PATH" -storepass "$IN_PASSWORD" -alias "$IN_ALIAS" \
           | awk -F': ' '/SHA256:/{print $2; exit}' | tr -d ':' | tr 'A-F' 'a-f')
         echo "keystore alias=$IN_ALIAS sha256=$actual"
-        if [ -n "$IN_SHA256" ]; then
+        if [ -n "$IN_SHA256" ] && [ "$EPHEMERAL" != "1" ]; then
           expected=$(echo "$IN_SHA256" | tr -d ':' | tr 'A-F' 'a-f')
           if [ "$actual" != "$expected" ]; then
             echo "::error::Keystore fingerprint mismatch: expected $expected but got $actual"

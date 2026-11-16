@@ -49,6 +49,8 @@ jobs:
           keystore_password: ${{ secrets.QBOX_DEBUG_KEYSTORE_PASSWORD }}
           key_alias: ${{ secrets.QBOX_DEBUG_KEY_ALIAS }}
           keystore_path: /tmp/qbox-ci/qbox-ci.jks
+          # 没配 Secrets 时退化为本次运行专用临时签名（仅夜构建调试包）
+          allow_ephemeral: true
           expect_sha256: c4844d812b319824521100e8ae61173281af46bfab93c781380e1f7ec96e0d4d
 
       - name: Build media AARs
