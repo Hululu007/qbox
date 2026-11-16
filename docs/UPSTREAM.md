@@ -1,12 +1,20 @@
 # 上游与 QBox 的改动
 
-QBox 是 [FongMi/TV](https://github.com/FongMi/TV) 的二次开发。这里记录 2.0.0 所对齐的上游版本、保留范围，以及 QBox 自己做了什么，方便后续维护和审计。
+QBox 是 [FongMi/TV](https://github.com/FongMi/TV) 的二次开发。这里记录 2.0.x 所对齐的上游版本、保留范围，以及 QBox 自己做了什么，方便后续维护和审计。
+
+## 项目性质
+
+QBox 的定位是 **FongMi/TV 的 UI / 交互重构版 TVBox 客户端**，面向 Android TV 与电视盒子。
+
+- 本项目**不涉及视频源等信息**：不提供、不内置、不采集、不托管、不分发任何视频源、影视内容、直播源、账号或配置接口；
+- 主要工作是基于个人使用习惯和审美，对界面布局、焦点逻辑、遥控器交互、播放控制与视觉样式做重构；
+- 与 FongMi 官方没有隶属关系，也不是 FongMi 官方发行版。
 
 ## 上游版本
 
 | 层 | 上游仓库 | 版本 / 提交 | 说明 |
 |---|---|---|---|
-| TV App | [FongMi/TV](https://github.com/FongMi/TV) | **5.6.1 / `125468f0`**（2026-08-27） | QBox 2.0.0 的播放内核与 App 层对齐到这一提交 |
+| TV App | [FongMi/TV](https://github.com/FongMi/TV) | **5.6.1 / `125468f0`**（2026-08-27） | QBox 2.0.x 的播放内核与 App 层对齐到这一提交 |
 | 媒体层 | [FongMi/media](https://github.com/FongMi/media) | **`release-1.11.0-fongmi` / `3c2cbe8`** | media3 **1.11.0**，自编 18 个 `lib-*-release.aar`，QBox 不改这一层 |
 
 ### 为什么把 5.6.1 作为兼容天花板
@@ -16,7 +24,7 @@ QBox 是 [FongMi/TV](https://github.com/FongMi/TV) 的二次开发。这里记�
 - `773cae11`（libass 相关）起，编译就会缺类；
 - 5.7.8（`4de3f2d`）、5.8.4（`b1bab5b`）都在天花板之上。
 
-因此 2.0.0 选择 **`125468f0`（5.6.1）** 作为 TV 源码的对齐点：它能拿到 FongMi 完整的 Controller / State / Request / Preloader / 播放守卫等 App 层健壮性，同时保持 media3 1.11.0 不动。
+因此 2.0.x 选择 **`125468f0`（5.6.1）** 作为 TV 源码的对齐点：它能拿到 FongMi 完整的 Controller / State / Request / Preloader / 播放守卫等 App 层健壮性，同时保持 media3 1.11.0 不动。
 
 ## QBox 做了什么
 
@@ -40,7 +48,7 @@ QBox 是 [FongMi/TV](https://github.com/FongMi/TV) 的二次开发。这里记�
 
 ### Tier B：现在不做
 
-以下功能依赖 FongMi/media 后续公开的新类，2.0.0 **不包含**，等上游 media 版本放开后再补：
+以下功能依赖 FongMi/media 后续公开的新类，2.0.x **不包含**，等上游 media 版本放开后再补：
 
 - Disc（DiscMenu / 光盘菜单）
 - Motion（动态背景/动效）
@@ -56,7 +64,7 @@ QBox 是 [FongMi/TV](https://github.com/FongMi/TV) 的二次开发。这里记�
 
 ## 验证范围
 
-2.0.0 发布前做了两层验证：
+2.0.x 发布前做了两层验证：
 
 - JVM / Robolectric 单测与 CI 构建闸门；
 - 真实电视盒子（Android 9 / 1080p / armeabi-v7a）验收：两条线路点集、切集、重启后续播、片尾/自动下一集、换源、媒体键、后台、720p 覆盖布局。

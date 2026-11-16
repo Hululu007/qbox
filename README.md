@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="branding/qbox-logo.png" width="120" alt="QBox logo">
+  <img src="branding/qbox-logo.png" width="132" alt="QBox logo">
 </p>
 
 <h1 align="center">QBox</h1>
 
-**为 Android TV 和电视盒子打造的清爽播放器。** 无广告、无捆绑、不强制登录，导入你自己的配置源即可使用。
+**为 Android TV 和电视盒子打造的清爽播放器。** 无广告、无捆绑、不强制登录，导入你自己的 TVBox 兼容配置即可使用。
 
 > A clean, ad-free video player for Android TV & TV boxes. Bring your own TVBox-compatible source.
 
@@ -14,14 +14,23 @@
 > 界面上的分类、海报、搜索结果和直播频道，全部来自你自己导入的配置源；
 > 是否使用、如何使用，以及所使用内容是否合法，由你自行判断并承担全部责任。
 
+## 项目性质
+
+QBox 是 **FongMi/TV 的 UI / 交互重构版 TVBox 客户端**，面向 Android TV 与电视盒子。
+
+- 本项目**不涉及视频源等信息**：不提供、不内置、不采集、不托管、不分发任何视频源、影视内容、直播源、账号或配置接口；
+- 主要工作是基于个人使用习惯和审美，对 FongMi/TV 的界面布局、焦点逻辑、遥控器交互、播放控制与视觉样式做重构；
+- 播放内核、媒体层和上游基础能力来自 FongMi/TV 与 FongMi/media，版权归其原作者所有；
+- QBox 与 FongMi 官方没有隶属关系，也不是 FongMi 官方发行版。
+
 <p align="center">
-  <img src="docs/screenshots/ui-cinema/v1923-home.jpg" width="49%" alt="首页">
-  <img src="docs/screenshots/ui-cinema/v1923-class.jpg" width="49%" alt="分类与筛选">
-  <img src="docs/screenshots/ui-cinema/v1923-detail.jpg" width="49%" alt="详情页">
-  <img src="docs/screenshots/ui-cinema/v1923-player.jpg" width="49%" alt="播放控制条">
-  <img src="docs/screenshots/ui-cinema/v1923-pause.jpg" width="49%" alt="暂停精简态">
-  <img src="docs/screenshots/ui-cinema/v1923-setting.jpg" width="49%" alt="设置页">
-  <img src="docs/screenshots/ui-cinema/v1923-track.jpg" width="49%" alt="轨道选择">
+  <img src="docs/screenshots/ui-cinema/v201-home.jpg" width="49%" alt="首页">
+  <img src="docs/screenshots/ui-cinema/v201-class.jpg" width="49%" alt="分类与筛选">
+  <img src="docs/screenshots/ui-cinema/v201-detail.jpg" width="49%" alt="详情页">
+  <img src="docs/screenshots/ui-cinema/v201-player.jpg" width="49%" alt="播放控制条">
+  <img src="docs/screenshots/ui-cinema/v201-pause.jpg" width="49%" alt="暂停精简态">
+  <img src="docs/screenshots/ui-cinema/v201-setting.jpg" width="49%" alt="设置页">
+  <img src="docs/screenshots/ui-cinema/v201-track.jpg" width="49%" alt="轨道选择">
 </p>
 
 ## 为什么用 QBox
@@ -40,6 +49,7 @@ QBox 只负责把配置源里的内容展示出来并播放，本身不生产、
 - 海报墙、分类浏览、筛选、聚合搜索——展示的是你导入的配置源里的内容
 - 遥控器优先设计：焦点清楚、层级简单，老人小孩也能上手
 - 播放记录、收藏、断点续播，数据只保存在本机
+- 沿用 QBox 立方体 Q 标识，启动器、设置页、首页头部、启动图和 Android TV 横幅使用同一套视觉
 
 **播放器能力**
 
@@ -65,24 +75,8 @@ QBox 只负责把配置源里的内容展示出来并播放，本身不生产、
 - 两个包使用相同签名，可以直接覆盖安装，数据不会丢失
 - **签名已更换**：装过 1.9.12 或更早版本的用户，需要先卸载旧版再安装
   （配置、播放记录、收藏会清空）；1.9.13 及之后的版本签名一致，可直接覆盖
-- 1.9.13 及之后的老客户端，启动弹窗或「设置 → 版本」检查更新，点「更新」即可升级到 2.0.0
+- 1.9.13 及之后的老客户端，启动弹窗或「设置 → 版本」检查更新，点「更新」即可升级到最新版
 - 更早的安装包已从 Releases 移除，请只使用本页最新版本
-
-## 源码
-
-QBox 是 [FongMi/TV](https://github.com/FongMi/TV) 5.6.1 的二次开发，遵循 GPL-3.0。
-
-- 本仓库 `zqs1qiwan/qbox` 是 QBox 的**唯一源码仓与发布仓**，`main` 是长期维护分支
-- 上游版本、对齐范围和 QBox 的改动见 [`docs/UPSTREAM.md`](docs/UPSTREAM.md)
-- 每个 Release 都附带对应版本的源码包 `QBox-<版本>-source.zip`
-- media 相关 AAR 由公开的 [FongMi/media](https://github.com/FongMi/media) `release-1.11.0-fongmi` 分支构建
-- 旧私有开发仓 `qbox-tv` 已归档为只读；后续开发、Issue、Release 都在本仓库进行
-
-## 维护
-
-- 源码、Issue、Release 统一在 `zqs1qiwan/qbox`
-- 发布方式：`main` 打 `v*` tag → GitHub Release；资产名 `QBox-<版本>-<abi>.apk` 与 `QBox-<版本>-source.zip`
-- 私有仓 `qbox-tv` 已归档，只读，不再接收提交
 
 ## 安装
 
@@ -121,23 +115,6 @@ QBox 会检查 GitHub 最新版本：
 - 弹窗里点「更新」即可下载并安装，无需手动找安装包
 - 如果网络无法访问 GitHub，可以到 Releases 页面手动下载
 
-## 常见问题
-
-**安装时提示「应用未安装」？**
-确认安装包架构与设备匹配；删除旧版残留或清理存储空间后重试。仍不行可用 U 盘重新拷贝安装。
-
-**能播放但很卡？**
-在播放页按「更多」切换硬解 / 软解，或返回详情页换一条线路、换一个内容源。
-
-**只有声音没有画面？**
-切换解码方式或视轨；部分片源与设备解码器不兼容，换源通常可以解决。
-
-**语音搜索用不了？**
-部分电视盒子没有内置语音识别服务，可以用遥控器直接输入；QBox 会给出提示。
-
-**检查更新失败？**
-说明当前网络无法访问 GitHub。到 [Releases](https://github.com/zqs1qiwan/qbox/releases/latest) 手动下载即可。
-
 ## 隐私
 
 - 不收集个人信息，不接入统计或广告 SDK
@@ -148,49 +125,22 @@ QBox 会检查 GitHub 最新版本：
 
 遇到问题或有建议，欢迎提交 [Issue](https://github.com/zqs1qiwan/qbox/issues)。
 
-## 致谢与许可
+## 源码与上游
 
-QBox 基于 [FongMi/TV](https://github.com/FongMi/TV) 二次开发，遵循 **GPL-3.0** 许可证。
-播放能力来自 AndroidX Media3 / ExoPlayer 与 MPV。
+QBox 是 [FongMi/TV](https://github.com/FongMi/TV) 5.6.1 的二次开发，遵循 **GPL-3.0**。
 
-QBox 仅作为播放器工具，不提供、不存储、不分发任何影视资源。
-所有内容均来自用户自行导入的第三方配置源，与 QBox 项目无关。
-请遵守你所在地区的法律法规，支持正版内容。
-
----
-
-## 开发者：QBox 源码
-
-
-QBox 是面向 Android TV / 电视盒子的播放器，基于 [FongMi/TV 5.6.1](https://github.com/FongMi/TV) 定制。
-**QBox 只提供播放器本身，不提供、不内置、不附带任何影视内容或配置源**，所有内容由用户自行导入配置后显示。
-
-- 应用 ID：`com.qbox.app`
-- 当前版本：`2.0.0`（versionCode 100）
-- 发布分支：`main`（唯一长期分支）
-- 播放内核：FongMi/TV `125468f0`（5.6.1，2026-08-27）；媒体层保持 media3 1.11.0，不升级
-- 许可：GPL-3.0，见 `LICENSE.md`
-
-## 目录
-
-| 路径 | 说明 |
-|---|---|
-| `app/` | Leanback 主模块（`src/leanback` 为电视界面，`src/main` 为公共代码） |
-| `catvod/` | 配置解析 / 爬虫运行时 |
-| `quickjs/` | JS 爬虫引擎 |
-| `app/libs/*.aar` | 媒体层 AAR（ExoPlayer / MPV 等），源码来自 FongMi/media |
-| `thunder/` `tvbus/` `hook/` `jianpian/` `forcetech/` `zlive/` | 对应 AAR 的源码模块，不参与主工程构建 |
-| `docs/` | 上游配置与使用文档 |
-| `smoke/` | 离线 mock、无头截图与基线（合成占位内容，仅调试） |
-| `.github/workflows/ci.yml` | 自动构建/测试；启动无头 AVD 并截首页（签名策略见 `docs/HEADLESS.md`） |
-
-Python 爬虫（Chaquopy）已移除，`com.fongmi.chaquo.Loader` 是空实现，py 站点回退到 `SpiderNull`。
+- 本仓库 `zqs1qiwan/qbox` 是 QBox 的**唯一源码仓与发布仓**，`main` 是长期维护分支
+- 当前版本：**2.0.1**（versionCode 101）
+- TV 源码对齐 **FongMi/TV 5.6.1（`125468f0`，2026-08-27）**
+- 媒体层来自 [FongMi/media](https://github.com/FongMi/media) 的 `release-1.11.0-fongmi` 分支，保持 media3 **1.11.0**，不升级
+- 上游版本、改动范围与 Tier B 说明见 [`docs/UPSTREAM.md`](docs/UPSTREAM.md)
+- 每个 Release 都附带对应版本的源码包 `QBox-<版本>-source.zip`
+- 旧私有开发仓 `qbox-tv` 已归档为只读；后续开发、Issue、Release 都在本仓库进行
 
 ## 构建
 
 1. JDK 21、Android SDK（compileSdk 37）、Gradle 9.7.1
-2. 自编媒体 AAR：使用 [FongMi/media](https://github.com/FongMi/media) 的 `release-1.11.0-fongmi` 分支，
-   按其中的 `move.txt` 生成 `lib-*-release.aar`，放进 `app/libs/`
+2. 自编媒体 AAR：使用 FongMi/media 的 `release-1.11.0-fongmi` 分支，按 `move.txt` 生成 `lib-*-release.aar`，放进 `app/libs/`
 3. 在仓库根目录创建 `local.properties`（**不要提交**）：
 
 ```properties
@@ -208,38 +158,28 @@ keyPassword=******
 ./gradlew :app:assembleLeanbackArm64_v8aRelease
 ```
 
-产物：`app/build/outputs/apk/leanback*/release/`。
-
 Windows 下可以用 `.toolchain/build.ps1 -Abi all -Variant Release`（脚本在仓库外，自动注入工具链环境变量）。
-
-## 签名
-
-- 签名密钥保存在仓库外，**绝不提交** `*.jks`、`keystore.properties`、`local.properties`
-- release 与 debug 使用同一签名时，可以互相覆盖安装而不丢数据
-- 更换签名后，老版本必须先卸载再安装
-
-## 无头测试 / CI
-
-详见 `docs/HEADLESS.md`。`.github/workflows/ci.yml` 在 Linux runner 上从 FongMi/media `release-1.11.0-fongmi` 构建 18 个 `lib-*-release.aar`，配了 Secrets 时用固定签名、否则生成本次运行专用临时 keystore，跑 Robolectric 单测并打 `leanbackX86_64Debug`；随后以 `smoke/` 中纯合成占位内容启动 720p 无头 AVD，截取 `qbox-home.png` 和 `qbox-home.xml`。
-
-```powershell
-.\smoke\mock-server.ps1
-.\smoke\headless-screenshot.ps1 -StartEmulator -Avd qbox-tv720 -ClearData
-```
-
-CI 通过 `-PqboxTestConfig=<url>` 覆盖 debug 首启配置；不传时默认仍是内置测试源，**release 不带任何内容源**。无头测试只覆盖安装、启动、焦点和版面，播放/解码/HDMI/遥控器仍需真实电视验收。
 
 ## 发布
 
-1. 在 `main` 修改 `app/build.gradle` 的 `versionCode` / `versionName`
-2. 构建两个 ABI 的 release APK，并用正式签名验证证书指纹
-3. `git archive` 导出源码包 `QBox-<版本>-source.zip`
-4. 打 `v<版本>` tag，在本仓库创建 GitHub Release
-5. 资产命名为 `QBox-<版本>-arm64-v8a.apk`、`QBox-<版本>-armeabi-v7a.apk`、`QBox-<版本>-source.zip`；
-   `QBox-latest-*.apk` 为固定下载链接的副本
+1. 修改 `app/build.gradle` 的 `versionCode` / `versionName`
+2. 更新 `docs/RELEASE-NOTES-<版本>.md`
+3. 构建两个 ABI 的 release APK，并用正式签名验证证书指纹
+4. `git archive` 导出源码包 `QBox-<版本>-source.zip`
+5. 提交并打 `v<版本>` tag，CI 自动创建 GitHub Release
+6. 资产命名：`QBox-<版本>-arm64-v8a.apk`、`QBox-<版本>-armeabi-v7a.apk`、`QBox-<版本>-source.zip`；`QBox-latest-*.apk` 是固定下载链接的副本
 
 ## 约束
 
 - **release 包不包含任何内容源**：`QBOX_TEST_CONFIG` 只在 debug 构建注入，`qbox_default.json` 只放在 `src/debug/assets`
 - 不接入统计、广告或账号 SDK
 - 提交前确认没有把 `local.properties`、`*.jks`、`build/`、`Release/` 带进仓库
+
+## 致谢与许可
+
+QBox 基于 [FongMi/TV](https://github.com/FongMi/TV) 二次开发，遵循 **GPL-3.0**。
+播放能力来自 AndroidX Media3 / ExoPlayer 与 MPV。
+
+QBox 仅作为播放器工具，不提供、不存储、不分发任何影视资源。
+所有内容均来自用户自行导入的第三方配置源，与 QBox 项目无关。
+请遵守你所在地区的法律法规，支持正版内容。
