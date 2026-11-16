@@ -182,6 +182,9 @@ public class Updater implements Download.Callback, UpdateListener {
             if (fenced || line.isEmpty() || line.equals("---") || line.startsWith("|")) continue;
             // 版本标题由弹窗自己显示；表格/下载/校验信息不属于「更新内容」。
             if (line.matches("^#*\\s*QBox\\s+v?\\d.*")) continue;
+            if (line.matches("^(本次更新|更新内容|更新说明)[：:]?$")) continue;
+            // 安装/下载说明属于 Release 页面内容，弹窗只保留「这次改了什么」。
+            if (line.matches("^(升级方式|安装方式|下载方式|安装说明|下载地址)[：:]?.*")) break;
             if (line.contains("github.com/") || line.matches("^(SHA-?256|下载地址|发布日期).*")) continue;
             boolean bullet = line.matches("^[-*+]\\s+.*");
             line = line.replaceFirst("^[-*+]\\s+", "");

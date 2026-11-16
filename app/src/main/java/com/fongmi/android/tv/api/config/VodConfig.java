@@ -77,7 +77,7 @@ public class VodConfig extends BaseConfig {
         Config config = Config.vod();
         // QBox：只有 debug 包首次启动自动载入测试源；官方 release 保持空壳，由用户导入配置。
         if (config.isEmpty() && com.fongmi.android.tv.BuildConfig.DEBUG && !DEFAULT_CONFIG.isEmpty()) {
-            config = Config.find(DEFAULT_CONFIG, "老白TVBOX", 0).save();
+            config = Config.find(DEFAULT_CONFIG, "QBox 测试配置", 0).save();
         }
         return config(config);
     }

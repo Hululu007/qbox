@@ -78,8 +78,8 @@ android {
         }
     }
 
-    // CI 可通过 -PqboxTestConfig=<url> 指定 debug 首启配置；默认仍是老白测试源。
-    def qboxTestConfig = (project.findProperty('qboxTestConfig') ?: 'https://tvbox.laobaitv.net').toString().replace('"', '')
+    // 调试首启配置只由本地或 CI 构建参数注入；公开仓不内置任何内容源。
+    def qboxTestConfig = (project.findProperty('qboxTestConfig') ?: '').toString().replace('"', '')
 
     buildTypes {
         release {
@@ -91,7 +91,7 @@ android {
             buildConfigField "String", "QBOX_TEST_CONFIG", '""'
         }
         debug {
-            // debug 包默认内置老白测试源；CI 可用 -PqboxTestConfig=<url> 换成本地 mock。release 里为空。
+            // debug 测试配置由构建参数注入；release 永远为空，首次启动由用户导入配置。
             buildConfigField "String", "QBOX_TEST_CONFIG", '"' + qboxTestConfig + '"'
             // QBox: 调试包同样用 release 证书，debug/release 可互相覆盖安装，不再因签名不一致清数据。
             signingConfig = signingConfigs.release

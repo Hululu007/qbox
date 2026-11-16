@@ -11,4 +11,4 @@
     android:singleLine="true"
     android:textColor="@color/text"
     android:textSize="14sp"
-    tools:text="愛奇異彈幕" />
+    tools:text="示例弹幕" />

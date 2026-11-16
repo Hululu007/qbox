@@ -24,14 +24,14 @@ QBox 是 **FongMi/TV 的 UI / 交互重构版 TVBox 客户端**，面向 Android
 - QBox 与 FongMi 官方没有隶属关系，也不是 FongMi 官方发行版。
 
 <p align="center">
-  <img src="docs/screenshots/ui-cinema/v202-home.jpg" width="49%" alt="首页">
-  <img src="docs/screenshots/ui-cinema/v201-class.jpg" width="49%" alt="分类与筛选">
-  <img src="docs/screenshots/ui-cinema/v201-detail.jpg" width="49%" alt="详情页">
-  <img src="docs/screenshots/ui-cinema/v202-episodes.jpg" width="100%" alt="长资源名选集滚动">
-  <img src="docs/screenshots/ui-cinema/v201-player.jpg" width="49%" alt="播放控制条">
-  <img src="docs/screenshots/ui-cinema/v201-pause.jpg" width="49%" alt="暂停精简态">
-  <img src="docs/screenshots/ui-cinema/v202-setting.jpg" width="49%" alt="设置页">
-  <img src="docs/screenshots/ui-cinema/v201-track.jpg" width="49%" alt="轨道选择">
+  <img src="docs/screenshots/ui-cinema/v203-home.jpg" width="49%" alt="首页">
+  <img src="docs/screenshots/ui-cinema/v203-filter.jpg" width="49%" alt="分类与筛选">
+  <img src="docs/screenshots/ui-cinema/v203-detail.jpg" width="49%" alt="详情页">
+  <img src="docs/screenshots/ui-cinema/v203-settings.jpg" width="49%" alt="设置页">
+  <img src="docs/screenshots/ui-cinema/v203-episodes.jpg" width="100%" alt="长资源名选集滚动">
+  <img src="docs/screenshots/ui-cinema/v203-player.jpg" width="49%" alt="播放控制条">
+  <img src="docs/screenshots/ui-cinema/v203-pause.jpg" width="49%" alt="暂停精简态">
+  <img src="docs/screenshots/ui-cinema/v203-web.png" width="270" alt="手机扫码配置页">
 </p>
 
 ## 为什么用 QBox
@@ -50,6 +50,7 @@ QBox 只负责把配置源里的内容展示出来并播放，本身不生产、
 - 海报墙、分类浏览、筛选、聚合搜索——展示的是你导入的配置源里的内容
 - 遥控器优先设计：焦点清楚、层级简单，老人小孩也能上手
 - 播放记录、收藏、断点续播，数据只保存在本机
+- 手机扫描设置页二维码，打开 QBOX 品牌配置页：远程输入配置、推送播放地址、发送弹幕、管理本地文件
 - 沿用 QBox 立方体 Q 标识，启动器、设置页、首页头部、启动图和 Android TV 横幅使用同一套视觉
 
 **播放器能力**
@@ -136,7 +137,7 @@ QBox 是 [FongMi/TV](https://github.com/FongMi/TV) 5.6.1 的二次开发，遵�
 - 每个 Release 都附带对应版本的源码包 `QBox-<版本>-source.zip`
 - QBox 只做界面与交互重构，不涉及任何视频源、账号或配置接口
 
-开发、构建与发布说明见 [`docs/DEVELOPING.md`](docs/DEVELOPING.md)。
+构建与发布说明面向贡献者，见 [`docs/DEVELOPING.md`](docs/DEVELOPING.md)；普通用户不需要阅读。
 
 ## 致谢与许可
 

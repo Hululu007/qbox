@@ -119,7 +119,7 @@
                 android:textColor="@color/hero_tab_text"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                tools:text="豆豆 | 4K蓝光" />
+                tools:text="我的影视库" />
 
             <View
                 android:layout_width="0dp"
