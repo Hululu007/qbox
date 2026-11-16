@@ -8,7 +8,7 @@
 
 | 工作流 | 触发 | 用途 |
 | --- | --- | --- |
-| `qbox-ci` / `build-debug` | push（`main`）、PR、手动 | 18 个 media AAR、Robolectric 单测、x86_64 + ARM debug APK，签名/包名/ABI/sha256 全校验 |
+| `qbox-ci` / `build-debug` | push（`main`）、PR、手动 | 18 个 media AAR、Robolectric 单测、x86_64 + ARM debug APK，包名/ABI 校验（配了 Secrets 再校验证书指纹） |
 | `qbox-ci` / `smoke` | 依赖上一步（PR 跳过） | 干净 runner 上起 720p TV 模拟器，装机、启动、截图、断言 mock 内容已渲染 |
 | `qbox-ci` / `build-release` | 手动勾 `build_release`、推 `v*` tag | 正式签名 release APK（arm64 + v7a）+ 源码 zip |
 | `tv-nightly` / `build` | 每晚 18:00 UTC、手动 | 完整打包 + 单测 + APK 校验，产出 nightly APK |
@@ -34,10 +34,11 @@
 
 ## 签名（debug 与 release 分开）
 
-- 两套固定签名都放 GitHub Secrets，不进仓库：
+- debug / release 的固定签名放 GitHub Secrets，不进仓库：
   - debug：`QBOX_DEBUG_KEYSTORE_B64`、`QBOX_DEBUG_KEYSTORE_PASSWORD`、`QBOX_DEBUG_KEY_ALIAS`（`qbox-ci`）
   - release：`QBOX_RELEASE_KEYSTORE_B64`（`qbox-release-v2.jks` base64）、`QBOX_RELEASE_STORE_PASSWORD`、`QBOX_RELEASE_KEY_ALIAS`（`qbox`）
-- **不会回落到临时 key**：缺 Secret 直接失败，避免出现「每轮签名都变、装不上」的包。
+- **debug 缺 Secrets 时**（公开仓默认 / 首次 fork）自动生成本次运行专用临时 keystore：仍校验包名与 ABI，跳过固定指纹；配齐 Secrets 后指纹校验照常。
+- **release 不会回落到临时 key**：缺 Secret 直接失败，避免出现「每轮签名都变、装不上」的包。
 - debug 与 release 共用 `com.qbox.app`，同一台设备只能装一个；要共存需给 debug 加 `applicationIdSuffix`（当前未做）。
 
 ## 制品

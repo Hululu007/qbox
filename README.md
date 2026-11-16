@@ -171,7 +171,7 @@ QBox 是面向 Android TV / 电视盒子的播放器，基于 [FongMi/TV 5.6.1](
 | `thunder/` `tvbus/` `hook/` `jianpian/` `forcetech/` `zlive/` | 对应 AAR 的源码模块，不参与主工程构建 |
 | `docs/` | 上游配置与使用文档 |
 | `smoke/` | 离线 mock、无头截图与基线（合成占位内容，仅调试） |
-| `.github/workflows/ci.yml` | 自动构建/测试；启动无头 AVD 并截首页（CI 临时 keystore） |
+| `.github/workflows/ci.yml` | 自动构建/测试；启动无头 AVD 并截首页（签名策略见 `docs/HEADLESS.md`） |
 
 Python 爬虫（Chaquopy）已移除，`com.fongmi.chaquo.Loader` 是空实现，py 站点回退到 `SpiderNull`。
 
@@ -209,7 +209,7 @@ Windows 下可以用 `.toolchain/build.ps1 -Abi all -Variant Release`（脚本�
 
 ## 无头测试 / CI
 
-详见 `docs/HEADLESS.md`。`.github/workflows/ci.yml` 在 Linux runner 上从 FongMi/media `release-1.11.0-fongmi` 构建 18 个 `lib-*-release.aar`，生成仅用于 CI 的临时 keystore，跑 Robolectric 单测并打 `leanbackX86_64Debug`；随后以 `smoke/` 中纯合成占位内容启动 720p 无头 AVD，截取 `qbox-home.png` 和 `qbox-home.xml`。
+详见 `docs/HEADLESS.md`。`.github/workflows/ci.yml` 在 Linux runner 上从 FongMi/media `release-1.11.0-fongmi` 构建 18 个 `lib-*-release.aar`，配了 Secrets 时用固定签名、否则生成本次运行专用临时 keystore，跑 Robolectric 单测并打 `leanbackX86_64Debug`；随后以 `smoke/` 中纯合成占位内容启动 720p 无头 AVD，截取 `qbox-home.png` 和 `qbox-home.xml`。
 
 ```powershell
 .\smoke\mock-server.ps1
