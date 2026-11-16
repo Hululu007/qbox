@@ -828,6 +828,22 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            // 首页根位置的双击返回由 Activity 先接管，避免 Leanback 把 BACK 吃掉只移动焦点。
+            if (event.getRepeatCount() >= 3) {
+                App.exitApp();
+                return true;
+            }
+            boolean atHome = mBinding != null
+                    && mPresenter != null
+                    && !mBinding.progressLayout.isProgress()
+                    && !mPresenter.isDelete()
+                    && mBinding.recycler.getSelectedPosition() == 0;
+            if (atHome && event.getRepeatCount() == 0) {
+                if (event.getAction() == KeyEvent.ACTION_UP) handleHomeBack();
+                return true;
+            }
+        }
         if (KeyUtil.isMenuKey(event)) showDialog();
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             // 顶栏、分类条、内容区三者之间的上下键在 Activity 层统一处理，避免 Leanback 把事件吃掉。
@@ -930,27 +946,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         mClock.stop();
         App.removeCallbacks(mBackdropTask);
         App.removeCallbacks(mFocusGuard);
-    }
-
-    @Override
-    public boolean dispatchKeyEvent(KeyEvent event) {
-        if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-            // 首页根位置的双击返回由 Activity 先接管，避免 Leanback 把 BACK 吃掉只移动焦点。
-            if (event.getRepeatCount() >= 3) {
-                App.exitApp();
-                return true;
-            }
-            boolean atHome = mBinding != null
-                    && mPresenter != null
-                    && !mBinding.progressLayout.isProgress()
-                    && !mPresenter.isDelete()
-                    && mBinding.recycler.getSelectedPosition() == 0;
-            if (atHome && event.getRepeatCount() == 0) {
-                if (event.getAction() == KeyEvent.ACTION_UP) handleHomeBack();
-                return true;
-            }
-        }
-        return super.dispatchKeyEvent(event);
     }
 
     private void handleHomeBack() {
