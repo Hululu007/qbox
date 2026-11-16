@@ -31,6 +31,9 @@ jobs:
   build-debug:
     runs-on: ubuntu-24.04
     timeout-minutes: 90
+    env:
+      # 配了 debug 签名 Secrets 才校验固定指纹；临时签名（fork/公开仓默认）只做包名与 ABI 校验。
+      DEBUG_CERT_SHA256: ${{ secrets.QBOX_DEBUG_KEYSTORE_B64 != '' && 'c4844d812b319824521100e8ae61173281af46bfab93c781380e1f7ec96e0d4d' || '' }}
 
     steps:
       - name: Checkout source
@@ -116,7 +119,7 @@ jobs:
         with:
           apk_glob: 'app/build/outputs/apk/leanbackArmeabi_v7a/debug/*.apk'
           require_abi: armeabi-v7a
-          expected_sha256: c4844d812b319824521100e8ae61173281af46bfab93c781380e1f7ec96e0d4d
+          expected_sha256: ${{ env.DEBUG_CERT_SHA256 }}
           out_dir: artifacts/apk
 
       - name: Verify arm64 debug APK
@@ -124,7 +127,7 @@ jobs:
         with:
           apk_glob: 'app/build/outputs/apk/leanbackArm64_v8a/debug/*.apk'
           require_abi: arm64-v8a
-          expected_sha256: c4844d812b319824521100e8ae61173281af46bfab93c781380e1f7ec96e0d4d
+          expected_sha256: ${{ env.DEBUG_CERT_SHA256 }}
           out_dir: artifacts/apk
 
       - name: Verify x86_64 debug APK
@@ -133,7 +136,7 @@ jobs:
           apk_glob: 'app/build/outputs/apk/leanbackX86_64/debug/*.apk'
           # media fork 的 mpvplayer 只带 arm64/v7a .so，x86_64 flavor 无 native 载荷，跳过 ABI 检查
           require_abi: ''
-          expected_sha256: c4844d812b319824521100e8ae61173281af46bfab93c781380e1f7ec96e0d4d
+          expected_sha256: ${{ env.DEBUG_CERT_SHA256 }}
           out_dir: artifacts/apk
 
       # ---- 存储策略（GitHub Free 只有 500MB artifact 额度，超出会报错）----
@@ -356,3 +359,4 @@ jobs:
             artifacts/apk/SHA256SUMS
           if-no-files-found: warn
           retention-days: 3
+
