@@ -75,6 +75,10 @@ jobs:
         uses: ./.github/actions/media-aars
         timeout-minutes: 45
 
+      - name: Verify brand asset copies
+        shell: bash
+        run: python3 tools/sync-brand-assets.py --check
+
       - name: Unit tests and x86_64 debug APK
         shell: bash
         timeout-minutes: 45
@@ -88,6 +92,7 @@ jobs:
               :app:testLeanbackArm64_v8aDebugUnitTest \
               :app:testLeanbackX86_64DebugUnitTest \
               :app:assembleLeanbackX86_64Debug \
+              :app:assembleMobileArmeabi_v7aDebug \
               -PqboxTestConfig="$MOCK_CFG" \
               -ProbolectricDependencyDir="$GRADLE_USER_HOME/robolectric" \
               --console=plain --no-daemon; then success=1; break; fi

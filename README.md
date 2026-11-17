@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="branding/qbox-logo.png" width="132" alt="QBox logo">
+  <img src="app/src/main/assets/qbox-logo.png" width="132" alt="QBox logo">
 </p>
 
 <h1 align="center">QBox</h1>
