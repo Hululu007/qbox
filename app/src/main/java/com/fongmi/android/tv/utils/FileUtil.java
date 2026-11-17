@@ -53,7 +53,11 @@ public class FileUtil {
             Path.clear(pending);
             throw new java.io.UncheckedIOException(e);
         }
-        Path.clear(target);
+        try {
+            if (!target.delete() && target.exists()) throw new IOException("Failed to delete " + target);
+        } catch (IOException e) {
+            throw new java.io.UncheckedIOException(e);
+        }
     }
 
     public static void gzipDecompress(File target, File path) {
