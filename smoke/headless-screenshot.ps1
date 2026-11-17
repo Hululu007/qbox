@@ -8,12 +8,12 @@
   mock config, launches HomeActivity and saves the resulting screenshot.
 .EXAMPLE
   .\smoke\mock-server.ps1
-  .\smoke\headless-screenshot.ps1 -StartEmulator -Avd qbox-tv720 -ClearData -UpdateBaseline
+  .\smoke\headless-screenshot.ps1 -StartEmulator -Avd qbox-720p -ClearData -UpdateBaseline
 #>
 
 [CmdletBinding()]
 param(
-  [string]$Avd = 'qbox-tv720',
+  [string]$Avd = 'qbox-720p',
   [string]$Package = 'com.qbox.app',
   [int]$Port = 8765,
   # Forward slashes + [IO.Path]::Combine below so this works on Windows and on Linux CI runners.

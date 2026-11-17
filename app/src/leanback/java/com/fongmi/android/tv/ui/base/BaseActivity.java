@@ -15,7 +15,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
-import com.fongmi.android.tv.ui.custom.CustomWallView;
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.utils.Util;
 
 import org.greenrobot.eventbus.EventBus;
@@ -42,15 +42,18 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Override
     public void setContentView(View view) {
         super.setContentView(view);
-        if (!customWall()) return;
-        ((ViewGroup) findViewById(android.R.id.content)).addView(new CustomWallView(this, null), 0, new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        if (!showBackdrop()) return;
+        View backdrop = new View(this);
+        backdrop.setBackgroundResource(R.drawable.shape_backdrop_premium);
+        backdrop.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        ((ViewGroup) findViewById(android.R.id.content)).addView(backdrop, 0, new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT));
     }
 
     protected FragmentActivity getActivity() {
         return this;
     }
 
-    protected boolean customWall() {
+    protected boolean showBackdrop() {
         return true;
     }
 

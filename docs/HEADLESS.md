@@ -46,7 +46,7 @@
 GitHub Free 的额度：**artifact 500MB**（与 Packages 共享）、**cache 10GB/仓库**（独立，不算进 500MB）。
 所以上传策略按「这个 run 立刻要用 / 用户主动要」来分：
 
-- `qbox-tv-debug-apk`：`leanback-armeabi_v7a.apk` + `leanback-arm64_v8a.apk` + `SHA256SUMS`，给电视/盒子。
+- `qbox-debug-apk`：`leanback-armeabi_v7a.apk` + `leanback-arm64_v8a.apk` + `SHA256SUMS`，给电视/盒子。
   **仅 `workflow_dispatch` 与 `v*` tag 上传**（90MB/次）；push 只编译 + 校验、不留档。保留 2 天。
 - `qbox-ci-headless`：x86_64 debug APK（模拟器用），只有 smoke 会下载；PR 不上传。保留 1 天。
 - `qbox-ci-screenshots`：CI 模拟器截图 + UI dump + logcat，保留 2 天。
@@ -59,7 +59,7 @@ GitHub Free 的额度：**artifact 500MB**（与 Packages 共享）、**cache 10
 
 ## 真机流程
 
-agent 从 Actions 页下载 `qbox-tv-debug-apk`，`adb -s <测试盒子>:5555 install -r` 后做真机验收（第三方 spider、硬解、遥控器长按等只能到此完成）。签名固定，正常可直接覆盖升级。
+agent 从 Actions 页下载 `qbox-debug-apk`，`adb -s <测试盒子>:5555 install -r` 后做真机验收（第三方 spider、硬解、遥控器长按等只能到此完成）。签名固定，正常可直接覆盖升级。
 
 ## 相关文件
 
@@ -79,7 +79,7 @@ PowerShell：
 .\smoke\mock-server.ps1
 
 # 再构建 x86_64 debug 包并截图（有 AVD 名称时传 -Avd）
-.\smoke\headless-screenshot.ps1 -StartEmulator -Avd qbox-tv720 -ClearData -UpdateBaseline
+.\smoke\headless-screenshot.ps1 -StartEmulator -Avd qbox-720p -ClearData -UpdateBaseline
 ```
 
 直接以 mock 启动 Debug 配置：

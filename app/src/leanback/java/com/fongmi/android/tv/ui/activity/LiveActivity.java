@@ -117,7 +117,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     @Override
-    protected boolean customWall() {
+    protected boolean showBackdrop() {
         return false;
     }
 

@@ -37,7 +37,6 @@ Vod 配置為一個 JSON 物件，作為應用程式的主要配置入口。配�
 | 欄位          | 類型              | 說明                                                             |
 |-------------|-----------------|----------------------------------------------------------------|
 | `spider`    | `string`        | 全局 Spider JAR 路徑或 URL，提供給所有 `sites` 作為預設爬蟲。支援相對路徑（`./`、`../`）。 |
-| `wallpaper` | `string`        | 桌布圖片或影片的路徑/URL。支援靜態圖、GIF、影片格式。                                 |
 | `logo`      | `string`        | 應用程式 Logo 圖片路徑/URL。                                            |
 | `notice`    | `string`        | 啟動公告文字，將顯示給使用者。                                                |
 | `sites`     | `array<Site>`   | 點播來源清單。詳見 [sites](#sites--點播來源)。                               |
@@ -629,7 +628,6 @@ POST body：`name=劇集名稱&episode=集數名稱`
 ```json
 {
   "spider": "./custom_spider.jar",
-  "wallpaper": "./wallpaper.jpg",
   "logo": "./logo.jpg",
   "notice": "歡迎使用，本配置僅供測試！",
   "sites": [

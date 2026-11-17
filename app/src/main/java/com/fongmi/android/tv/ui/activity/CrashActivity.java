@@ -20,7 +20,7 @@ public class CrashActivity extends BaseActivity {
     private ActivityCrashBinding mBinding;
 
     @Override
-    protected boolean customWall() {
+    protected boolean showBackdrop() {
         return false;
     }
 

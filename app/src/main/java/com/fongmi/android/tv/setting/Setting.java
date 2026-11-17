@@ -6,10 +6,6 @@ import com.github.catvod.utils.Prefers;
 
 public class Setting {
 
-    private static final int MIN_WALL = 0;
-    private static final int MAX_WALL = 4;
-    private static final int MIN_WALL_TYPE = 0;
-    private static final int MAX_WALL_TYPE = 2;
     private static final int MIN_SITE_MODE = 0;
     private static final int MAX_SITE_MODE = 1;
     private static final int MIN_SYNC_MODE = 0;
@@ -51,42 +47,18 @@ public class Setting {
         Prefers.put("hot", hot);
     }
 
-    public static int getWall() {
-        return Math.clamp(Prefers.getInt("wall", 1), MIN_WALL, MAX_WALL);
-    }
-
-    public static void putWall(int wall) {
-        Prefers.put("wall", Math.clamp(wall, MIN_WALL, MAX_WALL));
-    }
-
-    public static int getWallType() {
-        return Math.clamp(Prefers.getInt("wall_type", 0), MIN_WALL_TYPE, MAX_WALL_TYPE);
-    }
-
-    public static void putWallType(int type) {
-        Prefers.put("wall_type", Math.clamp(type, MIN_WALL_TYPE, MAX_WALL_TYPE));
-    }
-
     public static int getThemeColor() {
-        return Prefers.getInt("theme_color", -1);
+        int color = Prefers.getInt("theme_color", -1);
+        return color == 0 ? -1 : color;
     }
 
     public static void putThemeColor(int color) {
         Prefers.put("theme_color", color);
     }
 
-    public static int getWallColor() {
-        return Prefers.getInt("wall_color", 0);
-    }
-
-    public static void putWallColor(int color) {
-        Prefers.put("wall_color", color);
-    }
-
     public static int getDynamicColor() {
         int color = getThemeColor();
-        if (color == -1) return 0;
-        return color != 0 ? color : getWallColor();
+        return color > 0 ? color : 0;
     }
 
     public static int getSiteMode() {

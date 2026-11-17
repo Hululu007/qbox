@@ -117,7 +117,7 @@ public class LiveActivity extends PlaybackActivity implements CustomKeyDown.List
     }
 
     @Override
-    protected boolean customWall() {
+    protected boolean showBackdrop() {
         return false;
     }
 

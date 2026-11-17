@@ -16,8 +16,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.setting.Setting;
-import com.fongmi.android.tv.ui.custom.CustomWallView;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.google.android.material.color.DynamicColors;
 import com.google.android.material.color.DynamicColorsOptions;
@@ -45,15 +45,18 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Override
     public void setContentView(View view) {
         super.setContentView(view);
-        if (!customWall()) return;
-        ((ViewGroup) findViewById(android.R.id.content)).addView(new CustomWallView(this, null), 0, new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        if (!showBackdrop()) return;
+        View backdrop = new View(this);
+        backdrop.setBackgroundResource(R.drawable.shape_backdrop_premium);
+        backdrop.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        ((ViewGroup) findViewById(android.R.id.content)).addView(backdrop, 0, new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT));
     }
 
     protected FragmentActivity getActivity() {
         return this;
     }
 
-    protected boolean customWall() {
+    protected boolean showBackdrop() {
         return true;
     }
 

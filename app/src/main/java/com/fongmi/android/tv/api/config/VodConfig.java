@@ -1,7 +1,5 @@
 package com.fongmi.android.tv.api.config;
 
-import android.text.TextUtils;
-
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.api.Decoder;
 import com.fongmi.android.tv.api.loader.BaseLoader;
@@ -36,7 +34,6 @@ public class VodConfig extends BaseConfig {
     private static final String DEFAULT_CONFIG = com.fongmi.android.tv.BuildConfig.QBOX_TEST_CONFIG;
 
     private Site home;
-    private String wall;
     private Parse parse;
     private List<Doh> doh;
     private List<Rule> rules;
@@ -91,7 +88,6 @@ public class VodConfig extends BaseConfig {
         ads = null;
         doh = null;
         home = null;
-        wall = null;
         parse = null;
         sites = null;
         flags = null;
@@ -175,7 +171,6 @@ public class VodConfig extends BaseConfig {
     private void parseConfig(Config config, JsonObject object) {
         initList(object);
         initLive(config, object);
-        initWall(config, object);
         initSite(config, object);
         initParse(config, object);
         config.setLogo(Json.safeString(object, "logo"));
@@ -199,14 +194,6 @@ public class VodConfig extends BaseConfig {
         Config temp = Config.find(config, LIVE).save();
         boolean sync = LiveConfig.get().needSync(config.getUrl());
         if (sync) LiveConfig.get().config(temp.update()).parse(object);
-    }
-
-    private void initWall(Config config, JsonObject object) {
-        if (Json.isEmpty(object, "wallpaper")) return;
-        this.wall = Json.safeString(object, "wallpaper");
-        Config temp = Config.find(wall, config.getName(), WALL).save();
-        boolean sync = WallConfig.get().needSync(wall);
-        if (sync) WallConfig.get().config(temp.update());
     }
 
     private void initSite(Config config, JsonObject object) {
@@ -303,10 +290,6 @@ public class VodConfig extends BaseConfig {
     public void setHome(Site site) {
         setHome(getConfig(), site, true);
         RefreshEvent.home();
-    }
-
-    public String getWall() {
-        return TextUtils.isEmpty(wall) ? "" : wall;
     }
 
     public Parse getParse(String name) {

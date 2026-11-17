@@ -24,11 +24,10 @@ QBox 是 **FongMi/TV 的 UI / 交互重构版 TVBox 客户端**，面向 Android
 - QBox 与 FongMi 官方没有隶属关系，也不是 FongMi 官方发行版。
 
 <p align="center">
-  <img src="docs/screenshots/ui-cinema/v203-home.jpg" width="49%" alt="首页">
+  <img src="docs/screenshots/ui-cinema/v203-home.jpg" width="100%" alt="首页">
   <img src="docs/screenshots/ui-cinema/v203-filter.jpg" width="49%" alt="分类与筛选">
   <img src="docs/screenshots/ui-cinema/v203-detail.jpg" width="49%" alt="详情页">
-  <img src="docs/screenshots/ui-cinema/v203-settings.jpg" width="49%" alt="设置页">
-  <img src="docs/screenshots/ui-cinema/v203-episodes.jpg" width="100%" alt="长资源名选集滚动">
+  <img src="docs/screenshots/ui-cinema/v203-episodes.jpg" width="100%" alt="自动识别剧集名与长资源名滚动">
   <img src="docs/screenshots/ui-cinema/v203-player.jpg" width="49%" alt="播放控制条">
   <img src="docs/screenshots/ui-cinema/v203-pause.jpg" width="49%" alt="暂停精简态">
   <img src="docs/screenshots/ui-cinema/v203-web.png" width="270" alt="手机扫码配置页">
@@ -48,6 +47,7 @@ QBox 只负责把配置源里的内容展示出来并播放，本身不生产、
 **界面与交互**
 
 - 海报墙、分类浏览、筛选、聚合搜索——展示的是你导入的配置源里的内容
+- 自动识别剧集名：从资源文件名提取集数/期数，左侧显示固定前缀，右侧保留完整原名并滚动展示
 - 遥控器优先设计：焦点清楚、层级简单，老人小孩也能上手
 - 播放记录、收藏、断点续播，数据只保存在本机
 - 手机扫描设置页二维码，打开 QBOX 品牌配置页：远程输入配置、推送播放地址、发送弹幕、管理本地文件
@@ -94,7 +94,7 @@ QBox **不内置、不提供、不推荐任何影视内容或配置源**，需�
 - 配置源由第三方提供，QBox 不参与制作、不审核、不背书其中的内容
 - 请只使用你有权访问的内容；使用第三方配置源产生的任何问题，由使用者自行承担
 - 支持网络地址、本地文件等常见配置格式
-- 设置页可以分别管理点播、直播、壁纸配置
+- 设置页可以分别管理点播、直播配置
 - 配置里带有 `logo` 时，左上角显示配置的 logo；没有则显示 QBox 自己的 logo
 - 首次打开是空白首页，点「添加配置源」即可导入，之后可在设置里随时更换
 

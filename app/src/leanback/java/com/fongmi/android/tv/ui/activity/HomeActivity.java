@@ -29,7 +29,6 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Updater;
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
-import com.fongmi.android.tv.api.config.WallConfig;
 import com.fongmi.android.tv.bean.Cache;
 import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Func;
@@ -331,12 +330,9 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             return;
         }
         vod.load(getCallback());
-        // 直播/壁纸配置原来是主线程同步拉网络，会把首帧拖到十几秒（用户只看到 logo）；
+        // 直播配置原来是主线程同步拉网络，会把首帧拖到十几秒（用户只看到 logo）；
         // 放后台后首页先出加载骨架（转圈 + 正在加载…），直播页自己会 ensureLoaded。
-        Task.submit(() -> {
-            LiveConfig.get().init().load();
-            WallConfig.get().init();
-        });
+        Task.submit(LiveConfig.get().init()::load);
     }
 
     private Callback getCallback() {

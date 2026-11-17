@@ -59,7 +59,7 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
     private int scale;
 
     @Override
-    protected boolean customWall() {
+    protected boolean showBackdrop() {
         return false;
     }
 
