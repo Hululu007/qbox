@@ -15,7 +15,6 @@
   <img src="docs/screenshots/ui-cinema/v203-episodes.jpg" width="100%" alt="剧集列表与长名称滚动">
   <img src="docs/screenshots/ui-cinema/v203-player.jpg" width="49%" alt="播放控制条">
   <img src="docs/screenshots/ui-cinema/v203-pause.jpg" width="49%" alt="暂停精简态">
-  <img src="docs/screenshots/ui-cinema/v203-web.png" width="270" alt="手机扫码配置页">
 </p>
 
 > 界面截图来自 QBox 2.0.3 实机；图中片名、海报、配置名均来自测试配置，仅用于展示界面。QBox 不提供任何内容源。
