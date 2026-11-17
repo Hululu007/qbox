@@ -105,9 +105,14 @@ public class Local implements Process {
         HttpRange range = HttpRange.from(fileLen, headers, etag);
         if (!range.valid()) return createRangeNotSatisfiableResponse(fileLen);
         FileInputStream fis = new FileInputStream(file);
-        skip(fis, range.start);
+        try {
+            skip(fis, range.start);
+        } catch (IOException e) {
+            fis.close();
+            throw e;
+        }
         Response res;
-        if (range.isPartial(fileLen)) {
+        if (range.partial) {
             res = newFixedLengthResponse(Status.PARTIAL_CONTENT, mime, fis, range.length);
             res.addHeader("Content-Range", "bytes " + range.start + "-" + range.end + "/" + fileLen);
         } else {
@@ -153,14 +158,10 @@ public class Local implements Process {
         return relativeTo(parent, rootPath);
     }
 
-    private record HttpRange(long start, long end, long length, boolean valid) {
-
-        public boolean isPartial(long total) {
-            return length < total;
-        }
+    record HttpRange(long start, long end, long length, boolean valid, boolean partial) {
 
         public static HttpRange invalid() {
-            return new HttpRange(0, 0, 0, false);
+            return new HttpRange(0, 0, 0, false, false);
         }
 
         public static HttpRange from(long fileLen, Map<String, String> headers, String etag) {
@@ -171,16 +172,25 @@ public class Local implements Process {
             if (ifRange != null && !ifRange.equals(etag)) rangeHeader = null;
             if (rangeHeader != null && rangeHeader.startsWith("bytes=")) {
                 try {
+                    if (fileLen == 0) return invalid();
                     String[] parts = rangeHeader.substring(6).split("-", 2);
-                    if (!parts[0].isEmpty()) start = Long.parseLong(parts[0]);
-                    if (parts.length > 1 && !parts[1].isEmpty()) end = Long.parseLong(parts[1]);
+                    if (parts.length != 2 || !parts[0].matches("[0-9]*") || !parts[1].matches("[0-9]*")) return invalid();
+                    if (parts[0].isEmpty()) {
+                        long suffix = Long.parseLong(parts[1]);
+                        if (suffix <= 0) return invalid();
+                        start = Math.max(0, fileLen - suffix);
+                    } else {
+                        start = Long.parseLong(parts[0]);
+                        if (!parts[1].isEmpty()) end = Long.parseLong(parts[1]);
+                    }
                     if (start >= fileLen || start > end) return invalid();
                 } catch (NumberFormatException e) {
                     return invalid();
                 }
+                end = Math.min(end, fileLen - 1);
+                return new HttpRange(start, end, end - start + 1, true, true);
             }
-            if (end >= fileLen) end = fileLen - 1;
-            return new HttpRange(start, end, end - start + 1, true);
+            return new HttpRange(start, end, fileLen, true, false);
         }
     }
 }

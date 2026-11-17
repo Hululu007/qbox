@@ -19,6 +19,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URLConnection;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.text.DecimalFormat;
 import java.util.Enumeration;
 import java.util.zip.GZIPInputStream;
@@ -37,15 +39,21 @@ public class FileUtil {
     }
 
     public static void gzipCompress(File target) {
+        File compressed = new File(target.getAbsolutePath() + ".gz");
+        File pending = null;
         byte[] buffer = new byte[16384];
-        try (FileInputStream is = new FileInputStream(target); GZIPOutputStream os = new GZIPOutputStream(new FileOutputStream(target.getAbsolutePath() + ".gz"))) {
-            int read;
-            while ((read = is.read(buffer)) > 0) os.write(buffer, 0, read);
+        try {
+            pending = File.createTempFile("qbox-backup-", ".gz", compressed.getParentFile());
+            try (FileInputStream is = new FileInputStream(target); GZIPOutputStream os = new GZIPOutputStream(new FileOutputStream(pending))) {
+                int read;
+                while ((read = is.read(buffer)) != -1) os.write(buffer, 0, read);
+            }
+            Files.move(pending.toPath(), compressed.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            Path.clear(target);
+            Path.clear(pending);
+            throw new java.io.UncheckedIOException(e);
         }
+        Path.clear(target);
     }
 
     public static void gzipDecompress(File target, File path) {

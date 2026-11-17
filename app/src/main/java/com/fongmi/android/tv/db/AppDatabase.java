@@ -58,7 +58,12 @@ public abstract class AppDatabase extends RoomDatabase {
                 App.post(callback::error);
             } else {
                 Path.write(file, backup.toString().getBytes());
-                FileUtil.gzipCompress(file);
+                try {
+                    FileUtil.gzipCompress(file);
+                } catch (java.io.UncheckedIOException e) {
+                    App.post(callback::error);
+                    return;
+                }
                 App.post(callback::success);
                 cleanOld();
             }

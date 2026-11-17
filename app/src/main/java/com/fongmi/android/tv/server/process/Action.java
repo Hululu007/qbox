@@ -148,8 +148,8 @@ public class Action implements Process {
     }
 
     private void post(Device device, String type, FormBody.Builder body) {
-        try {
-            OkHttp.newCall(OkHttp.client(Constant.TIMEOUT_SYNC), device.getIp().concat("/action?do=sync&mode=0&type=" + type), body.build()).execute();
+        try (okhttp3.Response response = OkHttp.newCall(OkHttp.client(Constant.TIMEOUT_SYNC), device.getIp().concat("/action?do=sync&mode=0&type=" + type), body.build()).execute()) {
+            if (!response.isSuccessful()) throw new java.io.IOException("HTTP " + response.code());
         } catch (Exception e) {
             App.post(() -> Notify.show(e.getMessage()));
         }
