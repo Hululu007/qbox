@@ -33,4 +33,20 @@
         <item name="titleTextColor">@color/white</item>
     </style>
 
+    <!-- Shared advanced-setting dialogs live in main; keep their controls on the
+         mobile Material palette instead of inheriting leanback-only resources. -->
+    <style name="QBoxDialogChip" parent="Widget.Material3.Chip.Filter">
+        <item name="chipStrokeWidth">0dp</item>
+        <item name="chipBackgroundColor">@color/selector_item</item>
+        <item name="android:textColor">@color/selector_text</item>
+        <item name="checkedIconVisible">false</item>
+        <item name="chipIconVisible">false</item>
+    </style>
+
+    <style name="QBoxDialogButton" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textColor">@color/selector_text</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="rippleColor">@android:color/transparent</item>
+    </style>
+
 </resources>
