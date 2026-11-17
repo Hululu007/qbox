@@ -161,7 +161,11 @@ public abstract class BaseBottomSheetDialog extends BottomSheetDialogFragment {
         lp.gravity = Gravity.CENTER;
         // 与主窗口一致：部分电视盒子上报假的刘海安全区（实测左侧 320px），
         // 不设的话 Material 会把安全区转成 sheet 的 marginLeft，面板偏右且右侧被裁掉。
-        lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+            lp.layoutInDisplayCutoutMode = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R
+                    ? WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+                    : WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+        }
         window.setAttributes(lp);
         window.setWindowAnimations(android.R.style.Animation_Dialog);
     }

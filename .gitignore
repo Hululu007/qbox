@@ -13,6 +13,7 @@ local.properties
 keystore.properties
 *.jks
 *.keystore
+*.pass
 .dsh/
 
 # ===== 构建产物 =====

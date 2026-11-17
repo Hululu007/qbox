@@ -73,13 +73,13 @@ android {
         release {
             storeFile file(localProps['storeFile'])
             keyAlias localProps['keyAlias']
-            keyPassword localProps['storePassword']
+            keyPassword localProps['keyPassword'] ?: localProps['storePassword']
             storePassword localProps['storePassword']
         }
     }
 
     // 调试首启配置只由本地或 CI 构建参数注入；公开仓不内置任何内容源。
-    def qboxTestConfig = (project.findProperty('qboxTestConfig') ?: '').toString().replace('"', '')
+    def qboxTestConfig = groovy.json.JsonOutput.toJson((project.findProperty('qboxTestConfig') ?: '').toString())
 
     buildTypes {
         release {
@@ -92,7 +92,7 @@ android {
         }
         debug {
             // debug 测试配置由构建参数注入；release 永远为空，首次启动由用户导入配置。
-            buildConfigField "String", "QBOX_TEST_CONFIG", '"' + qboxTestConfig + '"'
+            buildConfigField "String", "QBOX_TEST_CONFIG", qboxTestConfig
             // QBox: 调试包同样用 release 证书，debug/release 可互相覆盖安装，不再因签名不一致清数据。
             signingConfig = signingConfigs.release
         }

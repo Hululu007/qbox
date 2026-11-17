@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.os.Build;
 import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
@@ -64,7 +65,11 @@ public abstract class BaseAlertDialog extends DialogFragment {
         if (getDialog() == null || getDialog().getWindow() == null) return;
         WindowManager.LayoutParams params = getDialog().getWindow().getAttributes();
         params.width = Util.isLeanback() && !isCompact() ? ResUtil.dp2px(560) : (int) (ResUtil.getScreenWidth() * factor);
-        params.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            params.layoutInDisplayCutoutMode = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+                    ? WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+                    : WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+        }
         getDialog().getWindow().setAttributes(params);
         if (!Util.isLeanback()) return;
         // Material 默认对话框背景自带 ~25dp 内缩（给阴影让位），可见面板会比窗口窄。

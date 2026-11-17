@@ -83,7 +83,7 @@ Vod 配置為一個 JSON 物件，作為應用程式的主要配置入口。配�
 |--------|---------------------------------------|------------------------------------------------------------------|
 | `0`    | HTTP URL                              | 直接 GET 請求，回傳 XML 格式（`ac=videolist`）。                             |
 | `1`    | HTTP URL                              | 直接 GET 請求，回傳 JSON 格式，額外支援 Filter 篩選參數（`f=`）。                     |
-| `3`    | `csp_ClassName` / `xxx.js` / `xxx.py` | 爬蟲直接呼叫：JAR（DexClassLoader）、JavaScript（QuickJS）、Python（Chaquopy）。 |
+| `3`    | `csp_ClassName` / `xxx.js` | 爬蟲直接呼叫：JAR（DexClassLoader）、JavaScript（QuickJS）。QBox 已移除 Python 引擎，`.py` 來源不受支援。 |
 | `4`    | HTTP URL                              | 同 `1`，`ext` 擴充參數以 Base64 編碼傳遞（`ext=`）。                           |
 
 **範例：**

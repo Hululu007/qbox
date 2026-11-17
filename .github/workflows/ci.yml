@@ -1,7 +1,7 @@
 name: qbox-ci
 
 permissions:
-  contents: write
+  contents: read
 
 # 主流水线：每次 push/PR 出 debug 包（x86_64 模拟器用 + ARM 真机用），
 # 手动 dispatch / v* tag 时额外出正式签名 release 包。
@@ -109,7 +109,7 @@ jobs:
         run: |
           set -e
           chmod +x ./gradlew
-          # 真机包不传 -PqboxTestConfig，走 debug 默认测试源；mock 的 10.0.2.2 只有模拟器能通。
+          # 真机包不传 -PqboxTestConfig，首次启动由用户导入配置；mock 的 10.0.2.2 只有模拟器能通。
           success=0
           for attempt in 1 2 3; do
             if ./gradlew \
@@ -265,6 +265,8 @@ jobs:
 
   build-release:
     if: (github.event_name == 'workflow_dispatch' && inputs.build_release == true) || startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
     runs-on: ubuntu-24.04
     timeout-minutes: 90
 
@@ -312,6 +314,10 @@ jobs:
           set -e
           version_name=$(sed -n "s/^\s*versionName\s*\"\(.*\)\"/\1/p" app/build.gradle | head -n1)
           version_code=$(sed -n "s/^\s*versionCode\s*\([0-9]*\)/\1/p" app/build.gradle | head -n1)
+          if [ "$GITHUB_REF_TYPE" = tag ] && [ "$GITHUB_REF_NAME" != "v$version_name" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match versionName $version_name"
+            exit 1
+          fi
           echo "versionName=$version_name versionCode=$version_code"
           echo "VERSION_NAME=$version_name" >> "$GITHUB_ENV"
           echo "VERSION_CODE=$version_code" >> "$GITHUB_ENV"
@@ -363,7 +369,7 @@ jobs:
           cp app/build/outputs/apk/leanbackArmeabi_v7a/release/*.apk "dist/QBox-${VERSION_NAME}-armeabi-v7a.apk"
           cp "dist/QBox-${VERSION_NAME}-arm64-v8a.apk" dist/QBox-latest-arm64-v8a.apk
           cp "dist/QBox-${VERSION_NAME}-armeabi-v7a.apk" dist/QBox-latest-armeabi-v7a.apk
-          sha256sum dist/*.apk dist/*.zip > dist/SHA256SUMS.txt
+          (cd dist && sha256sum *.apk *.zip > SHA256SUMS.txt)
           cat dist/SHA256SUMS.txt
           ls -lh dist/
 

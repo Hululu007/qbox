@@ -31,7 +31,7 @@ runs:
         EXPECT_SHA256: ${{ inputs.expected_sha256 }}
         OUT_DIR: ${{ inputs.out_dir }}
       run: |
-        set -e
+        set -euo pipefail
         sdk_root="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
         build_tools=$(ls -d "$sdk_root"/build-tools/* 2>/dev/null | sort -V | tail -n1)
         [ -n "$build_tools" ] || { echo "::error::no build-tools found"; exit 1; }
@@ -42,6 +42,9 @@ runs:
         echo "using build-tools: $build_tools"
 
         mkdir -p "$OUT_DIR"
+        version_name=$(sed -n 's/^[[:space:]]*versionName[[:space:]]*"\([^"]*\)"/\1/p' app/build.gradle | head -n1)
+        version_code=$(sed -n 's/^[[:space:]]*versionCode[[:space:]]*\([0-9]*\)/\1/p' app/build.gradle | head -n1)
+        [ -n "$version_name" ] && [ -n "$version_code" ] || { echo "::error::could not read expected app version"; exit 1; }
         shopt -s nullglob
         found=0
         for apk in $APK_GLOB; do
@@ -60,13 +63,18 @@ runs:
           fi
 
           echo "--- manifest ---"
-          "$aapt2" dump badging "$apk" | grep -E "^package:|^sdkVersion:|^targetSdkVersion:|native-code" || true
-          pkg=$("$aapt2" dump badging "$apk" | sed -n "s/^package: name='\([^']*\)'.*/\1/p")
+          badging=$("$aapt2" dump badging "$apk")
+          grep -E "^package:|^sdkVersion:|^targetSdkVersion:|native-code" <<< "$badging"
+          pkg=$(sed -n "s/^package: name='\([^']*\)'.*/\1/p" <<< "$badging")
           [ "$pkg" = "com.qbox.app" ] || { echo "::error::$apk package is '$pkg', expected com.qbox.app"; exit 1; }
+          actual_name=$(sed -n "s/^package:.*versionName='\([^']*\)'.*/\1/p" <<< "$badging")
+          actual_code=$(sed -n "s/^package:.*versionCode='\([^']*\)'.*/\1/p" <<< "$badging")
+          [ "$actual_name" = "$version_name" ] && [ "$actual_code" = "$version_code" ] || { echo "::error::$apk version is $actual_name/$actual_code, expected $version_name/$version_code"; exit 1; }
 
           echo "--- ABI payload ---"
           if [ -n "$REQUIRE_ABI" ]; then
-            unzip -l "$apk" | grep -q "lib/$REQUIRE_ABI/" || { echo "::error::$apk has no lib/$REQUIRE_ABI payload"; exit 1; }
+            entries=$(unzip -Z1 "$apk")
+            grep -q "^lib/$REQUIRE_ABI/[^/]*\.so$" <<< "$entries" || { echo "::error::$apk has no lib/$REQUIRE_ABI payload"; exit 1; }
             echo "lib/$REQUIRE_ABI present"
           else
             echo "ABI check skipped (no native libs expected for this flavor)"

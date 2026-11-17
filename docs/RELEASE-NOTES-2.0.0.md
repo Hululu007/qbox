@@ -13,7 +13,7 @@
 - QBox 壳子保持不变：遥控器优先、两排选集网格、点集预览、换源、控制栏、收藏/历史等交互继续可用。
 - 升级检查继续指向本仓库 GitHub Releases；老客户端可以直接点「更新」覆盖安装。
 
-上游来源与改动范围见 [`docs/UPSTREAM.md`](../UPSTREAM.md)。
+上游来源与改动范围见 [`docs/UPSTREAM.md`](UPSTREAM.md)。
 
 ## 实机验收
 

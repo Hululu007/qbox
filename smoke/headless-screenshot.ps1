@@ -28,15 +28,15 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
-$sdk = if ($env:ANDROID_SDK_ROOT) { $env:ANDROID_SDK_ROOT } elseif ($env:ANDROID_HOME) { $env:ANDROID_HOME } else { [IO.Path]::Combine((Split-Path -Parent $root), '.toolchain', 'android-sdk') }
+$sdk = if ($env:ANDROID_SDK_ROOT) { $env:ANDROID_SDK_ROOT } elseif ($env:ANDROID_HOME) { $env:ANDROID_HOME } else { [IO.Path]::Combine($root, '.toolchain', 'android-sdk') }
 # adb/emulator live at the SDK root on all platforms; on Windows they carry .exe, on Linux they do not.
 $adb = [IO.Path]::Combine($sdk, 'platform-tools', 'adb')
 if ($env:OS -eq 'Windows_NT') { $adb += '.exe' }
 if (-not (Test-Path -LiteralPath $adb)) { $adb = (Get-Command adb -ErrorAction Stop).Source }
 $emulator = [IO.Path]::Combine($sdk, 'emulator', 'emulator')
 if ($env:OS -eq 'Windows_NT') { $emulator += '.exe' }
-if (-not (Test-Path -LiteralPath $emulator)) { $emulator = (Get-Command emulator -ErrorAction Stop).Source }
-$gradlew = if ($env:OS -eq 'Windows_NT' -or (Test-Path -LiteralPath (Join-Path $root 'gradlew.bat'))) { Join-Path $root 'gradlew.bat' } else { Join-Path $root 'gradlew' }
+if ($StartEmulator -and -not (Test-Path -LiteralPath $emulator)) { $emulator = (Get-Command emulator -ErrorAction Stop).Source }
+$gradlew = if ($env:OS -eq 'Windows_NT') { Join-Path $root 'gradlew.bat' } else { Join-Path $root 'gradlew' }
 $mock = Join-Path $PSScriptRoot 'mock-server.ps1'
 $output = [IO.Path]::Combine($root, $OutputDir.Replace('\', '/'))
 $baseline = [IO.Path]::Combine($root, $BaselineDir.Replace('\', '/'))
@@ -177,9 +177,9 @@ if (-not (Test-Mock)) {
   $hostExe = if (Get-Command pwsh -ErrorAction SilentlyContinue) { 'pwsh' } else { 'powershell.exe' }
   Write-Host "Starting mock on 127.0.0.1:$Port"
   if ($env:OS -eq 'Windows_NT') {
-    Start-Process $hostExe -ArgumentList @('-NoProfile','-File',$mock,'-Port',[string]$Port,'-PublicBaseUrl',"http://10.0.2.2:$Port") -WindowStyle Hidden | Out-Null
+    Start-Process $hostExe -ArgumentList @('-NoProfile','-File',('"' + $mock + '"'),'-Port',[string]$Port,'-PublicBaseUrl',"http://10.0.2.2:$Port",'-HostAddress','*') -WindowStyle Hidden | Out-Null
   } else {
-    Start-Job -ScriptBlock { param($f,$p,$h) & $h -NoProfile -File $f -Port $p -PublicBaseUrl "http://10.0.2.2:$p" } -ArgumentList $mock,$Port,$hostExe | Out-Null
+    Start-Job -ScriptBlock { param($f,$p,$h) & $h -NoProfile -File $f -Port $p -PublicBaseUrl "http://10.0.2.2:$p" -HostAddress '*' } -ArgumentList $mock,$Port,$hostExe | Out-Null
   }
   for ($i = 0; $i -lt 20 -and -not (Test-Mock); $i++) { Start-Sleep -Milliseconds 250 }
 }
@@ -240,19 +240,22 @@ while ((Get-Date) -lt $deadline) {
   if ($isForeground) {
     if (-not $foregroundOk) { Write-Host "foreground OK: $($focus.ToString().Trim())" }
     $foregroundOk = $true
-  } elseif ($foregroundOk -or $relaunches -lt 3) {
+  } elseif ($relaunches -lt 3) {
+    $foregroundOk = $false
     # 应用被 ANR 杀掉或掉到后台时重新拉起，而不是直接判失败。
     $relaunches++
     Write-Host "app is not foreground (attempt $relaunches), relaunching"
     Start-QBox
     Start-Sleep -Seconds 8
     continue
+  } else {
+    $foregroundOk = $false
   }
   Invoke-AdbText @('shell','uiautomator','dump','/sdcard/qbox-ui.xml') | Out-Null
   Invoke-AdbBinary @('exec-out','cat','/sdcard/qbox-ui.xml') $uiPath
   $ui = Get-Content -LiteralPath $uiPath -Raw
   if (Dismiss-SystemDialog $ui) { continue }
-  if ($foregroundOk -and $ui -match 'Mock Moon|Movie|Series|Documentary' -and $ui -match [regex]::Escape($Package)) { break }
+  if ($isForeground -and $ui -match 'Mock Moon|Movie|Series|Documentary' -and $ui -match [regex]::Escape($Package)) { break }
   Start-Sleep -Seconds 3
 }
 

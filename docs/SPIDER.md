@@ -78,7 +78,7 @@ init(context, ext)
 | `1`    | HTTP URL        | 內建 JSON+Filter      | 直接 GET 請求，回傳 JSON 格式，篩選參數以 `f=` 傳遞。                        |
 | `3`    | `csp_ClassName` | JAR（DexClassLoader） | 從 `jar` 指定的 .jar 檔載入 `com.github.catvod.spider.ClassName`。 |
 | `3`    | `xxx.js`        | JavaScript（QuickJS） | 載入 `.js` 檔作為 Spider。                                       |
-| `3`    | `xxx.py`        | Python（Chaquopy）    | 載入 `.py` 檔作為 Spider。                                       |
+| `3`    | `xxx.py`        | 不受支援    | QBox 已移除 Python / Chaquopy，引擎回退為空 Spider。                                       |
 | `4`    | HTTP URL        | 內建 JSON+Base64 ext  | 同 `1`，擴充參數以 Base64 編碼傳遞（`ext=`）。                           |
 
 > 本文件主要說明 `type=3`（Spider 直接呼叫）的情境。
@@ -808,7 +808,7 @@ http://example.com/cctv1.m3u8
 | 語言         | 回傳 URL 前綴        | 取得代理 URL 的方法                  |
 |------------|------------------|-------------------------------|
 | Java（JAR）  | `proxy://`       | `Proxy.getUrl(boolean local)` |
-| Python     | `proxy://?do=py` | `getProxyUrl(boolean local)`  |
+| Python     | 不受支援 | QBox 已移除 Python 引擎。 |
 | JavaScript | `proxy://?do=js` | `getProxy(boolean local)`     |
 
 > `local` 參數：`true` 取得本地（`127.0.0.1`）代理位址，`false` 取得可對外存取的 LAN IP 位址。

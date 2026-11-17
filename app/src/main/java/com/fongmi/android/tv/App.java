@@ -107,13 +107,13 @@ public class App extends Application implements Application.ActivityLifecycleCal
                 else if (android.content.Intent.ACTION_SCREEN_ON.equals(intent.getAction()) && ScreenGuard.onScreenOn()) post(App::exitApp);
             }
         }, filter);
-        if (BuildConfig.DEBUG) registerReceiver(new android.content.BroadcastReceiver() {
+        if (BuildConfig.DEBUG) androidx.core.content.ContextCompat.registerReceiver(this, new android.content.BroadcastReceiver() {
             @Override
             public void onReceive(Context context, android.content.Intent intent) {
                 // adb shell am broadcast -a com.qbox.app.DEBUG_SIMULATE_WAKE --el ms 1800000
                 if (ScreenGuard.simulateSleep(intent == null ? 0 : intent.getLongExtra("ms", 0))) post(App::exitApp);
             }
-        }, new android.content.IntentFilter(DEBUG_SIMULATE_WAKE));
+        }, new android.content.IntentFilter(DEBUG_SIMULATE_WAKE), androidx.core.content.ContextCompat.RECEIVER_EXPORTED);
     }
 
     public static final String DEBUG_SIMULATE_WAKE = "com.qbox.app.DEBUG_SIMULATE_WAKE";

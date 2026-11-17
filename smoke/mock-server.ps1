@@ -20,7 +20,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $PublicBaseUrl = $PublicBaseUrl.TrimEnd('/')
-$logoPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\branding\qbox-logo.png'))
+$logoPath = [IO.Path]::Combine((Split-Path -Parent $PSScriptRoot), 'app', 'src', 'main', 'assets', 'qbox-logo.png')
 if (Test-Path -LiteralPath $logoPath) {
   $png = [IO.File]::ReadAllBytes($logoPath)
 } else {

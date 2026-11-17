@@ -227,7 +227,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         String jar = sites.isEmpty() || sites.get(0).getJar() == null ? "-" : sites.get(0).getJar();
         if (jar.length() > 46) jar = "…" + jar.substring(jar.length() - 46);
         File dir = com.github.catvod.utils.Path.jar();
-        int cached = dir != null && dir.listFiles() != null ? dir.listFiles().length : 0;
+        File[] cachedFiles = dir == null ? null : dir.listFiles();
+        int cached = cachedFiles == null ? 0 : cachedFiles.length;
         String text = "版本：" + com.fongmi.android.tv.BuildConfig.VERSION_NAME + "\n"
                 + "配置：" + (config == null ? "-" : config.getName()) + "\n"
                 + "地址：" + (config == null ? "-" : config.getUrl()) + "\n"

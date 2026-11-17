@@ -85,7 +85,7 @@ PowerShell：
 .\gradlew :app:assembleLeanbackX86_64Debug -PqboxTestConfig=http://10.0.2.2:8765/config.json
 ```
 
-`-PqboxTestConfig=<url>` 只改 debug 构建配置；默认不传时仍使用内置测试源，release 不受影响。
+`-PqboxTestConfig=<url>` 只改 debug 构建配置；默认不传时不注入测试源，首次启动需要导入配置，release 不受影响。
 
 > Linux 上的 `HttpListener` 会按 `Host` 头匹配注册前缀。模拟器访问的是 `http://10.0.2.2:8765/`，
 > 所以 CI 必须用 `-HostAddress '*'` 启动 mock；只绑 `127.0.0.1` 会被 HttpListener 直接回 404，
