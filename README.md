@@ -132,7 +132,7 @@ QBox 会检查 GitHub 最新版本：
 QBox 是 [FongMi/TV](https://github.com/FongMi/TV) 5.6.1 的二次开发，遵循 **GPL-3.0**。
 
 - 源码与发布：**<https://github.com/zqs1qiwan/qbox>**（唯一源码仓与发布仓，`main` 长期维护）
-- 当前版本：**2.0.3**（versionCode 103）
+- 当前版本：**2.0.4**（versionCode 104）
 - 播放内核来自 FongMi/TV；媒体层来自 FongMi/media 的兼容分支，保持 media3 **1.11.0**
 - 每个 Release 都附带对应版本的源码包 `QBox-<版本>-source.zip`
 - QBox 只做界面与交互重构，不涉及任何视频源、账号或配置接口

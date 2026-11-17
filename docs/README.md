@@ -13,6 +13,7 @@
 | [HEADLESS.md](HEADLESS.md) | CI 与无头 Android TV 测试（合成 mock，不能替代真机验收） |
 | [DEVELOPING.md](DEVELOPING.md) | 开发、构建、发布与仓库约束 |
 | [UPSTREAM.md](UPSTREAM.md) | 上游 FongMi/TV、FongMi/media 版本与 QBox 的改动范围 |
+| [RELEASE-NOTES-2.0.4.md](RELEASE-NOTES-2.0.4.md) | QBox 2.0.4 发布说明（莫兰迪蓝图标、原生 Toast 与 mobile 构建闸门） |
 | [RELEASE-NOTES-2.0.3.md](RELEASE-NOTES-2.0.3.md) | QBox 2.0.3 发布说明（续播、Toast、筛选阴影与配置页修复） |
 | [RELEASE-NOTES-2.0.2.md](RELEASE-NOTES-2.0.2.md) | QBox 2.0.2 发布说明（选集滚动与线路恢复修复） |
 | [RELEASE-NOTES-2.0.1.md](RELEASE-NOTES-2.0.1.md) | QBox 2.0.1 发布说明（图标与文档更新） |

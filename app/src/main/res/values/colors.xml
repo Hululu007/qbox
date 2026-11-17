@@ -5,7 +5,8 @@
          靠底面明度差让面板自然浮出，不靠描边）。取 #12141B：冷调深灰，与标记蓝同族不打架；
          L1 白文字对比仍 ~19:1，72% 黑面板合成后比底色暗 ~3 档，层次可读。 -->
     <color name="qbox_bg">#12141B</color>
-    <color name="qbox_icon_bg">#FFFFFF</color>
+    <!-- Launcher adaptive icon 背景：莫兰迪蓝 #5C8AAB，低饱和但不发灰。 -->
+    <color name="qbox_icon_bg">#5C8AAB</color>
     <color name="qbox_surface">#17171C</color>
     <color name="qbox_line">#2B2B33</color>
     <color name="qbox_text">#FFFFFF</color>
