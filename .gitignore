@@ -37,3 +37,12 @@ lib-*.aar
 /.workbuddy/
 /AGENTS.md
 /STATUS.md
+
+# ===== 仅本地保留（已从公开仓移出） =====
+/thunder/
+/jianpian/
+/zlive/
+/forcetech/
+/hook/
+/tvbus/
+/docs/screenshots/

@@ -2,8 +2,6 @@
 
 安装与日常使用请先看根目录 [README](../README.md)。这里收录配置格式参考与维护资料；`HEADLESS.md`、`DEVELOPING.md` 面向贡献者，普通用户不需要阅读。
 
-界面截图来自 QBox 2.0.3 实机；图中片名、海报、配置名均来自测试配置，仅用于展示界面，QBox 不提供任何内容源。截图在 `screenshots/ui-cinema/`。
-
 | 文档 | 内容 |
 |---|---|
 | [CONFIG.md](CONFIG.md) | 配置接口（TVBox 兼容）：站点、直播、解析、代理、规则等字段 |
