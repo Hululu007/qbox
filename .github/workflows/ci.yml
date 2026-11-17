@@ -178,11 +178,11 @@ jobs:
           if-no-files-found: warn
           retention-days: 2
 
-  # 模拟器冒烟单独 job：干净 runner（磁盘/CPU 不与构建抢），与 nightly 的架构一致。
+  # 模拟器冒烟单独 job：干净 runner（磁盘/CPU 不与构建抢）。
   # 之前塞在 build-debug 里会因 ~40 分钟构建后磁盘/CPU 紧张，模拟器 30 分钟都起不来。
   smoke:
     needs: build-debug
-    # PR 上跳过以省时间；push/main、手动 dispatch 都跑，nightly 每天再兜底。
+    # PR 上跳过以省时间；push/main、手动 dispatch 都跑。
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 60

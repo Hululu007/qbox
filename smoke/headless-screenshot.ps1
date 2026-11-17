@@ -210,7 +210,7 @@ if ($ClearData) { Invoke-AdbText @('shell','pm','clear',$Package) | Out-Null }
 Assert-PackageInstalled $Package
 
 # 无 KVM 的软件模拟下，首次启动的类校验/解释执行会把主线程拖到 ANR
-# （实测 nightly 42961634681：ANR in com.qbox.app -> force finish -> 截图变成桌面）。
+# （实测旧流水线：ANR in com.qbox.app -> force finish -> 截图变成桌面）。
 # 先把 dex 做 AOT 编译（speed），启动耗时能降一个数量级。
 Write-Host "AOT compiling $Package (mode=speed)"
 Invoke-AdbText @('shell','cmd','package','compile','-m','speed','-f',$Package) | Out-Null
@@ -229,7 +229,7 @@ $uiPath = Join-Path $output 'qbox-home.xml'
 $logPath = Join-Path $output 'logcat.txt'
 
 # 轮询：等前台是 QBox，并且 UI 里真的出现了 mock 内容。
-# 只等固定秒数会截到「还在加载」的黑屏/空列表，之前 nightly 就是这样假绿的。
+# 只等固定秒数会截到「还在加载」的黑屏/空列表，之前定时流水线就是这样假绿的。
 $deadline = (Get-Date).AddSeconds([Math]::Max($WaitSeconds, 180))
 $ui = ''
 $foregroundOk = $false

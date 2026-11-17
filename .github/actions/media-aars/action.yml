@@ -2,7 +2,7 @@ name: media-aars
 description: Clone FongMi/media release-1.11.0-fongmi and build the 18 lib-*-release.aar into app/libs
 
 # 主项目依赖的 media3 不是 Maven 版本，而是 FongMi 自编 fork；app/libs 不入库，
-# 所以每次构建都要现编这 18 个模块。ci / tv-nightly 共用同一份逻辑。
+# 所以每次构建都要现编这 18 个模块。qbox-ci 用这份逻辑（旧 tv-nightly 已废弃）。
 inputs:
   expected_count:
     description: minimum number of lib-*.aar expected in app/libs

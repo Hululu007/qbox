@@ -11,12 +11,10 @@
 | `qbox-ci` / `build-debug` | push（`main`）、PR、手动 | 18 个 media AAR、Robolectric 单测、x86_64 + ARM debug APK，包名/ABI 校验（配了 Secrets 再校验证书指纹） |
 | `qbox-ci` / `smoke` | 依赖上一步（PR 跳过） | 干净 runner 上起 720p TV 模拟器，装机、启动、截图、断言 mock 内容已渲染 |
 | `qbox-ci` / `build-release` | 手动勾 `build_release`、推 `v*` tag | 正式签名 release APK（arm64 + v7a）+ 源码 zip |
-| `tv-nightly` / `build` | 每晚 18:00 UTC、手动 | 完整打包 + 单测 + APK 校验，产出 nightly APK |
-| `tv-nightly` / `smoke` | 依赖上一步 | 干净 runner 上起 720p TV 模拟器，装机、启动、截图 |
-| `cache-keepalive` | 每 5 天、手动 | 只 touch Gradle 缓存，防 7 天过期 |
-| `prune-artifacts` | 每天 03:00 UTC、手动 | 删除 3 天前的 artifact，兜住 GitHub Free 的 500MB 制品额度 |
 
-共享逻辑放在 `.github/actions/`，避免各 workflow 之间配置漂移（历史上 nightly 就因为 keystore 变量名写错而连续失败）：
+> 旧 `tv-nightly`、`cache-keepalive`、`prune-artifacts` 三个定时 workflow 已随私有项目废弃删除（2026-11-17）。现在**没有任何定时/scheduled CI**，全部由 push / PR / tag / 手动 dispatch 触发；nightly 的构建与冒烟能力已并入 `qbox-ci`（`build-debug` + `smoke`）。
+
+共享逻辑放在 `.github/actions/`，避免各 workflow 之间配置漂移（历史上 nightly 就因为 keystore 变量名写错而连续失败，这段教训仍保留）：
 
 - `android-env`：校验 Android SDK / 修 `gradle.properties` / 解出签名 keystore / **用 keytool 校验密码与指纹**（密码错会立刻报 `Keystore password/alias mismatch`，不再是打包阶段的 `KeytoolException`）/ 准备 Robolectric 144MB jar（带缓存 + curl 硬超时）。
 - `media-aars`：从 FongMi/media `release-1.11.0-fongmi` 编 18 个 `lib-*-release.aar`（clone 和 gradle 各重试 3 次），并释放 media 源码目录腾磁盘。
@@ -52,7 +50,6 @@ GitHub Free 的额度：**artifact 500MB**（与 Packages 共享）、**cache 10
 - `qbox-ci-screenshots`：CI 模拟器截图 + UI dump + logcat，保留 2 天。
 - `qbox-unit-test-reports`：Robolectric HTML 报告（失败也上传），保留 2 天。
 - `qbox-release-apk`：正式签名 APK ×2 + `QBox-<版本>-source.zip` + `SHA256SUMS`，保留 3 天。
-- `qbox-nightly-apk` / `qbox-nightly-screenshots`：夜间包与模拟器截图，保留 2 天。
 
 历史上 push 每轮都传 90MB 的 ARM 包 + 14 天保留，一天 8 轮就把 500MB 额度撑到 1.4GB
 （报错后 Actions 拒绝上传）。改策略时不要恢复成「每轮全传」。
@@ -114,7 +111,7 @@ PowerShell：
 - 无网络、无真实直播、无真实播放器解码；播放级验收仍走电视。
 - GitHub 托管 runner 无 KVM 时模拟器走软件模拟，启动慢（约 4～6 分钟），故模拟器必须**单独成 job**：
   与构建放同一个 job 时，runner 的磁盘/CPU 已被 media 源码 + Gradle 缓存占满，模拟器 30 分钟都起不来
-  （曾出现 `Timeout waiting for emulator to boot`）。现在 `qbox-ci/smoke` 与 `tv-nightly/smoke` 都是干净 runner。
+  （曾出现 `Timeout waiting for emulator to boot`）。现在 `qbox-ci/smoke` 单独用干净 runner。
 - 无头模拟器的三个坑（都已在脚本里处理，改动时别回退）：
   - `aosp_atd` 镜像没有正常合成管线，`screencap` 全黑（实测 0/921600 非黑像素），必须用 `target: default`；
   - `.NET HttpListener` 按 `Host` 头匹配前缀，mock 必须用 `-HostAddress '*'`，否则配置请求拿到 404；

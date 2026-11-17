@@ -1,7 +1,7 @@
 name: android-env
 description: Verify Android SDK, sanitize gradle.properties, decode signing keystore, prepare Robolectric jar
 
-# 三套 workflow（ci / tv-nightly）共用，避免 keystore 变量名或路径再次漂移。
+# qbox-ci 共用，避免 keystore 变量名或路径再次漂移（旧 tv-nightly 已随私有项目废弃）。
 inputs:
   keystore_b64:
     description: base64 of the keystore (.jks)
@@ -111,7 +111,7 @@ runs:
       # 145MB 的 jar 只在缓存未命中时下载一次。
       run: |
         set -e
-        dir="${GRADLE_USER_HOME:-${{ github.workspace }}/../.toolchain}/robolectric"
+        dir="${GRADLE_USER_HOME:-${{ github.workspace }}/.toolchain}/robolectric"
         jar="$dir/android-all-instrumented-14-robolectric-10818077-i7.jar"
         expected=3fdac2d463f431c6b8d83b9d0ca739e795de75fffedee648c6761bd4bd864701
         urls=(

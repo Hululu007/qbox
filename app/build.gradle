@@ -63,7 +63,7 @@ android {
                 // 那个目录随 actions/cache 一起缓存，145MB 的 jar 只下载一次。
                 test.systemProperty 'robolectric.dependency.dir',
                         (project.findProperty('robolectricDependencyDir')
-                                ?: rootProject.file('../.toolchain/robolectric').absolutePath)
+                                ?: rootProject.file('.toolchain/robolectric').absolutePath)
                 test.testLogging { showStandardStreams = true }
             }
         }
